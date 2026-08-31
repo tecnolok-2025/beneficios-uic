@@ -1,0 +1,5 @@
+PROYECTO NUEVO - BENEFICIOS UIC 3.0.0
+
+No mezclar estos archivos con ninguna versión anterior.
+Crear un repositorio GitHub nuevo y un servicio Render nuevo.
+Conservar la misma DATABASE_URL de Neon para mantener los datos.

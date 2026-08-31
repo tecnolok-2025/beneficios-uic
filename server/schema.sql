@@ -1,0 +1,57 @@
+CREATE TABLE IF NOT EXISTS benefits (
+  id BIGSERIAL PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  partner TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'activo',
+  featured BOOLEAN NOT NULL DEFAULT FALSE,
+  summary TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  concrete_benefit TEXT NOT NULL DEFAULT '',
+  costs_discounts TEXT NOT NULL DEFAULT '',
+  requirements JSONB NOT NULL DEFAULT '[]'::jsonb,
+  scope TEXT NOT NULL DEFAULT '',
+  contact_name TEXT NOT NULL DEFAULT '',
+  contact_phone TEXT NOT NULL DEFAULT '',
+  contact_email TEXT NOT NULL DEFAULT '',
+  start_date DATE,
+  end_date DATE,
+  agreement_url TEXT NOT NULL DEFAULT '',
+  analysis_warnings JSONB NOT NULL DEFAULT '[]'::jsonb,
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS flyers (
+  id BIGSERIAL PRIMARY KEY,
+  benefit_id BIGINT NOT NULL REFERENCES benefits(id) ON DELETE CASCADE,
+  url TEXT NOT NULL DEFAULT '',
+  alt_text TEXT NOT NULL DEFAULT '',
+  position INTEGER NOT NULL DEFAULT 0,
+  image_data BYTEA,
+  mime_type TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS traces (
+  id BIGSERIAL PRIMARY KEY,
+  benefit_id BIGINT REFERENCES benefits(id) ON DELETE SET NULL,
+  benefit_slug TEXT NOT NULL,
+  benefit_title TEXT NOT NULL DEFAULT '',
+  action TEXT NOT NULL DEFAULT 'vista',
+  ip_masked TEXT NOT NULL DEFAULT '',
+  ip_hash TEXT NOT NULL DEFAULT '',
+  city TEXT NOT NULL DEFAULT 'No disponible',
+  region TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT '',
+  device TEXT NOT NULL DEFAULT '',
+  browser TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE benefits ADD COLUMN IF NOT EXISTS costs_discounts TEXT NOT NULL DEFAULT '';
+ALTER TABLE benefits ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE flyers ADD COLUMN IF NOT EXISTS image_data BYTEA;
+ALTER TABLE flyers ADD COLUMN IF NOT EXISTS mime_type TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS traces_created_idx ON traces(created_at DESC);
