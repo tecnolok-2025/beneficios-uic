@@ -26,7 +26,7 @@ npm start
 El log correcto mostrará:
 
 ```text
-beneficios-uic@3.0.2 start
+beneficios-uic@3.0.3 start
 Beneficios UIC NUEVO v3.0.0 · BENEFICIOS_UIC_NUEVO_300
 ```
 

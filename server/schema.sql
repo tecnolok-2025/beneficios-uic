@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS benefits (
   contact_name TEXT NOT NULL DEFAULT '',
   contact_phone TEXT NOT NULL DEFAULT '',
   contact_email TEXT NOT NULL DEFAULT '',
+  company_contacts JSONB NOT NULL DEFAULT '[]'::jsonb,
   start_date DATE,
   end_date DATE,
   agreement_url TEXT NOT NULL DEFAULT '',
@@ -52,6 +53,8 @@ CREATE TABLE IF NOT EXISTS traces (
 
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS costs_discounts TEXT NOT NULL DEFAULT '';
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE benefits ADD COLUMN IF NOT EXISTS company_contacts JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE benefits ADD COLUMN IF NOT EXISTS agreement_url TEXT NOT NULL DEFAULT '';
 ALTER TABLE flyers ADD COLUMN IF NOT EXISTS image_data BYTEA;
 ALTER TABLE flyers ADD COLUMN IF NOT EXISTS mime_type TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS traces_created_idx ON traces(created_at DESC);

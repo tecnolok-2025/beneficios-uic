@@ -119,7 +119,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": null,
     "endDate": null,
-    "analysisWarnings": ["El documento no consigna el día exacto de firma; la vigencia indicada es de 24 meses con renovación automática."]
+    "analysisWarnings": [
+      "El documento no consigna el día exacto de firma; la vigencia indicada es de 24 meses con renovación automática."
+    ]
   },
   {
     "slug": "asesoramiento-legal-innova-lex",
@@ -168,7 +170,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": null,
     "endDate": null,
-    "analysisWarnings": ["El documento recibido es una propuesta con fecha de firma incompleta; corresponde confirmar la vigencia operativa antes de contratar."]
+    "analysisWarnings": [
+      "El documento recibido es una propuesta con fecha de firma incompleta; corresponde confirmar la vigencia operativa antes de contratar."
+    ]
   },
   {
     "slug": "legajos-digitales-compusistem",
@@ -217,7 +221,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-07-03",
     "endDate": null,
-    "analysisWarnings": ["El documento contiene campos pendientes en la cláusula de vigencia; corresponde revalidar plazo y condiciones económicas."]
+    "analysisWarnings": [
+      "El documento contiene campos pendientes en la cláusula de vigencia; corresponde revalidar plazo y condiciones económicas."
+    ]
   },
   {
     "slug": "energia-solar-grupo-solper",
@@ -317,7 +323,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": null,
     "endDate": null,
-    "analysisWarnings": ["El acuerdo deriva los porcentajes y condiciones concretas a un anexo comercial; corresponde revalidarlos antes de contratar."]
+    "analysisWarnings": [
+      "El acuerdo deriva los porcentajes y condiciones concretas a un anexo comercial; corresponde revalidarlos antes de contratar."
+    ]
   },
   {
     "slug": "salud-digital-doc24",
@@ -342,7 +350,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": null,
     "endDate": null,
-    "analysisWarnings": ["El acuerdo no consigna fecha completa ni porcentaje de descuento; corresponde revalidar la oferta comercial vigente."]
+    "analysisWarnings": [
+      "El acuerdo no consigna fecha completa ni porcentaje de descuento; corresponde revalidar la oferta comercial vigente."
+    ]
   },
   {
     "slug": "tratamiento-efluentes-ferraro",
@@ -367,7 +377,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": null,
     "endDate": null,
-    "analysisWarnings": ["El documento no consigna fecha completa ni porcentajes de descuento; corresponde revalidar la propuesta comercial vigente."]
+    "analysisWarnings": [
+      "El documento no consigna fecha completa ni porcentajes de descuento; corresponde revalidar la propuesta comercial vigente."
+    ]
   },
   {
     "slug": "medicina-laboral-irt",
@@ -487,7 +499,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2024-07-01",
     "endDate": null,
-    "analysisWarnings": ["El acuerdo indica una bonificación especial, pero no consigna el porcentaje."]
+    "analysisWarnings": [
+      "El acuerdo indica una bonificación especial, pero no consigna el porcentaje."
+    ]
   },
   {
     "slug": "prensa-networking-noticias-industriales",
@@ -511,7 +525,9 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2024-10-08",
     "endDate": null,
-    "analysisWarnings": ["El acuerdo no establece tarifas, cupos comerciales ni porcentajes de descuento."]
+    "analysisWarnings": [
+      "El acuerdo no establece tarifas, cupos comerciales ni porcentajes de descuento."
+    ]
   },
   {
     "slug": "propiedad-intelectual-mario-cisneros",
@@ -583,6 +599,43 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2023-05-16",
     "endDate": null,
-    "analysisWarnings": ["El convenio contiene el porcentaje de bonificación como 'xx%'. Completar el valor exacto desde el editor cuando sea confirmado."]
+    "analysisWarnings": [
+      "El convenio contiene el porcentaje de bonificación como 'xx%'. Completar el valor exacto desde el editor cuando sea confirmado."
+    ]
+  },
+  {
+    "slug": "finanzas-corporativas-praxis",
+    "title": "Finanzas corporativas y acceso a financiamiento a medida",
+    "partner": "Praxis Finanzas",
+    "category": "Gestión empresarial",
+    "status": "activo",
+    "featured": true,
+    "summary": "Asesoramiento especializado para socios UIC en liquidez, financiamiento, cobertura e inversiones, con relevamiento de necesidades y comparación de alternativas del mercado bancario y de capitales.",
+    "description": "Praxis Finanzas actúa como aliado técnico del Departamento de Finanzas Corporativas de la UIC. El servicio parte de conocer la situación de cada empresa y relevar sus necesidades antes de recomendar alternativas. Puede abarcar mercado de capitales, leasing, ALyCs, SGR y bancos mayoristas, con criterio independiente y acompañamiento durante la operación. Praxis se presenta como agente productor regulado ante la CNV y aclara que no administra ni custodia fondos o títulos: la ejecución y custodia se canalizan mediante los actores registrados correspondientes.",
+    "concreteBenefit": "Acceso al Departamento de Finanzas Corporativas UIC–Praxis por el solo hecho de ser socio, con diagnóstico, recomendación y acompañamiento financiero a medida, evitando soluciones genéricas o productos enlatados.",
+    "costsDiscounts": "El acceso al servicio se habilita por la condición de socio UIC. Si se concreta una operación, las comisiones y costos de mercado se informan previamente y quedan detallados antes de realizar cada movimiento.",
+    "requirements": [
+      "Ser empresa socia activa de la Unión Industrial de Campana",
+      "Canalizar el contacto inicial a través de la UIC o del contacto de Praxis Finanzas",
+      "Compartir la necesidad concreta de liquidez, financiamiento, cobertura o inversión para realizar el relevamiento",
+      "Aceptar previamente los costos y comisiones informados si se decide concretar una operación"
+    ],
+    "scope": "Empresas socias de la UIC que necesiten analizar liquidez, capital de trabajo, inversiones, cobertura, leasing, mercado de capitales, SGR o alternativas de financiamiento.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Cristian E. Castro",
+        "role": "Director · Praxis Finanzas",
+        "phone": "",
+        "email": ""
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/lo-que-hay-que-conocer-del-socio-praxis-finanzas/",
+    "startDate": "2026-08-31",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
   }
 ]

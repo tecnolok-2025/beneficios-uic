@@ -10,7 +10,7 @@ const recentSlugs = new Set(['capacitacion-retencion-talento-etrr'])
 const emptyBenefit = {
   title: '', partner: '', category: '', status: 'activo', featured: false, summary: '', description: '',
   concreteBenefit: '', costsDiscounts: '', requirements: [], scope: '', contactName: 'María José Godoy (Majo) – Administración UIC',
-  contactPhone: '3489 65 0104', contactEmail: 'uic@uic-campana.com.ar', startDate: '', endDate: '', published: true
+  contactPhone: '3489 65 0104', contactEmail: 'uic@uic-campana.com.ar', companyContacts: [], agreementUrl: '', startDate: '', endDate: '', published: true
 }
 
 async function request(url, options = {}) {
@@ -58,7 +58,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><span>UIC</span><p>Unión Industrial<br/>de Campana</p></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.2'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.3'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -114,8 +114,8 @@ function Home() {
         </div>
         <aside className="neo-impact">
           <span className="neo-impact-label">IMPACTO PARA EL SOCIO</span>
-          <div className="neo-big-number"><strong>{items.length || 24}</strong><span>beneficios<br/>vigentes</span></div>
-          <div className="neo-impact-grid"><div><strong>10</strong><span>rubros</span></div><div><strong>24</strong><span>beneficios activos</span></div></div>
+          <div className="neo-big-number"><strong>{items.length || 25}</strong><span>beneficios<br/>vigentes</span></div>
+          <div className="neo-impact-grid"><div><strong>10</strong><span>rubros</span></div><div><strong>{items.filter(item => item.status === 'activo').length || 25}</strong><span>beneficios activos</span></div></div>
           <div className="neo-impact-foot"><Check/> Acceso simple, condiciones claras y contacto directo.</div>
         </aside>
       </div>
@@ -150,7 +150,8 @@ function Detail({ slug }) {
       <section><span>EN QUÉ CONSISTE</span><p>{item.description || item.summary}</p></section>
       <section><span>CÓMO ACCEDER</span><ul>{(item.requirements || []).map((requirement, index) => <li key={index}><Check/>{requirement}</li>)}</ul>{item.scope && <p><strong>Alcance:</strong> {item.scope}</p>}</section>
       {item.flyers?.length > 0 && <section><span>MATERIAL VISUAL</span><div className="neo-flyers">{item.flyers.map(flyer => <img key={flyer.id} src={flyer.url} alt={flyer.alt || item.title}/>)}</div></section>}
-    </div><aside className="neo-contact"><span>CONTACTO DIRECTO</span><h2>Solicitá este beneficio</h2><p>La UIC verificará tu condición de socio y te orientará para acceder.</p>{item.contactName && <div><Users/>{item.contactName}</div>}{item.contactPhone && <a onClick={contact} href={`tel:${item.contactPhone}`}><Phone/>{item.contactPhone}</a>}{item.contactEmail && <a onClick={contact} href={`mailto:${item.contactEmail}`}><Mail/>{item.contactEmail}</a>}</aside></div>
+    </div><aside className="neo-contact"><span>CONTACTO UIC</span><h2>Solicitá este beneficio</h2><p>La UIC verificará tu condición de socio y te orientará para acceder.</p>{item.contactName && <div><Users/>{item.contactName}</div>}{item.contactPhone && <a onClick={contact} href={`tel:${item.contactPhone}`}><Phone/>{item.contactPhone}</a>}{item.contactEmail && <a onClick={contact} href={`mailto:${item.contactEmail}`}><Mail/>{item.contactEmail}</a>}</aside></div>
+    <section className="neo-contact-directory neo-shell"><div className="neo-contact-directory-title"><span>DATOS DE CONTACTO</span><h2>Contactos del beneficio</h2><p>Los contactos de la empresa y de la UIC se administran desde el panel privado y pueden actualizarse cuando cambien.</p></div><div className="neo-contact-directory-grid"><article><span>EMPRESA / PRESTADOR</span><h3>{item.partner || 'Empresa adherida'}</h3>{(item.companyContacts || []).length ? (item.companyContacts || []).map((person,index) => <div className="neo-person-contact" key={`${person.email || person.phone || person.name}-${index}`}><strong>{person.name || `Contacto ${index + 1}`}</strong>{person.role && <small>{person.role}</small>}{person.phone && <a onClick={contact} href={`tel:${person.phone}`}><Phone/>{person.phone}</a>}{person.email && <a onClick={contact} href={`mailto:${person.email}`}><Mail/>{person.email}</a>}</div>) : <p className="neo-contact-pending">Contacto de la empresa a completar desde Administración.</p>}</article><article><span>UNIÓN INDUSTRIAL DE CAMPANA</span><h3>Contacto UIC</h3>{item.contactName && <div className="neo-person-contact"><strong>{item.contactName}</strong>{item.contactPhone && <a onClick={contact} href={`tel:${item.contactPhone}`}><Phone/>{item.contactPhone}</a>}{item.contactEmail && <a onClick={contact} href={`mailto:${item.contactEmail}`}><Mail/>{item.contactEmail}</a>}</div>}</article></div>{item.agreementUrl && <a className="neo-source-link" href={item.agreementUrl} target="_blank" rel="noreferrer">Más información del beneficio <ArrowRight/></a>}</section>
   </main><Footer/></>
 }
 
@@ -162,6 +163,14 @@ function Login({ onSuccess }) {
 
 function Field({ label, value, onChange, textarea = false, type = 'text' }) {
   return <label>{label}{textarea ? <textarea value={value || ''} onChange={event => onChange(event.target.value)} rows="4"/> : <input type={type} value={value || ''} onChange={event => onChange(event.target.value)}/>}</label>
+}
+
+function CompanyContactsEditor({ contacts = [], onChange }) {
+  const list = Array.isArray(contacts) ? contacts : []
+  const addContact = () => onChange([...list, { name: '', role: '', phone: '', email: '' }])
+  const updateContact = (index, key, value) => onChange(list.map((contact, position) => position === index ? { ...contact, [key]: value } : contact))
+  const removeContact = index => onChange(list.filter((_contact, position) => position !== index))
+  return <div className="neo-full neo-company-contacts"><div className="neo-company-contacts-head"><div><span>CONTACTOS Y TRAZABILIDAD</span><h3>Contactos de la empresa / prestador</h3><p>Podés agregar, modificar o eliminar personas, teléfonos y correos sin tocar el contacto propio de la UIC.</p></div><button type="button" onClick={addContact}><Plus/> Agregar contacto</button></div>{list.length === 0 ? <div className="neo-company-contacts-empty">Todavía no hay contactos de la empresa cargados.</div> : list.map((person,index) => <div className="neo-company-contact-row" key={index}><Field label="Nombre" value={person.name} onChange={value => updateContact(index,'name',value)}/><Field label="Cargo / función" value={person.role} onChange={value => updateContact(index,'role',value)}/><Field label="Teléfono" value={person.phone} onChange={value => updateContact(index,'phone',value)}/><Field label="Correo" type="email" value={person.email} onChange={value => updateContact(index,'email',value)}/><button type="button" className="neo-remove-contact" onClick={() => removeContact(index)}><X/> Quitar</button></div>)}</div>
 }
 
 function Editor({ items, selected, setSelected, reload }) {
@@ -177,7 +186,7 @@ function Editor({ items, selected, setSelected, reload }) {
     <section className="neo-editor"><div className="neo-editor-title"><div><span>{selected ? 'EDITAR BENEFICIO' : 'NUEVO BENEFICIO'}</span><h2>{selected?.title || 'Crear una oportunidad'}</h2></div></div><div className="neo-form-grid">
       <Field label="Título" value={form.title} onChange={value => change('title', value)}/><Field label="Empresa" value={form.partner} onChange={value => change('partner', value)}/><Field label="Rubro" value={form.category} onChange={value => change('category', value)}/><label>Estado<select value={form.status} onChange={event => change('status', event.target.value)}><option value="activo">Activo</option><option value="revalidacion">En revalidación</option><option value="proximo">Próximamente</option></select></label>
       <div className="neo-full"><Field label="Resumen" textarea value={form.summary} onChange={value => change('summary', value)}/></div><div className="neo-full"><Field label="Beneficio concreto" textarea value={form.concreteBenefit} onChange={value => change('concreteBenefit', value)}/></div><div className="neo-full"><Field label="Costos, descuentos y condiciones" textarea value={form.costsDiscounts} onChange={value => change('costsDiscounts', value)}/></div><div className="neo-full"><Field label="Descripción" textarea value={form.description} onChange={value => change('description', value)}/></div><div className="neo-full"><Field label="Requisitos (uno por línea)" textarea value={(form.requirements || []).join('\n')} onChange={value => change('requirements', value.split('\n').filter(Boolean))}/></div>
-      <Field label="Persona de contacto" value={form.contactName} onChange={value => change('contactName', value)}/><Field label="Teléfono" value={form.contactPhone} onChange={value => change('contactPhone', value)}/><Field label="Correo" type="email" value={form.contactEmail} onChange={value => change('contactEmail', value)}/><Field label="Alcance" value={form.scope} onChange={value => change('scope', value)}/><label className="neo-check"><input type="checkbox" checked={form.published !== false} onChange={event => change('published', event.target.checked)}/> Publicar en el portal</label><label className="neo-upload"><Upload/> Agregar flyers<input type="file" multiple accept="image/*" onChange={event => setFiles([...event.target.files])}/></label>
+      <div className="neo-full neo-uic-contact-heading"><span>CONTACTO UIC</span><p>Este contacto institucional se mantiene separado de los contactos de la empresa.</p></div><Field label="Persona de contacto UIC" value={form.contactName} onChange={value => change('contactName', value)}/><Field label="Teléfono UIC" value={form.contactPhone} onChange={value => change('contactPhone', value)}/><Field label="Correo UIC" type="email" value={form.contactEmail} onChange={value => change('contactEmail', value)}/><Field label="Alcance" value={form.scope} onChange={value => change('scope', value)}/><CompanyContactsEditor contacts={form.companyContacts || []} onChange={value => change('companyContacts', value)}/><div className="neo-full"><Field label="Link de información / convenio" value={form.agreementUrl} onChange={value => change('agreementUrl', value)}/></div><label className="neo-check"><input type="checkbox" checked={form.published !== false} onChange={event => change('published', event.target.checked)}/> Publicar en el portal</label><label className="neo-upload"><Upload/> Agregar flyers<input type="file" multiple accept="image/*" onChange={event => setFiles([...event.target.files])}/></label>
     </div>{message && <div className="neo-message">{message}</div>}{error && <div className="neo-form-error">{error}</div>}<div className="neo-editor-actions">{selected && <button className="danger" onClick={remove}>Eliminar</button>}<button onClick={save}>Guardar beneficio <Check/></button></div></section></div>
 }
 
