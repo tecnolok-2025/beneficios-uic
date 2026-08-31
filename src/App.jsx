@@ -43,7 +43,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><span>UIC</span><p>Unión Industrial<br/>de Campana</p></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.0'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.1'}</strong></span>
         <a className="neo-update" href="/actualizar-version"><RefreshCw/><span>Actualizar versión</span></a>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>

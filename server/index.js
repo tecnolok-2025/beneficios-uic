@@ -12,7 +12,8 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_NUEVO_300'
+const GENERATION = 'BENEFICIOS_UIC_NUEVO_301'
+const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
 const app = express()
@@ -108,10 +109,12 @@ app.use(express.json({ limit: '2mb' }))
 app.use((req, res, next) => { res.setHeader('X-App-Version', VERSION); res.setHeader('X-UI-Generation', GENERATION); next() })
 app.use('/api', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next() })
 
+app.get('/api/version', (_req, res) => res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT }))
+
 app.get('/api/health', async (_req, res) => {
   try {
     const items = await listBenefits()
-    res.json({ ok: true, version: VERSION, generation: GENERATION, database: Boolean(pool), catalogSource: pool ? 'neon' : 'local', catalog: { published: items.length, active: items.filter(x => x.status === 'activo').length, categories: new Set(items.map(x => x.category)).size } })
+    res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT, database: Boolean(pool), catalogSource: pool ? 'neon' : 'local', catalog: { published: items.length, active: items.filter(x => x.status === 'activo').length, categories: new Set(items.map(x => x.category)).size } })
   } catch (error) { res.status(503).json({ ok: false, version: VERSION, generation: GENERATION, error: error.message }) }
 })
 
@@ -208,6 +211,28 @@ app.post('/api/admin/beneficios/:id/flyers', requireAdmin, imageUpload.array('fl
 
 app.delete('/api/admin/flyers/:id', requireAdmin, async (req, res, next) => {
   try { if (!pool || !safeId(req.params.id)) return res.status(400).json({ error: 'Flyer inválido' }); await pool.query('DELETE FROM flyers WHERE id=$1', [req.params.id]); res.json({ deleted: true }) } catch (error) { next(error) }
+})
+
+const legacyServiceWorker = `
+self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys()
+    await Promise.all(keys.map(key => caches.delete(key)))
+    await self.clients.claim()
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    await self.registration.unregister()
+    for (const client of windows) {
+      try { await client.navigate('/?actualizado=' + Date.now()) } catch {}
+    }
+  })())
+})
+`
+
+app.get(['/sw.js', '/service-worker.js', '/serviceWorker.js', '/serviceworker.js'], (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+  res.setHeader('Service-Worker-Allowed', '/')
+  res.type('application/javascript').send(legacyServiceWorker)
 })
 
 app.get('/actualizar-version', (_req, res) => {

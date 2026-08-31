@@ -6,7 +6,7 @@ Esta entrega reemplaza completamente el código del repositorio actual, pero con
 
 1. Abrir el repositorio actual conectado a `beneficios-uic.onrender.com`.
 2. Eliminar todos los archivos y carpetas de la versión anterior.
-3. Descomprimir `Beneficios_UIC_v3.0.0_REPOSITORIO_ACTUAL.zip` en la computadora.
+3. Descomprimir `Beneficios_UIC_v3.0.1_REPOSITORIO_ACTUAL.zip` en la computadora.
 4. Subir **el contenido descomprimido** directamente a la raíz del repositorio. No subir el ZIP ni una carpeta exterior.
 5. Antes de confirmar, verificar que en la raíz aparezcan `package.json`, `render.yaml`, `server`, `src` y `data`.
 6. Entrar en `data` y confirmar que existan `catalog.json` e `initial-benefits.json`.
@@ -26,16 +26,22 @@ npm start
 El log correcto mostrará:
 
 ```text
-beneficios-uic-nuevo@3.0.0 start
-Beneficios UIC NUEVO v3.0.0 · BENEFICIOS_UIC_NUEVO_300
+beneficios-uic-nuevo@3.0.1 start
+Beneficios UIC NUEVO v3.0.1 · BENEFICIOS_UIC_NUEVO_301
 ```
 
-La ruta `https://beneficios-uic.onrender.com/api/health` debe informar `"version":"3.0.0"`, `"generation":"BENEFICIOS_UIC_NUEVO_300"` y `"catalogSource":"neon"`.
+La ruta `https://beneficios-uic.onrender.com/api/version` debe informar `"version":"3.0.1"` y `"generation":"BENEFICIOS_UIC_NUEVO_301"` sin consultar Neon.
+
+La ruta `https://beneficios-uic.onrender.com/api/health` debe informar `"version":"3.0.1"`, `"generation":"BENEFICIOS_UIC_NUEVO_301"` y `"catalogSource":"neon"`.
 
 ## Verificación visual
 
-La nueva portada comienza con **Tu empresa puede llegar más lejos**. En la cabecera aparecen **Actualizar versión** y `v3.0.0`. El botón **Consultar asociación** abre `https://uic-campana.com.ar/hacete-socio/`.
+La nueva portada comienza con **Tu empresa puede llegar más lejos**. En la cabecera aparecen **Actualizar versión** y `v3.0.1`. El botón **Consultar asociación** abre `https://uic-campana.com.ar/hacete-socio/`.
 
 La aplicación no se detiene si faltara el catálogo local: registra el aviso y continúa utilizando Neon. No borrar Neon, `DATABASE_URL` ni las demás variables existentes.
 
 La versión de Node queda fijada en 24.14.1 mediante `.node-version`, evitando que Render seleccione automáticamente Node 26.
+
+## Si un navegador sigue mostrando la interfaz vieja
+
+Abrir una vez `/actualizar-version`. La versión 3.0.1 también reemplaza automáticamente service workers heredados cuando el navegador consulte `/sw.js` o las variantes habituales.

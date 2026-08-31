@@ -1,5 +1,7 @@
-PROYECTO NUEVO - BENEFICIOS UIC 3.0.0
+BENEFICIOS UIC 3.0.1 - NO CREAR OTRO SERVICIO
 
-No mezclar estos archivos con ninguna versión anterior.
-Crear un repositorio GitHub nuevo y un servicio Render nuevo.
-Conservar la misma DATABASE_URL de Neon para mantener los datos.
+Esta entrega debe instalarse en el repositorio GitHub ACTUAL conectado al servicio Render beneficios-uic.
+No crear un repositorio nuevo.
+No crear un servicio Render nuevo.
+No modificar ni borrar DATABASE_URL ni la base Neon existente.
+Reemplazar el código del repositorio actual con este contenido y desplegar la rama main.
