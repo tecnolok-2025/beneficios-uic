@@ -331,3 +331,7 @@ button { cursor: pointer; }
   .neo-detail-body section > span, .neo-detail-hero span { font-size: 17px; }
   .neo-detail-hero p, .neo-detail-body p, .neo-detail-body li { font-size: 16px; }
 }
+
+.neo-upload-files { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: -8px; }
+.neo-upload-files span { padding: 6px 9px; color: #3d5966; background: #f4f8fa; border: 1px solid var(--line); border-radius: 7px; font-size: 11px; }
+.neo-editor-actions button:disabled { opacity: .65; cursor: wait; }

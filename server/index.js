@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_NUEVO_303'
+const GENERATION = 'BENEFICIOS_UIC_304'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -203,7 +203,7 @@ app.delete('/api/admin/beneficios/:id', requireAdmin, async (req, res, next) => 
   } catch (error) { next(error) }
 })
 
-const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024, files: 10 } })
+const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 12 * 1024 * 1024, files: 10 } })
 app.post('/api/admin/beneficios/:id/flyers', requireAdmin, imageUpload.array('flyers', 10), async (req, res, next) => {
   try {
     const id = safeId(req.params.id)
@@ -212,7 +212,10 @@ app.post('/api/admin/beneficios/:id/flyers', requireAdmin, imageUpload.array('fl
     if ((req.files || []).some(file => !allowed.has(file.mimetype))) return res.status(400).json({ error: 'Formato de imagen no permitido' })
     const current = await pool.query('SELECT COALESCE(MAX(position),-1)::int AS position FROM flyers WHERE benefit_id=$1', [id])
     let position = current.rows[0].position
-    for (const file of req.files || []) await pool.query('INSERT INTO flyers (benefit_id,alt_text,position,image_data,mime_type) VALUES ($1,$2,$3,$4,$5)', [id, file.originalname, ++position, file.buffer, file.mimetype])
+    for (const file of req.files || []) {
+      const alt = safeText(file.originalname, 250) || 'Flyer del beneficio'
+      await pool.query('INSERT INTO flyers (benefit_id,url,alt_text,position,image_data,mime_type) VALUES ($1,$2,$3,$4,$5,$6)', [id, '', alt, ++position, file.buffer, file.mimetype])
+    }
     res.status(201).json({ uploaded: (req.files || []).length })
   } catch (error) { next(error) }
 })
@@ -260,7 +263,13 @@ app.use((req, res, next) => {
   }
   next()
 })
-app.use((error, _req, res, _next) => { console.error(error); res.status(error.status || 500).json({ error: error.status ? error.message : 'Ocurrió un error inesperado' }) })
+app.use((error, req, res, _next) => {
+  console.error(error)
+  if (error?.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'La imagen supera el límite de 12 MB.' })
+  if (error?.code === 'LIMIT_FILE_COUNT') return res.status(400).json({ error: 'Se pueden cargar hasta 10 imágenes por vez.' })
+  if (req.path.includes('/flyers') && error?.code === '23502') return res.status(500).json({ error: 'No se pudo guardar la imagen por una incompatibilidad de la estructura anterior de Neon. La revisión 3.0.4 corrige esa migración.' })
+  res.status(error.status || 500).json({ error: error.status ? error.message : 'Ocurrió un error inesperado' })
+})
 
 await initializeDatabase()
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`Beneficios UIC NUEVO v${VERSION} · ${GENERATION} · puerto ${PORT}`))

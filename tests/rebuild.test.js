@@ -73,14 +73,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.0.3 son coherentes', async () => {
+test('10 · versión y generación 3.0.4 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.0.3')
-  assert.match(server, /BENEFICIOS_UIC_NUEVO_303/)
-  assert.match(html, /BENEFICIOS_UIC_NUEVO_303/)
+  assert.equal(pkg.version, '3.0.4')
+  assert.match(server, /BENEFICIOS_UIC_304/)
+  assert.match(html, /BENEFICIOS_UIC_304/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {

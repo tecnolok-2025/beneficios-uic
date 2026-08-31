@@ -16,7 +16,7 @@ const emptyBenefit = {
 async function request(url, options = {}) {
   const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store', ...options, headers: { ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...(options.headers || {}) } })
   const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.error || 'No se pudo completar la operación')
+  if (!response.ok) throw new Error(data.error || `No se pudo completar la operación (HTTP ${response.status})`)
   return data
 }
 
@@ -58,7 +58,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><span>UIC</span><p>Unión Industrial<br/>de Campana</p></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.3'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.4'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -178,16 +178,40 @@ function Editor({ items, selected, setSelected, reload }) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [files, setFiles] = useState([])
+  const [saving, setSaving] = useState(false)
   useEffect(() => setForm(selected || emptyBenefit), [selected])
   const change = (key, value) => setForm(current => ({ ...current, [key]: value }))
-  const save = async () => { setMessage(''); setError(''); try { const saved = await request(selected ? `/api/admin/beneficios/${selected.id}` : '/api/admin/beneficios', { method: selected ? 'PUT' : 'POST', body: JSON.stringify(form) }); if (files.length) { const data = new FormData(); files.forEach(file => data.append('flyers', file)); await request(`/api/admin/beneficios/${saved.id}/flyers`, { method: 'POST', body: data }) } setMessage(selected ? 'Cambios guardados.' : 'Beneficio creado.'); await reload(saved.id) } catch (error) { setError(error.message) } }
+  const save = async () => {
+    if (saving) return
+    setSaving(true); setMessage(''); setError('')
+    try {
+      const saved = await request(selected ? `/api/admin/beneficios/${selected.id}` : '/api/admin/beneficios', { method: selected ? 'PUT' : 'POST', body: JSON.stringify(form) })
+      if (files.length) {
+        const oversized = files.find(file => file.size > 12 * 1024 * 1024)
+        if (oversized) throw new Error(`La imagen ${oversized.name} supera el límite de 12 MB.`)
+        const data = new FormData()
+        files.forEach(file => data.append('flyers', file, file.name))
+        try {
+          await request(`/api/admin/beneficios/${saved.id}/flyers`, { method: 'POST', body: data })
+        } catch (uploadError) {
+          setError(`Los datos del beneficio se guardaron, pero la imagen no pudo cargarse: ${uploadError.message}`)
+          await reload(saved.id)
+          return
+        }
+      }
+      setFiles([])
+      setMessage(files.length ? 'Cambios e imagen guardados correctamente.' : (selected ? 'Cambios guardados.' : 'Beneficio creado.'))
+      await reload(saved.id)
+    } catch (error) { setError(error.message) }
+    finally { setSaving(false) }
+  }
   const remove = async () => { if (!selected || !confirm(`¿Eliminar ${selected.title}?`)) return; await request(`/api/admin/beneficios/${selected.id}`, { method: 'DELETE', body: '{}' }); setSelected(null); await reload(); }
   return <div className="neo-admin-layout"><aside className="neo-admin-list"><button className="neo-new-benefit" onClick={() => setSelected(null)}><Plus/> Nuevo beneficio</button>{items.map(item => <button className={selected?.id === item.id ? 'active' : ''} key={item.id} onClick={() => setSelected(item)}><strong>{item.title}</strong><span>{item.partner}</span></button>)}</aside>
     <section className="neo-editor"><div className="neo-editor-title"><div><span>{selected ? 'EDITAR BENEFICIO' : 'NUEVO BENEFICIO'}</span><h2>{selected?.title || 'Crear una oportunidad'}</h2></div></div><div className="neo-form-grid">
       <Field label="Título" value={form.title} onChange={value => change('title', value)}/><Field label="Empresa" value={form.partner} onChange={value => change('partner', value)}/><Field label="Rubro" value={form.category} onChange={value => change('category', value)}/><label>Estado<select value={form.status} onChange={event => change('status', event.target.value)}><option value="activo">Activo</option><option value="revalidacion">En revalidación</option><option value="proximo">Próximamente</option></select></label>
       <div className="neo-full"><Field label="Resumen" textarea value={form.summary} onChange={value => change('summary', value)}/></div><div className="neo-full"><Field label="Beneficio concreto" textarea value={form.concreteBenefit} onChange={value => change('concreteBenefit', value)}/></div><div className="neo-full"><Field label="Costos, descuentos y condiciones" textarea value={form.costsDiscounts} onChange={value => change('costsDiscounts', value)}/></div><div className="neo-full"><Field label="Descripción" textarea value={form.description} onChange={value => change('description', value)}/></div><div className="neo-full"><Field label="Requisitos (uno por línea)" textarea value={(form.requirements || []).join('\n')} onChange={value => change('requirements', value.split('\n').filter(Boolean))}/></div>
-      <div className="neo-full neo-uic-contact-heading"><span>CONTACTO UIC</span><p>Este contacto institucional se mantiene separado de los contactos de la empresa.</p></div><Field label="Persona de contacto UIC" value={form.contactName} onChange={value => change('contactName', value)}/><Field label="Teléfono UIC" value={form.contactPhone} onChange={value => change('contactPhone', value)}/><Field label="Correo UIC" type="email" value={form.contactEmail} onChange={value => change('contactEmail', value)}/><Field label="Alcance" value={form.scope} onChange={value => change('scope', value)}/><CompanyContactsEditor contacts={form.companyContacts || []} onChange={value => change('companyContacts', value)}/><div className="neo-full"><Field label="Link de información / convenio" value={form.agreementUrl} onChange={value => change('agreementUrl', value)}/></div><label className="neo-check"><input type="checkbox" checked={form.published !== false} onChange={event => change('published', event.target.checked)}/> Publicar en el portal</label><label className="neo-upload"><Upload/> Agregar flyers<input type="file" multiple accept="image/*" onChange={event => setFiles([...event.target.files])}/></label>
-    </div>{message && <div className="neo-message">{message}</div>}{error && <div className="neo-form-error">{error}</div>}<div className="neo-editor-actions">{selected && <button className="danger" onClick={remove}>Eliminar</button>}<button onClick={save}>Guardar beneficio <Check/></button></div></section></div>
+      <div className="neo-full neo-uic-contact-heading"><span>CONTACTO UIC</span><p>Este contacto institucional se mantiene separado de los contactos de la empresa.</p></div><Field label="Persona de contacto UIC" value={form.contactName} onChange={value => change('contactName', value)}/><Field label="Teléfono UIC" value={form.contactPhone} onChange={value => change('contactPhone', value)}/><Field label="Correo UIC" type="email" value={form.contactEmail} onChange={value => change('contactEmail', value)}/><Field label="Alcance" value={form.scope} onChange={value => change('scope', value)}/><CompanyContactsEditor contacts={form.companyContacts || []} onChange={value => change('companyContacts', value)}/><div className="neo-full"><Field label="Link de información / convenio" value={form.agreementUrl} onChange={value => change('agreementUrl', value)}/></div><label className="neo-check"><input type="checkbox" checked={form.published !== false} onChange={event => change('published', event.target.checked)}/> Publicar en el portal</label><label className="neo-upload"><Upload/> <span>{files.length ? `${files.length} imagen${files.length === 1 ? '' : 'es'} seleccionada${files.length === 1 ? '' : 's'}` : 'Agregar flyers'}</span><input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => { setError(''); setFiles([...event.target.files]) }}/></label>{files.length > 0 && <div className="neo-upload-files">{files.map(file => <span key={`${file.name}-${file.size}`}>{file.name} · {(file.size / 1024).toFixed(0)} KB</span>)}</div>}
+    </div>{message && <div className="neo-message">{message}</div>}{error && <div className="neo-form-error">{error}</div>}<div className="neo-editor-actions">{selected && <button className="danger" onClick={remove}>Eliminar</button>}<button onClick={save} disabled={saving}>{saving ? 'Guardando…' : 'Guardar beneficio'} <Check/></button></div></section></div>
 }
 
 function Admin() {
