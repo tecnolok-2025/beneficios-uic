@@ -5,11 +5,7 @@ import {
   Search, ShieldCheck, Sparkles, Upload, Users, X
 } from 'lucide-react'
 
-const recentSlugs = new Set([
-  'medicina-laboral-irt', 'planes-sancor-salud-30', 'medicina-laboral-idt', 'analisis-seo-zipseo',
-  'proteccion-electrica-monico', 'prensa-networking-noticias-industriales',
-  'propiedad-intelectual-mario-cisneros', 'capital-humano-mb', 'paseo-gavazzi-sigsa-cadema'
-])
+const recentSlugs = new Set(['capacitacion-retencion-talento-etrr'])
 
 const emptyBenefit = {
   title: '', partner: '', category: '', status: 'activo', featured: false, summary: '', description: '',
@@ -37,14 +33,33 @@ function Brand() {
 function Header({ admin = false }) {
   const [health, setHealth] = useState(null)
   const [menu, setMenu] = useState(false)
+  const [updating, setUpdating] = useState(false)
   useEffect(() => { request(`/api/health?t=${Date.now()}`).then(setHealth).catch(() => {}) }, [])
+  const updateVersion = async () => {
+    if (updating) return
+    setUpdating(true)
+    try {
+      sessionStorage.setItem('beneficios-uic-scroll', String(window.scrollY || 0))
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(registrations.map(registration => registration.unregister()))
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map(key => caches.delete(key)))
+      }
+      await fetch(`/api/version?t=${Date.now()}`, { cache: 'reload', credentials: 'same-origin' }).catch(() => null)
+    } finally {
+      window.location.reload()
+    }
+  }
   return <header className="neo-header">
     <div className="neo-shell neo-nav">
       <Brand />
       <div className="neo-uic"><span>UIC</span><p>Unión Industrial<br/>de Campana</p></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.1'}</strong></span>
-        <a className="neo-update" href="/actualizar-version"><RefreshCw/><span>Actualizar versión</span></a>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.2'}</strong></span>
+        <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
       </nav>
@@ -72,13 +87,20 @@ function Home() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todos')
   useEffect(() => { request('/api/beneficios').then(setItems).catch(error => setError(error.message)).finally(() => setLoading(false)) }, [])
-  const categories = useMemo(() => ['Todos', 'Acuerdos nuevos', ...new Set(items.map(item => item.category))], [items])
+  const categories = useMemo(() => ['Todos', ...new Set(items.map(item => item.category))], [items])
   const visible = items.filter(item => {
-    const categoryMatch = category === 'Todos' || (category === 'Acuerdos nuevos' ? recentSlugs.has(item.slug) : item.category === category)
+    const categoryMatch = category === 'Todos' || item.category === category
     return categoryMatch && `${item.title} ${item.partner} ${item.summary}`.toLowerCase().includes(query.toLowerCase())
   })
   const explore = () => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
-  const showNew = () => { setCategory('Acuerdos nuevos'); setTimeout(explore, 0) }
+  const showLatestAgreement = () => go('/beneficio/capacitacion-retencion-talento-etrr')
+  useEffect(() => {
+    const saved = Number(sessionStorage.getItem('beneficios-uic-scroll'))
+    if (Number.isFinite(saved) && saved > 0) {
+      sessionStorage.removeItem('beneficios-uic-scroll')
+      requestAnimationFrame(() => window.scrollTo({ top: saved, behavior: 'auto' }))
+    }
+  }, [])
   return <><Header/><main>
     <section className="neo-hero">
       <div className="neo-hero-orbit"/><div className="neo-hero-dots"/>
@@ -87,13 +109,13 @@ function Home() {
           <span className="neo-eyebrow"><HeartHandshake/> Beneficios exclusivos para socios</span>
           <h1>Tu empresa puede llegar <em>más lejos.</em></h1>
           <p>Un nuevo espacio para descubrir acuerdos, servicios y oportunidades que convierten la pertenencia a la UIC en valor concreto.</p>
-          <div className="neo-hero-buttons"><button onClick={explore}>Descubrir beneficios <ArrowRight/></button><button onClick={showNew}><Sparkles/> Ver 9 acuerdos nuevos</button></div>
+          <div className="neo-hero-buttons"><button onClick={explore}>Descubrir beneficios <ArrowRight/></button><button onClick={showLatestAgreement}><Sparkles/> Descubrir beneficios de nuevos acuerdos</button></div>
           <div className="neo-reassurance"><ShieldCheck/> Información validada y administrada por la Unión Industrial de Campana</div>
         </div>
         <aside className="neo-impact">
           <span className="neo-impact-label">IMPACTO PARA EL SOCIO</span>
           <div className="neo-big-number"><strong>{items.length || 24}</strong><span>beneficios<br/>vigentes</span></div>
-          <div className="neo-impact-grid"><div><strong>10</strong><span>rubros</span></div><div><strong>9</strong><span>nuevos acuerdos</span></div></div>
+          <div className="neo-impact-grid"><div><strong>10</strong><span>rubros</span></div><div><strong>24</strong><span>beneficios activos</span></div></div>
           <div className="neo-impact-foot"><Check/> Acceso simple, condiciones claras y contacto directo.</div>
         </aside>
       </div>
@@ -104,7 +126,7 @@ function Home() {
     <section id="catalogo" className="neo-catalog neo-shell">
       <div className="neo-section-title"><span>EXPLORÁ EL NUEVO CATÁLOGO</span><h2>Encontrá una oportunidad para tu empresa</h2><p>Elegí un rubro o buscá por servicio, empresa o palabra clave.</p></div>
       <label className="neo-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="¿Qué necesita tu empresa?"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label>
-      <div className="neo-categories">{categories.map(name => <button key={name} className={category === name ? 'active' : ''} onClick={() => setCategory(name)}>{name === 'Todos' ? <LayoutGrid/> : name === 'Acuerdos nuevos' ? <Sparkles/> : <ChevronRight/>}<span>{name}</span></button>)}</div>
+      <div className="neo-categories">{categories.map(name => <button key={name} className={category === name ? 'active' : ''} onClick={() => setCategory(name)}>{name === 'Todos' ? <LayoutGrid/> : <ChevronRight/>}<span>{name}</span></button>)}</div>
       <div className="neo-results"><strong>{category}</strong><span>{visible.length} resultado{visible.length === 1 ? '' : 's'}</span></div>
       {error ? <div className="neo-empty"><CircleAlert/><h3>No pudimos cargar los beneficios</h3><p>{error}</p></div> : loading ? <div className="neo-empty">Cargando el nuevo catálogo…</div> : <div className="neo-grid">{visible.map(item => <BenefitCard key={item.id} item={item}/>)}</div>}
     </section>
