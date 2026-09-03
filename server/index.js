@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_304'
+const GENERATION = 'BENEFICIOS_UIC_310'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -78,7 +78,7 @@ async function initializeDatabase() {
 async function listBenefits(includeHidden = false) {
   if (!pool) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
   const result = await pool.query(`SELECT * FROM benefits ${includeHidden ? '' : 'WHERE published=TRUE'} ORDER BY featured DESC, title`)
-  if (!result.rows.length && localCatalog.length) return localCatalog.map(localBenefit)
+  if (!result.rows.length && localCatalog.length) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
   const ids = result.rows.map(row => row.id)
   const flyerResult = ids.length ? await pool.query('SELECT id,benefit_id,alt_text,position FROM flyers WHERE benefit_id = ANY($1::bigint[]) ORDER BY position', [ids]) : { rows: [] }
   return result.rows.map(row => rowToBenefit(row, flyerResult.rows.filter(flyer => String(flyer.benefit_id) === String(row.id)).map(flyer => ({ id: flyer.id, url: `/api/flyers/${flyer.id}`, alt: flyer.alt_text }))))
@@ -176,8 +176,10 @@ app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {
   try {
     if (!pool) return res.status(503).json({ error: 'Neon no está configurado' })
     if (!safeText(req.body.title) || !safeText(req.body.category)) return res.status(400).json({ error: 'Título y rubro son obligatorios' })
-    let slug = slugify(req.body.title); let suffix = 1
-    while ((await pool.query('SELECT 1 FROM benefits WHERE slug=$1', [slug])).rowCount) slug = `${slugify(req.body.title)}-${++suffix}`
+    const baseSlug = slugify(req.body.title)
+    if (!baseSlug) return res.status(400).json({ error: 'El título debe contener letras o números' })
+    let slug = baseSlug; let suffix = 1
+    while ((await pool.query('SELECT 1 FROM benefits WHERE slug=$1', [slug])).rowCount) slug = `${baseSlug}-${++suffix}`
     const result = await pool.query(`INSERT INTO benefits (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,start_date,end_date,published)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`, [slug, ...values(req.body)])
     res.status(201).json(rowToBenefit(result.rows[0]))
@@ -198,7 +200,8 @@ app.delete('/api/admin/beneficios/:id', requireAdmin, async (req, res, next) => 
   try {
     const id = safeId(req.params.id)
     if (!pool || !id) return res.status(400).json({ error: 'Beneficio inválido' })
-    await pool.query('DELETE FROM benefits WHERE id=$1', [id])
+    const result = await pool.query('DELETE FROM benefits WHERE id=$1', [id])
+    if (!result.rowCount) return res.status(404).json({ error: 'Beneficio no encontrado' })
     res.json({ deleted: true })
   } catch (error) { next(error) }
 })
@@ -267,7 +270,7 @@ app.use((error, req, res, _next) => {
   console.error(error)
   if (error?.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'La imagen supera el límite de 12 MB.' })
   if (error?.code === 'LIMIT_FILE_COUNT') return res.status(400).json({ error: 'Se pueden cargar hasta 10 imágenes por vez.' })
-  if (req.path.includes('/flyers') && error?.code === '23502') return res.status(500).json({ error: 'No se pudo guardar la imagen por una incompatibilidad de la estructura anterior de Neon. La revisión 3.0.4 corrige esa migración.' })
+  if (req.path.includes('/flyers') && error?.code === '23502') return res.status(500).json({ error: 'No se pudo guardar la imagen por una incompatibilidad de la estructura anterior de Neon. La revisión 3.1.0 conserva la corrección de esa migración.' })
   res.status(error.status || 500).json({ error: error.status ? error.message : 'Ocurrió un error inesperado' })
 })
 

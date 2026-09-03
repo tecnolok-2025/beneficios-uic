@@ -1,41 +1,44 @@
-# Instalación en el repositorio y Render actuales
+# Instalación v3.1.0 en el repositorio y Render actuales
 
-Esta entrega reemplaza completamente el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
+Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
 ## GitHub
 
 1. Abrir el repositorio actual conectado a `beneficios-uic.onrender.com`.
-2. Eliminar todos los archivos y carpetas de la versión anterior.
-3. Descomprimir `Beneficios_UIC_v3.0.0_REPOSITORIO_ACTUAL.zip` en la computadora.
-4. Subir **el contenido descomprimido** directamente a la raíz del repositorio. No subir el ZIP ni una carpeta exterior.
-5. Antes de confirmar, verificar que en la raíz aparezcan `package.json`, `render.yaml`, `server`, `src` y `data`.
-6. Entrar en `data` y confirmar que existan `catalog.json` e `initial-benefits.json`.
-7. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
+2. Reemplazar los archivos del repositorio por el contenido de esta entrega.
+3. Subir **el contenido descomprimido** directamente a la raíz. No subir el ZIP ni una carpeta exterior.
+4. Verificar que en la raíz estén `package.json`, `render.yaml`, `server`, `src`, `public` y `data`.
+5. Confirmar que `public/logo-uic-oficial.jpeg` esté presente.
+6. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
 
 ## Render
 
-No crear otro servicio y no cambiar ninguna variable. El despliegue automático del servicio actual debe comenzar después del commit.
+No crear otro servicio y no cambiar la base Neon.
 
-Los comandos actuales deben continuar siendo:
+Los comandos deben continuar siendo:
 
 ```text
 npm ci --include=dev && npm run build
 npm start
 ```
 
-El log correcto mostrará:
+El log de arranque debe incluir:
 
 ```text
-beneficios-uic@3.0.3 start
-Beneficios UIC NUEVO v3.0.0 · BENEFICIOS_UIC_NUEVO_300
+Beneficios UIC NUEVO v3.1.0 · BENEFICIOS_UIC_310
 ```
 
-La ruta `https://beneficios-uic.onrender.com/api/health` debe informar `"version":"3.0.0"`, `"generation":"BENEFICIOS_UIC_NUEVO_300"` y `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.1.0"`, `"generation":"BENEFICIOS_UIC_310"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación visual
 
-La nueva portada comienza con **Tu empresa puede llegar más lejos**. En la cabecera aparecen **Actualizar versión** y `v3.0.0`. El botón **Consultar asociación** abre `https://uic-campana.com.ar/hacete-socio/`.
+- En la cabecera debe verse el logo oficial de la Unión Industrial de Campana suministrado en esta revisión.
+- En Administración, arriba del listado izquierdo debe aparecer **Buscar beneficio o empresa**.
+- El nombre de la empresa/prestador debe verse destacado tanto en las tarjetas públicas como en el listado administrativo y el detalle.
+- El acceso de asociación debe decir **Hacete socio**.
 
-La aplicación no se detiene si faltara el catálogo local: registra el aviso y continúa utilizando Neon. No borrar Neon, `DATABASE_URL` ni las demás variables existentes.
+## Base de datos
 
-La versión de Node queda fijada en 24.14.1 mediante `.node-version`, evitando que Render seleccione automáticamente Node 26.
+No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque ejecuta migraciones aditivas y el catálogo base utiliza `ON CONFLICT (slug) DO NOTHING`, por lo que no reemplaza beneficios ya editados en la base.
+
+La versión de Node queda fijada en 24.14.1 mediante `.node-version`.

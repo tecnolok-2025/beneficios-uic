@@ -73,14 +73,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.0.4 son coherentes', async () => {
+test('10 · versión y generación 3.1.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.0.4')
-  assert.match(server, /BENEFICIOS_UIC_304/)
-  assert.match(html, /BENEFICIOS_UIC_304/)
+  assert.equal(pkg.version, '3.1.0')
+  assert.match(server, /BENEFICIOS_UIC_310/)
+  assert.match(html, /BENEFICIOS_UIC_310/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -109,4 +109,44 @@ test('13 · Praxis está en Gestión empresarial y Render conserva el servicio a
   assert.match(praxis?.agreementUrl || '', /uic-campana\.com\.ar/)
   assert.match(render, /startCommand: npm start/)
   assert.match(render, /healthCheckPath: \/api\/health/)
+})
+
+
+test('14 · administración incorpora buscador escalable por beneficio y empresa', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /Buscar beneficio o empresa/)
+  assert.match(app, /normalizeSearch/)
+  assert.match(app, /item\.title.*item\.partner.*item\.category.*item\.summary/)
+  assert.match(styles, /\.neo-admin-search/)
+  assert.match(styles, /\.neo-admin-no-results/)
+})
+
+test('15 · cabecera usa el logo UIC oficial incluido en la entrega', async () => {
+  const app = await read('src/App.jsx')
+  const logo = await fs.readFile(path.join(root, 'public/logo-uic-oficial.jpeg'))
+  assert.match(app, /logo-uic-oficial\.jpeg/)
+  assert.match(app, /alt="Unión Industrial de Campana"/)
+  assert.ok(logo.length > 10000)
+})
+
+test('16 · empresa o prestador recibe mayor jerarquía visual', async () => {
+  const styles = await read('src/styles.css')
+  assert.match(styles, /\.neo-card-company[\s\S]*font-size: 19px[\s\S]*font-weight: 900/)
+  assert.match(styles, /\.neo-detail-hero p[\s\S]*font-size: 22px[\s\S]*font-weight: 850/)
+  assert.match(styles, /\.neo-admin-list > button span[\s\S]*font-size: 12px[\s\S]*font-weight: 750/)
+})
+
+test('17 · auditoría mantiene Neon sin sobrescritura y refuerza casos límite', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /ON CONFLICT \(slug\) DO NOTHING/)
+  assert.match(server, /localCatalog\.filter\(item => includeHidden \|\| item\.published !== false\)/)
+  assert.match(server, /El título debe contener letras o números/)
+  assert.match(server, /Beneficio no encontrado/)
+})
+
+test('18 · asociación queda unificada como Hacete socio', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, />Hacete socio</)
+  assert.doesNotMatch(app, />Consultar asociación/)
 })

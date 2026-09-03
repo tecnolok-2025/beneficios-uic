@@ -23,6 +23,10 @@ async function request(url, options = {}) {
 function go(path) { history.pushState({}, '', path); window.dispatchEvent(new PopStateEvent('popstate')) }
 function useRoute() { const [route, setRoute] = useState(location.pathname); useEffect(() => { const update = () => setRoute(location.pathname); addEventListener('popstate', update); return () => removeEventListener('popstate', update) }, []); return route }
 
+function normalizeSearch(value = '') {
+  return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+}
+
 function Brand() {
   return <button className="neo-brand" onClick={() => go('/')} aria-label="Volver al inicio">
     <span className="neo-mark"><Check /></span>
@@ -56,15 +60,15 @@ function Header({ admin = false }) {
   return <header className="neo-header">
     <div className="neo-shell neo-nav">
       <Brand />
-      <div className="neo-uic"><span>UIC</span><p>Unión Industrial<br/>de Campana</p></div>
+      <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.0.4'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.1.0'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
       </nav>
     </div>
-    {menu && <div className="neo-mobile-menu"><button onClick={() => go(admin ? '/' : '/administracion')}>{admin ? 'Volver al portal' : 'Administrar beneficios'}</button><a href="https://uic-campana.com.ar/hacete-socio/" target="_blank" rel="noreferrer">Consultar asociación</a></div>}
+    {menu && <div className="neo-mobile-menu"><button onClick={() => go(admin ? '/' : '/administracion')}>{admin ? 'Volver al portal' : 'Administrar beneficios'}</button><a href="https://uic-campana.com.ar/hacete-socio/" target="_blank" rel="noreferrer">Hacete socio</a></div>}
   </header>
 }
 
@@ -131,7 +135,7 @@ function Home() {
       {error ? <div className="neo-empty"><CircleAlert/><h3>No pudimos cargar los beneficios</h3><p>{error}</p></div> : loading ? <div className="neo-empty">Cargando el nuevo catálogo…</div> : <div className="neo-grid">{visible.map(item => <BenefitCard key={item.id} item={item}/>)}</div>}
     </section>
 
-    <section className="neo-membership"><div className="neo-shell"><div className="neo-membership-icon"><Users/></div><div><span>¿TODAVÍA NO SOS SOCIO?</span><h2>Sumate a una comunidad que genera oportunidades</h2><p>Conocé cómo asociarte y empezá a acceder a todos los beneficios de la UIC.</p></div><a href="https://uic-campana.com.ar/hacete-socio/" target="_blank" rel="noreferrer">Consultar asociación <ArrowRight/></a></div></section>
+    <section className="neo-membership"><div className="neo-shell"><div className="neo-membership-icon"><Users/></div><div><span>¿TODAVÍA NO SOS SOCIO?</span><h2>Sumate a una comunidad que genera oportunidades</h2><p>Conocé cómo asociarte y empezá a acceder a todos los beneficios de la UIC.</p></div><a href="https://uic-campana.com.ar/hacete-socio/" target="_blank" rel="noreferrer">Hacete socio <ArrowRight/></a></div></section>
   </main><Footer/></>
 }
 
@@ -179,7 +183,13 @@ function Editor({ items, selected, setSelected, reload }) {
   const [error, setError] = useState('')
   const [files, setFiles] = useState([])
   const [saving, setSaving] = useState(false)
+  const [listQuery, setListQuery] = useState('')
   useEffect(() => setForm(selected || emptyBenefit), [selected])
+  const filteredItems = useMemo(() => {
+    const term = normalizeSearch(listQuery)
+    if (!term) return items
+    return items.filter(item => normalizeSearch(`${item.title} ${item.partner} ${item.category} ${item.summary}`).includes(term))
+  }, [items, listQuery])
   const change = (key, value) => setForm(current => ({ ...current, [key]: value }))
   const save = async () => {
     if (saving) return
@@ -205,8 +215,17 @@ function Editor({ items, selected, setSelected, reload }) {
     } catch (error) { setError(error.message) }
     finally { setSaving(false) }
   }
-  const remove = async () => { if (!selected || !confirm(`¿Eliminar ${selected.title}?`)) return; await request(`/api/admin/beneficios/${selected.id}`, { method: 'DELETE', body: '{}' }); setSelected(null); await reload(); }
-  return <div className="neo-admin-layout"><aside className="neo-admin-list"><button className="neo-new-benefit" onClick={() => setSelected(null)}><Plus/> Nuevo beneficio</button>{items.map(item => <button className={selected?.id === item.id ? 'active' : ''} key={item.id} onClick={() => setSelected(item)}><strong>{item.title}</strong><span>{item.partner}</span></button>)}</aside>
+  const remove = async () => {
+    if (!selected || !confirm(`¿Eliminar ${selected.title}?`)) return
+    setMessage(''); setError('')
+    try {
+      await request(`/api/admin/beneficios/${selected.id}`, { method: 'DELETE', body: '{}' })
+      setSelected(null)
+      await reload()
+      setMessage('Beneficio eliminado.')
+    } catch (removeError) { setError(removeError.message) }
+  }
+  return <div className="neo-admin-layout"><aside className="neo-admin-list"><label className="neo-admin-search"><Search/><input value={listQuery} onChange={event => setListQuery(event.target.value)} placeholder="Buscar beneficio o empresa" aria-label="Buscar beneficio o empresa" autoComplete="off"/>{listQuery && <button type="button" onClick={() => setListQuery('')} aria-label="Limpiar búsqueda"><X/></button>}</label><div className="neo-admin-search-meta"><span>{listQuery ? `${filteredItems.length} de ${items.length} resultados` : `${items.length} beneficios`}</span></div><button className="neo-new-benefit" onClick={() => setSelected(null)}><Plus/> Nuevo beneficio</button>{filteredItems.length ? filteredItems.map(item => <button className={selected?.id === item.id ? 'active' : ''} key={item.id} onClick={() => setSelected(item)}><strong>{item.title}</strong><span>{item.partner || 'Sin empresa informada'}</span></button>) : <div className="neo-admin-no-results"><Search/><strong>Sin coincidencias</strong><span>Probá por beneficio, empresa, rubro o palabra clave.</span></div>}</aside>
     <section className="neo-editor"><div className="neo-editor-title"><div><span>{selected ? 'EDITAR BENEFICIO' : 'NUEVO BENEFICIO'}</span><h2>{selected?.title || 'Crear una oportunidad'}</h2></div></div><div className="neo-form-grid">
       <Field label="Título" value={form.title} onChange={value => change('title', value)}/><Field label="Empresa" value={form.partner} onChange={value => change('partner', value)}/><Field label="Rubro" value={form.category} onChange={value => change('category', value)}/><label>Estado<select value={form.status} onChange={event => change('status', event.target.value)}><option value="activo">Activo</option><option value="revalidacion">En revalidación</option><option value="proximo">Próximamente</option></select></label>
       <div className="neo-full"><Field label="Resumen" textarea value={form.summary} onChange={value => change('summary', value)}/></div><div className="neo-full"><Field label="Beneficio concreto" textarea value={form.concreteBenefit} onChange={value => change('concreteBenefit', value)}/></div><div className="neo-full"><Field label="Costos, descuentos y condiciones" textarea value={form.costsDiscounts} onChange={value => change('costsDiscounts', value)}/></div><div className="neo-full"><Field label="Descripción" textarea value={form.description} onChange={value => change('description', value)}/></div><div className="neo-full"><Field label="Requisitos (uno por línea)" textarea value={(form.requirements || []).join('\n')} onChange={value => change('requirements', value.split('\n').filter(Boolean))}/></div>
