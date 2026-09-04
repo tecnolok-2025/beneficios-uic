@@ -1,4 +1,4 @@
-# Instalación v3.1.0 en el repositorio y Render actuales
+# Instalación v3.2.1 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -25,10 +25,10 @@ npm start
 El log de arranque debe incluir:
 
 ```text
-Beneficios UIC NUEVO v3.1.0 · BENEFICIOS_UIC_310
+Beneficios UIC NUEVO v3.2.1 · BENEFICIOS_UIC_321
 ```
 
-La ruta `/api/health` debe informar `"version":"3.1.0"`, `"generation":"BENEFICIOS_UIC_310"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.2.1"`, `"generation":"BENEFICIOS_UIC_321"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación visual
 

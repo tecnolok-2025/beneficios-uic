@@ -1,16 +1,16 @@
-# Beneficios UIC — proyecto 3.1.0
+# Beneficios UIC — proyecto 3.2.1
 
 Portal de beneficios de la Unión Industrial de Campana.
 
 ## Qué conserva
 
 - La base PostgreSQL existente de Neon.
-- Los 25 beneficios y 10 rubros del catálogo base.
+- Los 26 beneficios y 10 rubros del catálogo base.
 - Los textos, contactos, flyers y ediciones administrativas guardados en Neon.
 - Alta, edición, publicación, eliminación y carga de flyers.
 - Control anticaché y compatibilidad con estructuras heredadas de la tabla `flyers`.
 
-## Revisión 3.1.0
+## Revisión 3.2.1
 
 - Buscador en la parte superior del listado de Administración por beneficio, empresa, rubro o palabra clave.
 - Logo institucional UIC provisto para esta revisión en la cabecera.
@@ -18,7 +18,7 @@ Portal de beneficios de la Unión Industrial de Campana.
 - Correcciones de robustez detectadas en la auditoría general.
 - Llamado de asociación unificado como **Hacete socio**.
 
-La generación se identifica como `BENEFICIOS_UIC_310`. El servidor no arranca si el frontend compilado no contiene esa marca.
+La generación se identifica como `BENEFICIOS_UIC_321`. El servidor no arranca si el frontend compilado no contiene esa marca.
 
 El catálogo local es solamente un respaldo. Si `data/catalog.json` faltara, el servidor continúa utilizando Neon.
 

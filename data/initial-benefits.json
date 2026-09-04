@@ -637,5 +637,51 @@
     "endDate": null,
     "published": true,
     "analysisWarnings": []
+  },
+  {
+    "slug": "club-villa-dalmine-beneficios-uic",
+    "title": "Villa Dálmine: entradas y beneficios para empresas socias",
+    "partner": "Club Villa Dálmine",
+    "category": "Turismo y bienestar",
+    "status": "activo",
+    "featured": true,
+    "summary": "Acceso a entradas para partidos locales y condiciones preferenciales en la cuota social del Club Villa Dálmine para empleados y grupos familiares de empresas adheridas.",
+    "description": "El convenio de cooperación institucional entre la Unión Industrial de Campana y el Club Villa Dálmine acerca beneficios deportivos y sociales a las empresas socias y a sus colaboradores. Cada empresa adherida puede gestionar hasta 15 entradas por partido local para la Tribuna Mitre, con excepción de los encuentros de Copa Argentina. Además, las empresas que contraten publicidad estática en el estadio acceden a un 25% de descuento en la cuota social del club para sus empleados y grupo familiar; cuando la empresa se incorpora como sponsor principal, el descuento asciende al 50%. El acuerdo también contempla acciones de visibilidad institucional y activación de marca, sujetas a coordinación con el Club.",
+    "concreteBenefit": "Hasta 15 entradas por partido local para la Tribuna Mitre y descuentos del 25% o 50% en la cuota social, según el nivel de vinculación comercial de la empresa con el Club.",
+    "costsDiscounts": "15 entradas por partido local para Tribuna Mitre, excepto Copa Argentina. 25% de descuento en cuota social para empleados y grupo familiar de empresas con publicidad estática; 50% para empresas que sean sponsor principal. Las condiciones comerciales de publicidad y sponsoreo se coordinan directamente con el Club.",
+    "requirements": [
+      "Ser empresa asociada a la UIC y adherir al convenio",
+      "Gestionar las entradas conforme al Procedimiento Convenio UIC vigente",
+      "Solicitar las entradas con la anticipación y modalidad informadas para cada partido",
+      "Para acceder al descuento en cuota social, cumplir la condición de publicidad estática o sponsoreo principal prevista en el convenio"
+    ],
+    "scope": "Empresas socias de la UIC, sus empleados y grupos familiares, según el beneficio específico.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Secretaría Club Villa Dálmine",
+        "role": "Secretaría / consultas institucionales",
+        "phone": "03489 42-2567",
+        "email": "secretaria@villadalmine.com.ar"
+      },
+      {
+        "name": "Administración Club Villa Dálmine",
+        "role": "Administración",
+        "phone": "03489 42-2567",
+        "email": "administracion@villadalmine.com.ar"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/la-uic-fortalece-su-vinculo-con-villa-dalmine-a-traves-de-un-nuevo-convenio-de-cooperacion/",
+    "externalImageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Villa_Dalmine_logo.png",
+    "externalImageAlt": "Escudo Club Villa Dálmine",
+    "startDate": "2026-02-06",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": [
+      "Las entradas no incluyen encuentros por Copa Argentina y deben gestionarse según el procedimiento vigente del convenio.",
+      "Los descuentos en cuota social dependen de la contratación de publicidad estática o de la condición de sponsor principal y deben confirmarse al momento de la adhesión."
+    ]
   }
 ]

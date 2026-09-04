@@ -10,10 +10,10 @@ const catalog = async () => JSON.parse(await read('data/catalog.json'))
 const latestSlug = 'capacitacion-retencion-talento-etrr'
 const praxisSlug = 'finanzas-corporativas-praxis'
 
-test('01 · conserva 24 beneficios y agrega Praxis como beneficio 25', async () => {
+test('01 · conserva los beneficios existentes y agrega Villa Dálmine como beneficio 26', async () => {
   const items = await catalog()
-  assert.equal(items.length, 25)
-  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 25)
+  assert.equal(items.length, 26)
+  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 26)
   assert.ok(items.some(item => item.slug === praxisSlug))
 })
 
@@ -25,7 +25,7 @@ test('02 · mantiene exactamente 10 rubros funcionales', async () => {
 test('03 · todos los beneficios están activos y los slugs son únicos', async () => {
   const items = await catalog()
   assert.ok(items.every(item => item.status === 'activo'))
-  assert.equal(new Set(items.map(item => item.slug)).size, 25)
+  assert.equal(new Set(items.map(item => item.slug)).size, 26)
 })
 
 test('04 · el último acuerdo destacado sigue siendo Escuela Técnica Roberto Rocca', async () => {
@@ -73,14 +73,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.1.0 son coherentes', async () => {
+test('10 · versión y generación 3.2.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.1.0')
-  assert.match(server, /BENEFICIOS_UIC_310/)
-  assert.match(html, /BENEFICIOS_UIC_310/)
+  assert.equal(pkg.version, '3.2.1')
+  assert.match(server, /BENEFICIOS_UIC_321/)
+  assert.match(html, /BENEFICIOS_UIC_321/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -149,4 +149,15 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, />Hacete socio</)
   assert.doesNotMatch(app, />Consultar asociación/)
+})
+
+
+test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () => {
+  const items = JSON.parse(await read('data/catalog.json'))
+  const item = items.find(x => x.slug === 'club-villa-dalmine-beneficios-uic')
+  assert.ok(item)
+  assert.equal(item.partner, 'Club Villa Dálmine')
+  assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
+  assert.match(item.externalImageUrl, /wikimedia\.org/)
+  assert.equal(new Set(items.map(x => x.category)).size, 10)
 })

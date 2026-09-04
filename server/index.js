@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_310'
+const GENERATION = 'BENEFICIOS_UIC_321'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -48,12 +48,12 @@ function rowToBenefit(row, flyers = []) {
     concreteBenefit: row.concrete_benefit, costsDiscounts: row.costs_discounts,
     requirements: row.requirements || [], scope: row.scope, contactName: row.contact_name,
     contactPhone: row.contact_phone, contactEmail: row.contact_email, companyContacts: row.company_contacts || [],
-    agreementUrl: row.agreement_url || '', startDate: row.start_date, endDate: row.end_date, published: row.published, flyers
+    agreementUrl: row.agreement_url || '', externalImageUrl: row.external_image_url || '', externalImageAlt: row.external_image_alt || '', startDate: row.start_date, endDate: row.end_date, published: row.published, flyers: flyers.length ? flyers : (row.external_image_url ? [{ id: `external-${row.id}`, url: row.external_image_url, alt: row.external_image_alt || row.partner || row.title }] : [])
   }
 }
 
 function localBenefit(item, index) {
-  return { id: `local-${index + 1}`, ...item, published: item.published !== false, flyers: [] }
+  return { id: `local-${index + 1}`, ...item, published: item.published !== false, flyers: item.externalImageUrl ? [{ id: `external-local-${index + 1}`, url: item.externalImageUrl, alt: item.externalImageAlt || item.partner || item.title }] : [] }
 }
 
 async function initializeDatabase() {
@@ -65,12 +65,12 @@ async function initializeDatabase() {
   await pool.query(schema)
   for (const item of localCatalog) {
     await pool.query(`INSERT INTO benefits
-      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,start_date,end_date,published)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,TRUE)
+      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,TRUE)
       ON CONFLICT (slug) DO NOTHING`, [
       item.slug, item.title, item.partner || '', item.category, item.status || 'activo', Boolean(item.featured), item.summary || '',
       item.description || '', item.concreteBenefit || '', item.costsDiscounts || '', JSON.stringify(item.requirements || []), item.scope || '',
-      item.contactName || '', item.contactPhone || '', item.contactEmail || '', JSON.stringify(item.companyContacts || []), item.agreementUrl || '', item.startDate || null, item.endDate || null
+      item.contactName || '', item.contactPhone || '', item.contactEmail || '', JSON.stringify(item.companyContacts || []), item.agreementUrl || '', item.externalImageUrl || '', item.externalImageAlt || '', item.startDate || null, item.endDate || null
     ])
   }
 }
@@ -103,7 +103,7 @@ function requireAdmin(req, res, next) { return isAdmin(req) ? next() : res.statu
 
 app.set('trust proxy', 1)
 app.disable('etag')
-app.use(helmet({ contentSecurityPolicy: { directives: { 'img-src': ["'self'", 'data:', 'blob:'], 'connect-src': ["'self'"] } } }))
+app.use(helmet({ contentSecurityPolicy: { directives: { 'img-src': ["'self'", 'data:', 'blob:', 'https://upload.wikimedia.org'], 'connect-src': ["'self'"] } } }))
 app.use(compression())
 app.use(express.json({ limit: '2mb' }))
 app.use((req, res, next) => { res.setHeader('X-App-Version', VERSION); res.setHeader('X-UI-Generation', GENERATION); next() })
@@ -169,7 +169,7 @@ function cleanCompanyContacts(value) {
 }
 
 function values(body) {
-  return [safeText(body.title,200), safeText(body.partner,200), safeText(body.category,120), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), body.startDate || null, body.endDate || null, body.published !== false]
+  return [safeText(body.title,200), safeText(body.partner,200), safeText(body.category,120), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), safeText(body.externalImageUrl,1000), safeText(body.externalImageAlt,250), body.startDate || null, body.endDate || null, body.published !== false]
 }
 
 app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {
@@ -180,8 +180,8 @@ app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {
     if (!baseSlug) return res.status(400).json({ error: 'El título debe contener letras o números' })
     let slug = baseSlug; let suffix = 1
     while ((await pool.query('SELECT 1 FROM benefits WHERE slug=$1', [slug])).rowCount) slug = `${baseSlug}-${++suffix}`
-    const result = await pool.query(`INSERT INTO benefits (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,start_date,end_date,published)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`, [slug, ...values(req.body)])
+    const result = await pool.query(`INSERT INTO benefits (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`, [slug, ...values(req.body)])
     res.status(201).json(rowToBenefit(result.rows[0]))
   } catch (error) { next(error) }
 })
@@ -190,7 +190,7 @@ app.put('/api/admin/beneficios/:id', requireAdmin, async (req, res, next) => {
   try {
     const id = safeId(req.params.id)
     if (!pool || !id) return res.status(400).json({ error: 'Beneficio inválido' })
-    const result = await pool.query(`UPDATE benefits SET title=$1,partner=$2,category=$3,status=$4,featured=$5,summary=$6,description=$7,concrete_benefit=$8,costs_discounts=$9,requirements=$10,scope=$11,contact_name=$12,contact_phone=$13,contact_email=$14,company_contacts=$15,agreement_url=$16,start_date=$17,end_date=$18,published=$19,updated_at=NOW() WHERE id=$20 RETURNING *`, [...values(req.body), id])
+    const result = await pool.query(`UPDATE benefits SET title=$1,partner=$2,category=$3,status=$4,featured=$5,summary=$6,description=$7,concrete_benefit=$8,costs_discounts=$9,requirements=$10,scope=$11,contact_name=$12,contact_phone=$13,contact_email=$14,company_contacts=$15,agreement_url=$16,external_image_url=$17,external_image_alt=$18,start_date=$19,end_date=$20,published=$21,updated_at=NOW() WHERE id=$22 RETURNING *`, [...values(req.body), id])
     if (!result.rows[0]) return res.status(404).json({ error: 'Beneficio no encontrado' })
     res.json(rowToBenefit(result.rows[0]))
   } catch (error) { next(error) }
