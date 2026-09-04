@@ -25,10 +25,10 @@ npm start
 El log de arranque debe incluir:
 
 ```text
-Beneficios UIC NUEVO v3.2.1 · BENEFICIOS_UIC_321
+Beneficios UIC NUEVO v3.2.1 · BENEFICIOS_UIC_322
 ```
 
-La ruta `/api/health` debe informar `"version":"3.2.1"`, `"generation":"BENEFICIOS_UIC_321"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.2.1"`, `"generation":"BENEFICIOS_UIC_322"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación visual
 

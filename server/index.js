@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_321'
+const GENERATION = 'BENEFICIOS_UIC_322'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -64,15 +64,31 @@ async function initializeDatabase() {
   const schema = await fs.readFile(path.join(root, 'server/schema.sql'), 'utf8')
   await pool.query(schema)
   for (const item of localCatalog) {
-    await pool.query(`INSERT INTO benefits
+    const isVillaDalmine = item.slug === 'club-villa-dalmine-beneficios-uic'
+    const sql = isVillaDalmine ? `INSERT INTO benefits
       (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,TRUE)
-      ON CONFLICT (slug) DO NOTHING`, [
+      ON CONFLICT (slug) DO UPDATE SET
+        title=EXCLUDED.title, partner=EXCLUDED.partner, category=EXCLUDED.category, status=EXCLUDED.status, featured=EXCLUDED.featured,
+        summary=EXCLUDED.summary, description=EXCLUDED.description, concrete_benefit=EXCLUDED.concrete_benefit, costs_discounts=EXCLUDED.costs_discounts,
+        requirements=EXCLUDED.requirements, scope=EXCLUDED.scope, contact_name=EXCLUDED.contact_name, contact_phone=EXCLUDED.contact_phone,
+        contact_email=EXCLUDED.contact_email, company_contacts=EXCLUDED.company_contacts, agreement_url=EXCLUDED.agreement_url,
+        external_image_url=EXCLUDED.external_image_url, external_image_alt=EXCLUDED.external_image_alt, start_date=EXCLUDED.start_date,
+        end_date=EXCLUDED.end_date, published=TRUE, updated_at=NOW()
+      RETURNING id, slug, published` : `INSERT INTO benefits
+      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,TRUE)
+      ON CONFLICT (slug) DO NOTHING`
+    const result = await pool.query(sql, [
       item.slug, item.title, item.partner || '', item.category, item.status || 'activo', Boolean(item.featured), item.summary || '',
       item.description || '', item.concreteBenefit || '', item.costsDiscounts || '', JSON.stringify(item.requirements || []), item.scope || '',
       item.contactName || '', item.contactPhone || '', item.contactEmail || '', JSON.stringify(item.companyContacts || []), item.agreementUrl || '', item.externalImageUrl || '', item.externalImageAlt || '', item.startDate || null, item.endDate || null
     ])
+    if (isVillaDalmine) console.log(`Beneficio 26 Villa Dálmine sincronizado en Neon · publicado=${result.rows?.[0]?.published ?? true}`)
   }
+  const verification = await pool.query(`SELECT id,slug,title,partner,published,status FROM benefits WHERE slug='club-villa-dalmine-beneficios-uic'`)
+  if (!verification.rows.length) throw new Error('No se pudo verificar Villa Dálmine en Neon después de la sincronización.')
+  console.log(`Verificación Villa Dálmine OK · id=${verification.rows[0].id} · publicado=${verification.rows[0].published} · estado=${verification.rows[0].status}`)
 }
 
 async function listBenefits(includeHidden = false) {
@@ -114,7 +130,8 @@ app.get('/api/version', (_req, res) => res.json({ ok: true, version: VERSION, ge
 app.get('/api/health', async (_req, res) => {
   try {
     const items = await listBenefits()
-    res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT, database: Boolean(pool), catalogSource: pool ? 'neon' : 'local', catalog: { published: items.length, active: items.filter(x => x.status === 'activo').length, categories: new Set(items.map(x => x.category)).size } })
+    const dalmine = items.find(item => item.slug === 'club-villa-dalmine-beneficios-uic')
+    res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT, database: Boolean(pool), catalogSource: pool ? 'neon' : 'local', catalog: { published: items.length, active: items.filter(x => x.status === 'activo').length, categories: new Set(items.map(x => x.category)).size, villaDalmine: Boolean(dalmine) } })
   } catch (error) { res.status(503).json({ ok: false, version: VERSION, generation: GENERATION, error: error.message }) }
 })
 
