@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_322'
+const GENERATION = 'BENEFICIOS_UIC_330'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -48,7 +48,7 @@ function rowToBenefit(row, flyers = []) {
     concreteBenefit: row.concrete_benefit, costsDiscounts: row.costs_discounts,
     requirements: row.requirements || [], scope: row.scope, contactName: row.contact_name,
     contactPhone: row.contact_phone, contactEmail: row.contact_email, companyContacts: row.company_contacts || [],
-    agreementUrl: row.agreement_url || '', externalImageUrl: row.external_image_url || '', externalImageAlt: row.external_image_alt || '', startDate: row.start_date, endDate: row.end_date, published: row.published, flyers: flyers.length ? flyers : (row.external_image_url ? [{ id: `external-${row.id}`, url: row.external_image_url, alt: row.external_image_alt || row.partner || row.title }] : [])
+    agreementUrl: row.agreement_url || '', agreementLinks: row.agreement_links || [], externalImageUrl: row.external_image_url || '', externalImageAlt: row.external_image_alt || '', startDate: row.start_date, endDate: row.end_date, published: row.published, flyers: flyers.length ? flyers : (row.external_image_url ? [{ id: `external-${row.id}`, url: row.external_image_url, alt: row.external_image_alt || row.partner || row.title }] : [])
   }
 }
 
@@ -64,33 +64,50 @@ async function initializeDatabase() {
   const schema = await fs.readFile(path.join(root, 'server/schema.sql'), 'utf8')
   await pool.query(schema)
   for (const item of localCatalog) {
-    const isVillaDalmine = item.slug === 'club-villa-dalmine-beneficios-uic'
-    const sql = isVillaDalmine ? `INSERT INTO benefits
-      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,TRUE)
+    const result = await pool.query(`INSERT INTO benefits
+      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,agreement_links,external_image_url,external_image_alt,start_date,end_date,published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,TRUE)
       ON CONFLICT (slug) DO UPDATE SET
-        title=EXCLUDED.title, partner=EXCLUDED.partner, category=EXCLUDED.category, status=EXCLUDED.status, featured=EXCLUDED.featured,
-        summary=EXCLUDED.summary, description=EXCLUDED.description, concrete_benefit=EXCLUDED.concrete_benefit, costs_discounts=EXCLUDED.costs_discounts,
-        requirements=EXCLUDED.requirements, scope=EXCLUDED.scope, contact_name=EXCLUDED.contact_name, contact_phone=EXCLUDED.contact_phone,
-        contact_email=EXCLUDED.contact_email, company_contacts=EXCLUDED.company_contacts, agreement_url=EXCLUDED.agreement_url,
-        external_image_url=EXCLUDED.external_image_url, external_image_alt=EXCLUDED.external_image_alt, start_date=EXCLUDED.start_date,
-        end_date=EXCLUDED.end_date, published=TRUE, updated_at=NOW()
-      RETURNING id, slug, published` : `INSERT INTO benefits
-      (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,TRUE)
-      ON CONFLICT (slug) DO NOTHING`
-    const result = await pool.query(sql, [
+        company_contacts = CASE
+          WHEN jsonb_array_length(COALESCE(benefits.company_contacts, '[]'::jsonb)) = 0
+            OR NOT EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(benefits.company_contacts, '[]'::jsonb)) c WHERE COALESCE(c->>'email','') <> '')
+          THEN EXCLUDED.company_contacts
+          ELSE benefits.company_contacts END,
+        agreement_url = CASE WHEN COALESCE(benefits.agreement_url,'') = '' THEN EXCLUDED.agreement_url ELSE benefits.agreement_url END,
+        agreement_links = CASE
+          WHEN jsonb_array_length(COALESCE(benefits.agreement_links, '[]'::jsonb)) = 0 THEN EXCLUDED.agreement_links
+          ELSE benefits.agreement_links END,
+        external_image_url = CASE WHEN COALESCE(benefits.external_image_url,'') = '' THEN EXCLUDED.external_image_url ELSE benefits.external_image_url END,
+        external_image_alt = CASE WHEN COALESCE(benefits.external_image_alt,'') = '' THEN EXCLUDED.external_image_alt ELSE benefits.external_image_alt END,
+        updated_at = CASE WHEN
+          (jsonb_array_length(COALESCE(benefits.company_contacts, '[]'::jsonb)) = 0 OR NOT EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(benefits.company_contacts, '[]'::jsonb)) c WHERE COALESCE(c->>'email','') <> '')) OR
+          COALESCE(benefits.agreement_url,'') = '' OR
+          jsonb_array_length(COALESCE(benefits.agreement_links, '[]'::jsonb)) = 0 OR
+          COALESCE(benefits.external_image_url,'') = ''
+          THEN NOW() ELSE benefits.updated_at END
+      RETURNING id, slug`, [
       item.slug, item.title, item.partner || '', item.category, item.status || 'activo', Boolean(item.featured), item.summary || '',
       item.description || '', item.concreteBenefit || '', item.costsDiscounts || '', JSON.stringify(item.requirements || []), item.scope || '',
-      item.contactName || '', item.contactPhone || '', item.contactEmail || '', JSON.stringify(item.companyContacts || []), item.agreementUrl || '', item.externalImageUrl || '', item.externalImageAlt || '', item.startDate || null, item.endDate || null
+      item.contactName || '', item.contactPhone || '', item.contactEmail || '', JSON.stringify(item.companyContacts || []), item.agreementUrl || '',
+      JSON.stringify(item.agreementLinks || []), item.externalImageUrl || '', item.externalImageAlt || '', item.startDate || null, item.endDate || null
     ])
-    if (isVillaDalmine) console.log(`Beneficio 26 Villa Dálmine sincronizado en Neon · publicado=${result.rows?.[0]?.published ?? true}`)
+    if (!result.rows?.[0]) throw new Error(`No se pudo sincronizar el beneficio ${item.slug}`)
   }
-  const verification = await pool.query(`SELECT id,slug,title,partner,published,status FROM benefits WHERE slug='club-villa-dalmine-beneficios-uic'`)
-  if (!verification.rows.length) throw new Error('No se pudo verificar Villa Dálmine en Neon después de la sincronización.')
-  console.log(`Verificación Villa Dálmine OK · id=${verification.rows[0].id} · publicado=${verification.rows[0].published} · estado=${verification.rows[0].status}`)
-}
+  // Corrección nominal explícitamente aprobada. No altera textos ni ediciones administrativas de otros beneficios.
+  await pool.query(`UPDATE benefits
+    SET partner='Paseo Gavazzi · SYGSA S.A. · CADEMA', updated_at=NOW()
+    WHERE slug='paseo-gavazzi-sigsa-cadema'
+      AND partner IN ('Paseo Gavazzi · SIGSA · Cadema','Paseo Gavazzi · SIGSA · CADEMA')`)
 
+  const verification = await pool.query(`SELECT slug, company_contacts, agreement_url, agreement_links, external_image_url
+    FROM benefits WHERE slug = ANY($1::text[])`, [localCatalog.map(item => item.slug)])
+  const incomplete = verification.rows.filter(row =>
+    !Array.isArray(row.company_contacts) || row.company_contacts.length === 0 ||
+    (!row.agreement_url && (!Array.isArray(row.agreement_links) || row.agreement_links.length === 0)) ||
+    !row.external_image_url)
+  if (incomplete.length) console.warn(`Sincronización de completitud: ${incomplete.length} beneficio(s) conservan campos administrados sin completar: ${incomplete.map(x => x.slug).join(', ')}`)
+  else console.log('Sincronización de completitud OK · 26/26 beneficios con contacto, convenio e imagen')
+}
 async function listBenefits(includeHidden = false) {
   if (!pool) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
   const result = await pool.query(`SELECT * FROM benefits ${includeHidden ? '' : 'WHERE published=TRUE'} ORDER BY featured DESC, title`)
@@ -177,6 +194,13 @@ app.post('/api/admin/logout', (_req, res) => res.clearCookie(COOKIE, { path: '/'
 app.get('/api/admin/me', (req, res) => res.json({ authenticated: isAdmin(req) }))
 app.get('/api/admin/beneficios', requireAdmin, async (_req, res, next) => { try { res.json(await listBenefits(true)) } catch (error) { next(error) } })
 
+function cleanAgreementLinks(value) {
+  if (!Array.isArray(value)) return []
+  return value.slice(0, 10).map(link => ({
+    label: safeText(link?.label, 250), url: safeText(link?.url, 1000)
+  })).filter(link => link.url)
+}
+
 function cleanCompanyContacts(value) {
   if (!Array.isArray(value)) return []
   return value.slice(0, 20).map(contact => ({
@@ -186,7 +210,7 @@ function cleanCompanyContacts(value) {
 }
 
 function values(body) {
-  return [safeText(body.title,200), safeText(body.partner,200), safeText(body.category,120), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), safeText(body.externalImageUrl,1000), safeText(body.externalImageAlt,250), body.startDate || null, body.endDate || null, body.published !== false]
+  return [safeText(body.title,200), safeText(body.partner,200), safeText(body.category,120), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), JSON.stringify(cleanAgreementLinks(body.agreementLinks)), safeText(body.externalImageUrl,1000), safeText(body.externalImageAlt,250), body.startDate || null, body.endDate || null, body.published !== false]
 }
 
 app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {
@@ -197,8 +221,8 @@ app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {
     if (!baseSlug) return res.status(400).json({ error: 'El título debe contener letras o números' })
     let slug = baseSlug; let suffix = 1
     while ((await pool.query('SELECT 1 FROM benefits WHERE slug=$1', [slug])).rowCount) slug = `${baseSlug}-${++suffix}`
-    const result = await pool.query(`INSERT INTO benefits (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,external_image_url,external_image_alt,start_date,end_date,published)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`, [slug, ...values(req.body)])
+    const result = await pool.query(`INSERT INTO benefits (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,agreement_links,external_image_url,external_image_alt,start_date,end_date,published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`, [slug, ...values(req.body)])
     res.status(201).json(rowToBenefit(result.rows[0]))
   } catch (error) { next(error) }
 })
@@ -207,7 +231,7 @@ app.put('/api/admin/beneficios/:id', requireAdmin, async (req, res, next) => {
   try {
     const id = safeId(req.params.id)
     if (!pool || !id) return res.status(400).json({ error: 'Beneficio inválido' })
-    const result = await pool.query(`UPDATE benefits SET title=$1,partner=$2,category=$3,status=$4,featured=$5,summary=$6,description=$7,concrete_benefit=$8,costs_discounts=$9,requirements=$10,scope=$11,contact_name=$12,contact_phone=$13,contact_email=$14,company_contacts=$15,agreement_url=$16,external_image_url=$17,external_image_alt=$18,start_date=$19,end_date=$20,published=$21,updated_at=NOW() WHERE id=$22 RETURNING *`, [...values(req.body), id])
+    const result = await pool.query(`UPDATE benefits SET title=$1,partner=$2,category=$3,status=$4,featured=$5,summary=$6,description=$7,concrete_benefit=$8,costs_discounts=$9,requirements=$10,scope=$11,contact_name=$12,contact_phone=$13,contact_email=$14,company_contacts=$15,agreement_url=$16,agreement_links=$17,external_image_url=$18,external_image_alt=$19,start_date=$20,end_date=$21,published=$22,updated_at=NOW() WHERE id=$23 RETURNING *`, [...values(req.body), id])
     if (!result.rows[0]) return res.status(404).json({ error: 'Beneficio no encontrado' })
     res.json(rowToBenefit(result.rows[0]))
   } catch (error) { next(error) }

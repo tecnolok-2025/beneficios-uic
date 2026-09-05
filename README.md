@@ -1,3 +1,5 @@
+> **Revisión actual: v3.3.0 · BENEFICIOS_UIC_330 · completitud 26/26**
+
 # Beneficios UIC — proyecto 3.2.2
 
 Portal de beneficios de la Unión Industrial de Campana.

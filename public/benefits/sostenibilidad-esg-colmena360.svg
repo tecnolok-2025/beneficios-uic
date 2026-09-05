@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#082636"/><stop offset="1" stop-color="#17667f"/></linearGradient></defs>
+<rect width="1200" height="675" fill="url(#g)"/>
+<circle cx="1030" cy="125" r="250" fill="#ffffff" opacity="0.055"/><circle cx="1100" cy="600" r="310" fill="#ffffff" opacity="0.035"/>
+<rect x="72" y="70" width="90" height="90" rx="22" fill="#ffffff" opacity="0.14"/>
+<path d="M96 115l19 19 30-39" fill="none" stroke="#79e2c0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="190" y="108" font-family="Arial,Helvetica,sans-serif" font-size="27" font-weight="700" fill="#79e2c0" letter-spacing="3">BENEFICIO UIC</text>
+<text x="190" y="142" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#d8e7ec" letter-spacing="1.4">UNIÓN INDUSTRIAL DE CAMPANA</text>
+<text x="74" y="220" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" fill="#80cde3" letter-spacing="2">AMBIENTE Y SUSTENTABILIDAD</text>
+<text x="74" y="292" font-family="Arial,Helvetica,sans-serif" font-size="45" font-weight="800" fill="#ffffff">Colmena 360</text>
+<text x="74" y="367" font-family="Arial,Helvetica,sans-serif" font-size="28" font-weight="500" fill="#d8e7ec">Orientación en sostenibilidad y ESG</text>
+<rect x="74" y="580" width="430" height="2" fill="#79e2c0" opacity=".75"/>
+<text x="74" y="625" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#d8e7ec">Información, contacto y convenio verificados en la ficha</text>
+</svg>

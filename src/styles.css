@@ -347,3 +347,11 @@ button { cursor: pointer; }
 .neo-upload-files { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: -8px; }
 .neo-upload-files span { padding: 6px 9px; color: #3d5966; background: #f4f8fa; border: 1px solid var(--line); border-radius: 7px; font-size: 11px; }
 .neo-editor-actions button:disabled { opacity: .65; cursor: wait; }
+
+/* v3.3.0 · completitud 26/26 y múltiples convenios */
+.neo-agreement-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.neo-agreement-links .neo-source-link { margin-top: 0; }
+.neo-agreement-editor { margin-top: 8px; padding: 19px; background: #f7fafb; border: 1px solid var(--line); border-radius: 12px; }
+.neo-agreement-row { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr) auto; gap: 10px; align-items: end; padding: 13px 0; border-top: 1px solid var(--line); }
+.neo-agreement-row:first-of-type { border-top: 0; }
+@media (max-width: 850px) { .neo-agreement-row { grid-template-columns: 1fr; } }

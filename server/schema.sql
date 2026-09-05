@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS benefits (
   start_date DATE,
   end_date DATE,
   agreement_url TEXT NOT NULL DEFAULT '',
+  agreement_links JSONB NOT NULL DEFAULT '[]'::jsonb,
   external_image_url TEXT NOT NULL DEFAULT '',
   external_image_alt TEXT NOT NULL DEFAULT '',
   analysis_warnings JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -57,6 +58,7 @@ ALTER TABLE benefits ADD COLUMN IF NOT EXISTS costs_discounts TEXT NOT NULL DEFA
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS company_contacts JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS agreement_url TEXT NOT NULL DEFAULT '';
+ALTER TABLE benefits ADD COLUMN IF NOT EXISTS agreement_links JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS external_image_url TEXT NOT NULL DEFAULT '';
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS external_image_alt TEXT NOT NULL DEFAULT '';
 

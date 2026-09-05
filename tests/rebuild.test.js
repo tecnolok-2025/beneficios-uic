@@ -56,14 +56,15 @@ test('07 · la vista móvil conserva una sola columna de tarjetas', async () => 
   assert.match(styles, /@media \(max-width: 650px\)[\s\S]*\.neo-grid \{ grid-template-columns: 1fr; \}/)
 })
 
-test('08 · Neon preserva CRUD y suma contactos de empresa editables', async () => {
+test('08 · Neon preserva CRUD y suma contactos y múltiples convenios editables', async () => {
   const server = await read('server/index.js')
   const schema = await read('server/schema.sql')
-  assert.match(server, /ON CONFLICT \(slug\) DO NOTHING/)
+  assert.match(server, /ON CONFLICT \(slug\) DO UPDATE SET/)
   assert.match(server, /company_contacts/)
-  assert.match(server, /agreement_url/)
+  assert.match(server, /agreement_links/)
   assert.match(schema, /company_contacts JSONB/)
-  assert.match(schema, /ADD COLUMN IF NOT EXISTS company_contacts/)
+  assert.match(schema, /agreement_links JSONB/)
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS agreement_links/)
 })
 
 test('09 · el catálogo local continúa como respaldo sin borrar Neon', async () => {
@@ -73,14 +74,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.2.2 son coherentes', async () => {
+test('10 · versión y generación 3.3.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.2.2')
-  assert.match(server, /BENEFICIOS_UIC_322/)
-  assert.match(html, /BENEFICIOS_UIC_322/)
+  assert.equal(pkg.version, '3.3.0')
+  assert.match(server, /BENEFICIOS_UIC_330/)
+  assert.match(html, /BENEFICIOS_UIC_330/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -137,9 +138,10 @@ test('16 · empresa o prestador recibe mayor jerarquía visual', async () => {
   assert.match(styles, /\.neo-admin-list > button span[\s\S]*font-size: 12px[\s\S]*font-weight: 750/)
 })
 
-test('17 · auditoría mantiene Neon sin sobrescritura y refuerza casos límite', async () => {
+test('17 · auditoría mantiene Neon con migración aditiva y refuerza casos límite', async () => {
   const server = await read('server/index.js')
-  assert.match(server, /ON CONFLICT \(slug\) DO NOTHING/)
+  assert.match(server, /CASE WHEN COALESCE\(benefits\.agreement_url/)
+  assert.match(server, /ELSE benefits\.external_image_url END/)
   assert.match(server, /localCatalog\.filter\(item => includeHidden \|\| item\.published !== false\)/)
   assert.match(server, /El título debe contener letras o números/)
   assert.match(server, /Beneficio no encontrado/)
@@ -152,12 +154,34 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
 })
 
 
+
+test('19 · los 26 beneficios quedan completos con contacto, correo, convenio e imagen', async () => {
+  const items = await catalog()
+  assert.equal(items.length, 26)
+  for (const item of items) {
+    assert.ok(Array.isArray(item.companyContacts) && item.companyContacts.length > 0, `${item.slug}: falta contacto`)
+    assert.ok(item.companyContacts.some(contact => contact.name && contact.email), `${item.slug}: falta nombre/correo`)
+    assert.ok(Array.isArray(item.agreementLinks) && item.agreementLinks.length > 0, `${item.slug}: falta convenio`)
+    assert.ok(item.agreementLinks.every(link => link.label && /^https:\/\//.test(link.url)), `${item.slug}: enlace inválido`)
+    assert.match(item.externalImageUrl || '', /^\/benefits\/.+\.svg$/, `${item.slug}: falta imagen de respaldo`)
+  }
+})
+
+test('20 · Paseo Gavazzi corrige SYGSA y muestra juntos los dos convenios', async () => {
+  const items = await catalog()
+  const item = items.find(x => x.slug === 'paseo-gavazzi-sigsa-cadema')
+  assert.equal(item?.partner, 'Paseo Gavazzi · SYGSA S.A. · CADEMA')
+  assert.equal(item?.agreementLinks?.length, 2)
+  assert.ok(item.agreementLinks.some(link => /SYGSA/.test(link.label)))
+  assert.ok(item.agreementLinks.some(link => /CADEMA/.test(link.label)))
+})
+
 test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () => {
   const items = JSON.parse(await read('data/catalog.json'))
   const item = items.find(x => x.slug === 'club-villa-dalmine-beneficios-uic')
   assert.ok(item)
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
-  assert.match(item.externalImageUrl, /wikimedia\.org/)
+  assert.match(item.externalImageUrl, /^\/benefits\/.+\.svg$/)
   assert.equal(new Set(items.map(x => x.category)).size, 10)
 })

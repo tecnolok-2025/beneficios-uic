@@ -22,7 +22,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2026-08-31",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Luis Cornaglia",
+        "role": "Escuela Técnica Roberto Rocca · Programa de Capacitación y Retención de Talento",
+        "phone": "",
+        "email": "cfp@etrr.edu.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Programa de Capacitación y Retención de Talento – UIC",
+        "url": "https://uic-campana.com.ar/capacitacion-para-crecer-y-retener-talento-una-nueva-herramienta-para-las-empresas-del-corredor-norte-productivo/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/capacitacion-para-crecer-y-retener-talento-una-nueva-herramienta-para-las-empresas-del-corredor-norte-productivo/",
+    "externalImageUrl": "/benefits/capacitacion-retencion-talento-etrr.svg",
+    "externalImageAlt": "Beneficio UIC · Escuela Técnica Roberto Rocca"
   },
   {
     "slug": "termas-cacheuta-termalia",
@@ -47,7 +64,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-11-07",
     "endDate": "2027-11-07",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Equipo de Reservas Termas Cacheuta",
+        "role": "Reservas / atención comercial",
+        "phone": "02624 490152",
+        "email": "reservas@termascacheuta.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio UIC – Termalia S.A. / Termas Cacheuta",
+        "url": "https://uic-campana.com.ar/convenio-uic-termalia-s-a-beneficios-concretos-para-las-familias-de-nuestros-socios/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/convenio-uic-termalia-s-a-beneficios-concretos-para-las-familias-de-nuestros-socios/",
+    "externalImageUrl": "/benefits/termas-cacheuta-termalia.svg",
+    "externalImageAlt": "Beneficio UIC · Termalia S.A. · Termas Cacheuta"
   },
   {
     "slug": "diagnostico-ambiental-ecogoal",
@@ -71,7 +105,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-07-03",
     "endDate": "2027-07-03",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Romina Barraza",
+        "role": "EcoGoal Servicios Integrales",
+        "phone": "+54 9 3489 310677",
+        "email": "rominabarraza.ecogoal@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio UIC – EcoGoal",
+        "url": "https://uic-campana.com.ar/converti-tu-pyme-en-verde-aprovecha-el-convenio-uic-ecogoal/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/converti-tu-pyme-en-verde-aprovecha-el-convenio-uic-ecogoal/",
+    "externalImageUrl": "/benefits/diagnostico-ambiental-ecogoal.svg",
+    "externalImageAlt": "Beneficio UIC · EcoGoal Servicios Integrales"
   },
   {
     "slug": "mejora-continua-cforma",
@@ -95,7 +146,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-09-23",
     "endDate": "2027-09-23",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Cecilia Sponton Costa",
+        "role": "C-Forma Consulting · diagnóstico y mejora continua · coordinación operativa vía UIC",
+        "phone": "11 6834-6163",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo estratégico UIC – C-Forma",
+        "url": "https://uic-campana.com.ar/uic-y-c-forma-acuerdo-estrategico-para-profesionalizar-y-escalar-la-mejora-continua/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/uic-y-c-forma-acuerdo-estrategico-para-profesionalizar-y-escalar-la-mejora-continua/",
+    "externalImageUrl": "/benefits/mejora-continua-cforma.svg",
+    "externalImageAlt": "Beneficio UIC · C-Forma"
   },
   {
     "slug": "desarrollo-comercial-inventiva",
@@ -121,7 +189,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El documento no consigna el día exacto de firma; la vigencia indicada es de 24 meses con renovación automática."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Christian Duarte",
+        "role": "Inventiva Comercialización & Management · referente · coordinación operativa vía UIC",
+        "phone": "",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo estratégico UIC – Inventiva",
+        "url": "https://uic-campana.com.ar/acuerdo-estrategico-de-desarrollo-comercial-y-organizacional-uic-inventiva/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/acuerdo-estrategico-de-desarrollo-comercial-y-organizacional-uic-inventiva/",
+    "externalImageUrl": "/benefits/desarrollo-comercial-inventiva.svg",
+    "externalImageAlt": "Beneficio UIC · Inventiva Comercialización & Management"
   },
   {
     "slug": "asesoramiento-legal-innova-lex",
@@ -145,7 +230,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2026-06-26",
     "endDate": "2028-06-26",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Dra. Jimena Soledad Sarmiento",
+        "role": "Representante Legal – Innova Lex",
+        "phone": "2304 36 6976",
+        "email": "legalesdrajs@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de Colaboración Empresarial Innova Lex – UIC",
+        "url": "https://uic-campana.com.ar/firma-acuerdo-colaboracion-empresarial-innova-lex-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/firma-acuerdo-colaboracion-empresarial-innova-lex-uic/",
+    "externalImageUrl": "/benefits/asesoramiento-legal-innova-lex.svg",
+    "externalImageAlt": "Beneficio UIC · Innova Lex"
   },
   {
     "slug": "diagnostico-ciberseguridad-pecantech",
@@ -172,7 +274,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El documento recibido es una propuesta con fecha de firma incompleta; corresponde confirmar la vigencia operativa antes de contratar."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Manuela Díaz",
+        "role": "PECANTECH · referente institucional",
+        "phone": "+54 9 11 3588 0819",
+        "email": "info@pecantech.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio de colaboración UIC – PECANTECH",
+        "url": "https://uic-campana.com.ar/convenio-de-colaboracion-uic-pecantech-blindemos-nuestra-industria-digital/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/convenio-de-colaboracion-uic-pecantech-blindemos-nuestra-industria-digital/",
+    "externalImageUrl": "/benefits/diagnostico-ciberseguridad-pecantech.svg",
+    "externalImageAlt": "Beneficio UIC · PECANTECH"
   },
   {
     "slug": "legajos-digitales-compusistem",
@@ -196,7 +315,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-01-21",
     "endDate": "2027-01-21",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Eduardo Bonialian",
+        "role": "Director – Compusistem",
+        "phone": "+54 11 6790-7960",
+        "email": "eduardo.bonialian@compusistem.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo UIC – Compusistem",
+        "url": "https://uic-campana.com.ar/uic-compusistem-recibo-de-sueldo-digital-para-empresas-socias/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/uic-compusistem-recibo-de-sueldo-digital-para-empresas-socias/",
+    "externalImageUrl": "/benefits/legajos-digitales-compusistem.svg",
+    "externalImageAlt": "Beneficio UIC · Compusistem"
   },
   {
     "slug": "reciclaje-textil-ecirtex",
@@ -223,7 +359,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El documento contiene campos pendientes en la cláusula de vigencia; corresponde revalidar plazo y condiciones económicas."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Marcelo Vila Hill",
+        "role": "Plan ECIRTEX · referente / Director Comercial",
+        "phone": "11 3123 0333",
+        "email": "info@planecirtex.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo UIC – ECIRTEX / PR.UNI",
+        "url": "https://uic-campana.com.ar/uic-y-ecirtex-pr-uni-sellan-un-acuerdo-estrategico-para-impulsar-la-economia-circular-en-la-industria-textil/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/uic-y-ecirtex-pr-uni-sellan-un-acuerdo-estrategico-para-impulsar-la-economia-circular-en-la-industria-textil/",
+    "externalImageUrl": "/benefits/reciclaje-textil-ecirtex.svg",
+    "externalImageAlt": "Beneficio UIC · Plan ECIRTEX · PR.UNI"
   },
   {
     "slug": "energia-solar-grupo-solper",
@@ -248,7 +401,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2026-03-19",
     "endDate": "2028-03-19",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Ing. Rodrigo Valladares",
+        "role": "Gerente General – Grupo Solper Energía Solar",
+        "phone": "+54 9 261 384 0519",
+        "email": "info@gruposolper.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio Marco UIC – Grupo Solper",
+        "url": "https://uic-campana.com.ar/la-uic-impulsa-la-energia-solar-con-un-acuerdo-estrategico-junto-a-grupo-solper/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/la-uic-impulsa-la-energia-solar-con-un-acuerdo-estrategico-junto-a-grupo-solper/",
+    "externalImageUrl": "/benefits/energia-solar-grupo-solper.svg",
+    "externalImageAlt": "Beneficio UIC · Grupo Solper Energía Solar"
   },
   {
     "slug": "sostenibilidad-esg-colmena360",
@@ -273,7 +443,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2026-07-23",
     "endDate": "2028-07-23",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Débora Biain",
+        "role": "Directora – Colmena360",
+        "phone": "3487 33 2447",
+        "email": "holacolmena360@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio UIC – Colmena360",
+        "url": "https://uic-campana.com.ar/la-uic-y-colmena360-firman-un-convenio-para-impulsar-empresas-mas-competitivas-y-sostenibles/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/la-uic-y-colmena360-firman-un-convenio-para-impulsar-empresas-mas-competitivas-y-sostenibles/",
+    "externalImageUrl": "/benefits/sostenibilidad-esg-colmena360.svg",
+    "externalImageAlt": "Beneficio UIC · Colmena 360"
   },
   {
     "slug": "sugarcoach-diabetes-colmena360",
@@ -298,7 +485,28 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2026-07-23",
     "endDate": "2028-07-23",
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Débora Biain",
+        "role": "Directora – Colmena360 / coordinación SugarCoach",
+        "phone": "3487 33 2447",
+        "email": "holacolmena360@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "SugarCoach Diabetes – alcance del convenio UIC / Colmena360",
+        "url": "https://uic-campana.com.ar/sugarcoach-diabetes-tecnologia-y-acompanamiento-para-el-cuidado-cotidiano/"
+      },
+      {
+        "label": "Convenio marco UIC – Colmena360",
+        "url": "https://uic-campana.com.ar/la-uic-y-colmena360-firman-un-convenio-para-impulsar-empresas-mas-competitivas-y-sostenibles/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/sugarcoach-diabetes-tecnologia-y-acompanamiento-para-el-cuidado-cotidiano/",
+    "externalImageUrl": "/benefits/sugarcoach-diabetes-colmena360.svg",
+    "externalImageAlt": "Beneficio UIC · SugarCoach · Colmena 360"
   },
   {
     "slug": "produccion-audiovisual-artes-visuales",
@@ -325,7 +533,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El acuerdo deriva los porcentajes y condiciones concretas a un anexo comercial; corresponde revalidarlos antes de contratar."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Hugo Alfredo Anzorreguy",
+        "role": "Presidente – Artes Visuales",
+        "phone": "",
+        "email": "artesvisuales.ar@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio de Colaboración Empresarial UIC – Artes Visuales",
+        "url": "https://uic-campana.com.ar/convenio-de-colaboracion-empresarial-uic-artes-visuales/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/convenio-de-colaboracion-empresarial-uic-artes-visuales/",
+    "externalImageUrl": "/benefits/produccion-audiovisual-artes-visuales.svg",
+    "externalImageAlt": "Beneficio UIC · Artes Visuales"
   },
   {
     "slug": "salud-digital-doc24",
@@ -352,7 +577,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El acuerdo no consigna fecha completa ni porcentaje de descuento; corresponde revalidar la oferta comercial vigente."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Javier Echaniz",
+        "role": "Gerente Comercial – DOC24",
+        "phone": "+54 9 341 777 8946",
+        "email": "hola@doc24.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio UIC – DOC24",
+        "url": "https://uic-campana.com.ar/nuevo-convenio-uic-doc24-acceda-a-los-beneficios-de-la-telemedicina-para-su-empresa/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/nuevo-convenio-uic-doc24-acceda-a-los-beneficios-de-la-telemedicina-para-su-empresa/",
+    "externalImageUrl": "/benefits/salud-digital-doc24.svg",
+    "externalImageAlt": "Beneficio UIC · DOC24"
   },
   {
     "slug": "tratamiento-efluentes-ferraro",
@@ -379,7 +621,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El documento no consigna fecha completa ni porcentajes de descuento; corresponde revalidar la propuesta comercial vigente."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Nelly Vila Dominguez",
+        "role": "Ferraro y Asociados · referente UIC · coordinación operativa vía UIC",
+        "phone": "+54 230 444 1334",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio de Colaboración Empresarial Ferraro y Asociados – UIC",
+        "url": "https://uic-campana.com.ar/convenio-colaboracion-empresarial-ferraro-y-asociados-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/convenio-colaboracion-empresarial-ferraro-y-asociados-uic/",
+    "externalImageUrl": "/benefits/tratamiento-efluentes-ferraro.svg",
+    "externalImageAlt": "Beneficio UIC · Ferraro y Asociados"
   },
   {
     "slug": "medicina-laboral-irt",
@@ -403,7 +662,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2023-01-12",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "IRT Medicina Laboral – Sede Campana",
+        "role": "Atención institucional / medicina laboral",
+        "phone": "0810-122-1221",
+        "email": "irt@irt.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de Colaboración Empresarial IRT – UIC",
+        "url": "https://uic-campana.com.ar/firma-acuerdo-de-colaboracion-empresarial-irt-medicina-laboral-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/firma-acuerdo-de-colaboracion-empresarial-irt-medicina-laboral-uic/",
+    "externalImageUrl": "/benefits/medicina-laboral-irt.svg",
+    "externalImageAlt": "Beneficio UIC · IRT Medicina Laboral para Empresas S.A."
   },
   {
     "slug": "planes-sancor-salud-30",
@@ -427,7 +703,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2023-07-01",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Sabrina Iavicoli",
+        "role": "Referente SanCor Salud – Campana",
+        "phone": "+54 11 3478 9667",
+        "email": "info@sancorsalud.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Patrocinio Medicina Prepaga SanCor Salud – UIC",
+        "url": "https://uic-campana.com.ar/firma-patrocinio-medicina-prepaga-sancor-salud-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/firma-patrocinio-medicina-prepaga-sancor-salud-uic/",
+    "externalImageUrl": "/benefits/planes-sancor-salud-30.svg",
+    "externalImageAlt": "Beneficio UIC · Asociación Mutual SanCor Salud"
   },
   {
     "slug": "medicina-laboral-idt",
@@ -451,7 +744,30 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2023-08-16",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Dr. Fernando Suris",
+        "role": "Instituto del Trabajador (IDT) · referente",
+        "phone": "3487 40 5750",
+        "email": "fsuris@idtsalud.com.ar"
+      },
+      {
+        "name": "IDT Salud Ocupacional",
+        "role": "Prestaciones",
+        "phone": "+54 9 3487 228833",
+        "email": "prestaciones@idtsalud.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de Patrocinio Medicina Laboral IDT – UIC",
+        "url": "https://uic-campana.com.ar/acuerdo-de-patrocinio-medicina-laboral-idt-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/acuerdo-de-patrocinio-medicina-laboral-idt-uic/",
+    "externalImageUrl": "/benefits/medicina-laboral-idt.svg",
+    "externalImageAlt": "Beneficio UIC · Instituto del Trabajador (IDT)"
   },
   {
     "slug": "analisis-seo-zipseo",
@@ -475,7 +791,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2024-03-01",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Luis Gizzarelli",
+        "role": "ZIPSEO · referente UIC",
+        "phone": "03489 15-63-6904",
+        "email": "hello@zipseomkt.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo empresarial ZIPSEO – UIC",
+        "url": "https://uic-campana.com.ar/acuerdo-empresarial-zipseo-uic/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/acuerdo-empresarial-zipseo-uic/",
+    "externalImageUrl": "/benefits/analisis-seo-zipseo.svg",
+    "externalImageAlt": "Beneficio UIC · ZIPSEO"
   },
   {
     "slug": "proteccion-electrica-monico",
@@ -501,7 +834,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El acuerdo indica una bonificación especial, pero no consigna el porcentaje."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Rodolfo Oscar Mónico",
+        "role": "Empresa Mónico · referente",
+        "phone": "+54 9 11 5111 9225",
+        "email": "rodolfo@monico.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Anuncio de colaboración empresarial UIC – Empresa Mónico",
+        "url": "https://uic-campana.com.ar/anuncio-de-colaboracion-empresarial-uic-y-empresa-monico/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/anuncio-de-colaboracion-empresarial-uic-y-empresa-monico/",
+    "externalImageUrl": "/benefits/proteccion-electrica-monico.svg",
+    "externalImageAlt": "Beneficio UIC · Mónico"
   },
   {
     "slug": "prensa-networking-noticias-industriales",
@@ -527,7 +877,24 @@
     "endDate": null,
     "analysisWarnings": [
       "El acuerdo no establece tarifas, cupos comerciales ni porcentajes de descuento."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Martín Ciprés",
+        "role": "NoticiasIndustriales.com.ar · referente",
+        "phone": "",
+        "email": "industrialesnoticias@gmail.com"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de colaboración empresarial UIC – NoticiasIndustriales.com.ar",
+        "url": "https://uic-campana.com.ar/acuerdo-de-colaboracion-empresarial-uic-noticiasindustriales-com-ar-ni/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/acuerdo-de-colaboracion-empresarial-uic-noticiasindustriales-com-ar-ni/",
+    "externalImageUrl": "/benefits/prensa-networking-noticias-industriales.svg",
+    "externalImageAlt": "Beneficio UIC · NoticiasIndustriales.com.ar"
   },
   {
     "slug": "propiedad-intelectual-mario-cisneros",
@@ -551,7 +918,24 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2024-09-24",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "Dr. Ing. Mario Cisneros",
+        "role": "Especialista en Propiedad Intelectual",
+        "phone": "",
+        "email": "mcisneros@mdp.edu.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de colaboración UIC – Ing. Mario Cisneros",
+        "url": "https://uic-campana.com.ar/propiedad-intelectual-presentacion-del-acuerdo-de-colaboracion-empresarial-entre-la-uic-y-el-ing-mario-cisneros/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/propiedad-intelectual-presentacion-del-acuerdo-de-colaboracion-empresarial-entre-la-uic-y-el-ing-mario-cisneros/",
+    "externalImageUrl": "/benefits/propiedad-intelectual-mario-cisneros.svg",
+    "externalImageAlt": "Beneficio UIC · Ing. Mario Cisneros"
   },
   {
     "slug": "capital-humano-mb",
@@ -575,12 +959,29 @@
     "contactEmail": "uic@uic-campana.com.ar",
     "startDate": "2025-01-21",
     "endDate": null,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "companyContacts": [
+      {
+        "name": "María de las Mercedes Bárcena",
+        "role": "MB Gestión del Capital Humano · representante · coordinación operativa vía UIC",
+        "phone": "",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Acuerdo de Cooperación en Recursos Humanos – MB Gestión / UIC",
+        "url": "https://uic-campana.com.ar/acuerdo-de-cooperacion-en-recursos-humanos-y-gestion-del-talento/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/acuerdo-de-cooperacion-en-recursos-humanos-y-gestion-del-talento/",
+    "externalImageUrl": "/benefits/capital-humano-mb.svg",
+    "externalImageAlt": "Beneficio UIC · MB Gestión del Capital Humano"
   },
   {
     "slug": "paseo-gavazzi-sigsa-cadema",
     "title": "Paseo Gavazzi: preventa y financiación preferencial",
-    "partner": "Paseo Gavazzi · SIGSA · Cadema",
+    "partner": "Paseo Gavazzi · SYGSA S.A. · CADEMA",
     "category": "Beneficios inmobiliarios",
     "status": "activo",
     "featured": false,
@@ -601,7 +1002,34 @@
     "endDate": null,
     "analysisWarnings": [
       "El convenio contiene el porcentaje de bonificación como 'xx%'. Completar el valor exacto desde el editor cuando sea confirmado."
-    ]
+    ],
+    "companyContacts": [
+      {
+        "name": "Lic. Nicolás Fanjul",
+        "role": "Director Ejecutivo – SYGSA S.A. · coordinación operativa vía UIC",
+        "phone": "",
+        "email": "uic@uic-campana.com.ar"
+      },
+      {
+        "name": "Equipo Comercial CADEMA Bienes Raíces",
+        "role": "Comercialización Paseo Gavazzi",
+        "phone": "+54 9 3489 36-8518",
+        "email": "ventas@cademaprop.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio UIC – SYGSA S.A. / Paseo Gavazzi",
+        "url": "https://uic-campana.com.ar/wp-content/uploads/2023/06/Acuerdo-Empresarial-Paseo-Gavazzi-V22.05.23.pdf"
+      },
+      {
+        "label": "Beneficio UIC – CADEMA / Paseo Gavazzi",
+        "url": "https://uic-campana.com.ar/beneficio-cadema-50-descuento-comisiones-proyecto-paseo-gavazzi/"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/wp-content/uploads/2023/06/Acuerdo-Empresarial-Paseo-Gavazzi-V22.05.23.pdf",
+    "externalImageUrl": "/benefits/paseo-gavazzi-sigsa-cadema.svg",
+    "externalImageAlt": "Beneficio UIC · Paseo Gavazzi · SYGSA S.A. · CADEMA"
   },
   {
     "slug": "finanzas-corporativas-praxis",
@@ -627,16 +1055,28 @@
     "companyContacts": [
       {
         "name": "Cristian E. Castro",
-        "role": "Director · Praxis Finanzas",
-        "phone": "",
-        "email": ""
+        "role": "Director – Praxis Finanzas",
+        "phone": "+54 9 11 4058-4258",
+        "email": "info@praxisfinanzas.com.ar"
       }
     ],
-    "agreementUrl": "https://uic-campana.com.ar/lo-que-hay-que-conocer-del-socio-praxis-finanzas/",
+    "agreementUrl": "https://uic-campana.com.ar/praxis-finanzas-servicios-financieros-para-socios-uic/",
     "startDate": "2026-08-31",
     "endDate": null,
     "published": true,
-    "analysisWarnings": []
+    "analysisWarnings": [],
+    "agreementLinks": [
+      {
+        "label": "Praxis Finanzas – servicios financieros para socios UIC",
+        "url": "https://uic-campana.com.ar/praxis-finanzas-servicios-financieros-para-socios-uic/"
+      },
+      {
+        "label": "Praxis Finanzas – nota institucional UIC",
+        "url": "https://uic-campana.com.ar/lo-que-hay-que-conocer-del-socio-praxis-finanzas/"
+      }
+    ],
+    "externalImageUrl": "/benefits/finanzas-corporativas-praxis.svg",
+    "externalImageAlt": "Beneficio UIC · Praxis Finanzas"
   },
   {
     "slug": "club-villa-dalmine-beneficios-uic",
@@ -674,14 +1114,20 @@
       }
     ],
     "agreementUrl": "https://uic-campana.com.ar/la-uic-fortalece-su-vinculo-con-villa-dalmine-a-traves-de-un-nuevo-convenio-de-cooperacion/",
-    "externalImageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Villa_Dalmine_logo.png",
-    "externalImageAlt": "Escudo Club Villa Dálmine",
+    "externalImageUrl": "/benefits/club-villa-dalmine-beneficios-uic.svg",
+    "externalImageAlt": "Beneficio UIC · Club Villa Dálmine",
     "startDate": "2026-02-06",
     "endDate": null,
     "published": true,
     "analysisWarnings": [
       "Las entradas no incluyen encuentros por Copa Argentina y deben gestionarse según el procedimiento vigente del convenio.",
       "Los descuentos en cuota social dependen de la contratación de publicidad estática o de la condición de sponsor principal y deben confirmarse al momento de la adhesión."
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convenio de cooperación UIC – Club Villa Dálmine",
+        "url": "https://uic-campana.com.ar/la-uic-fortalece-su-vinculo-con-villa-dalmine-a-traves-de-un-nuevo-convenio-de-cooperacion/"
+      }
     ]
   }
 ]
