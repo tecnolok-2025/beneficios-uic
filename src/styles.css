@@ -355,3 +355,78 @@ button { cursor: pointer; }
 .neo-agreement-row { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr) auto; gap: 10px; align-items: end; padding: 13px 0; border-top: 1px solid var(--line); }
 .neo-agreement-row:first-of-type { border-top: 0; }
 @media (max-width: 850px) { .neo-agreement-row { grid-template-columns: 1fr; } }
+
+/* v3.4.0 · buscador flexible + identidad visual industrial premium */
+.neo-hero {
+  min-height: 660px;
+  background:
+    radial-gradient(circle at 76% 30%, rgba(12,111,150,.85) 0%, rgba(8,61,85,.88) 30%, rgba(7,31,45,.98) 72%),
+    linear-gradient(125deg,#071f2d,#0a4059);
+  isolation: isolate;
+}
+.neo-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/industrial-uic-pattern.svg');
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: .38;
+  filter: saturate(.85);
+}
+.neo-hero::after {
+  z-index: 0;
+  background:
+    linear-gradient(90deg, rgba(7,31,45,.96) 0%, rgba(7,31,45,.72) 45%, rgba(7,31,45,.18) 78%, rgba(7,31,45,.42) 100%),
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 38%, rgba(0,0,0,.16));
+}
+.neo-hero-industry { position: absolute; inset: 0; z-index: 1; pointer-events: none; box-shadow: inset 0 -1px rgba(119,224,248,.15); }
+.neo-hero-industry::before { content: "UIC · CAMPANA"; position: absolute; right: 6%; top: 13%; color: rgba(255,255,255,.055); font-size: clamp(48px,7vw,108px); font-weight: 950; letter-spacing: .08em; writing-mode: vertical-rl; }
+.neo-hero-layout { z-index: 3; }
+.neo-hero-copy { text-shadow: 0 3px 30px rgba(0,0,0,.18); }
+.neo-hero-copy h1 { max-width: 790px; }
+.neo-hero-copy > p { color: #d2e2e8; font-size: 18px; }
+.neo-hero-signals { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.neo-hero-signals span { padding: 7px 10px; color: #b8eaf5; background: rgba(255,255,255,.055); border: 1px solid rgba(137,220,241,.20); border-radius: 999px; font-size: 8px; font-weight: 900; letter-spacing: .18em; backdrop-filter: blur(7px); }
+.neo-impact { border: 1px solid rgba(255,255,255,.68); box-shadow: 0 34px 90px rgba(0,0,0,.34), 0 0 0 1px rgba(29,194,235,.08); }
+.neo-impact::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(var(--sky),var(--blue)); }
+.neo-promises { position: relative; box-shadow: 0 12px 34px rgba(7,31,45,.055); }
+.neo-catalog { position: relative; }
+.neo-catalog::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 20px; width: min(96vw,1400px); height: 540px; transform: translateX(-50%); background: radial-gradient(circle at 15% 10%,rgba(29,194,235,.08),transparent 32%), radial-gradient(circle at 85% 40%,rgba(0,125,175,.065),transparent 29%); pointer-events: none; }
+.neo-search { min-height: 78px; border-color: #b6d4df; border-radius: 18px; box-shadow: 0 18px 50px rgba(7,31,45,.09); transition: .2s ease; }
+.neo-search:focus-within { border-color: var(--blue); box-shadow: 0 18px 55px rgba(0,125,175,.14), 0 0 0 4px rgba(29,194,235,.10); transform: translateY(-1px); }
+.neo-search > svg { width: 24px; height: 24px; }
+.neo-search input { font-size: 16px; font-weight: 650; }
+.neo-search-help { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; align-items: center; margin: -7px 0 22px; padding: 11px 14px; color: #55717e; background: rgba(255,255,255,.72); border: 1px solid rgba(193,216,225,.85); border-radius: 12px; font-size: 11px; line-height: 1.45; backdrop-filter: blur(10px); }
+.neo-search-help > svg { width: 17px; color: var(--mint); }
+.neo-search-help strong { color: var(--night); }
+.neo-search-examples { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.neo-search-examples button { padding: 5px 8px; color: var(--blue); background: #eaf8fc; border: 1px solid #c7e7f0; border-radius: 999px; font-size: 10px; font-weight: 850; }
+.neo-card { border-color: #d3e3e9; box-shadow: 0 14px 38px rgba(7,31,45,.07); }
+.neo-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(145deg,rgba(29,194,235,.035),transparent 35%); }
+.neo-card:hover { transform: translateY(-7px); border-color: #9ecfdf; box-shadow: 0 24px 55px rgba(7,31,45,.14); }
+.neo-card-company { position: relative; z-index: 1; }
+.neo-card h3, .neo-card p, .neo-card .neo-condition, .neo-card > button, .neo-card-head { position: relative; z-index: 1; }
+.neo-card-head { padding-bottom: 13px; border-bottom: 1px solid #edf2f4; }
+.neo-card-category { border-radius: 999px; padding: 6px 9px; background: #eef8fb; }
+.neo-categories button { box-shadow: 0 7px 20px rgba(7,31,45,.035); transition: .2s ease; }
+.neo-categories button:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(7,31,45,.08); }
+.neo-results { padding-top: 3px; }
+.neo-header { background: rgba(255,255,255,.94); }
+.neo-uic img { filter: contrast(1.04) saturate(.92); }
+
+@media (max-width: 850px) {
+  .neo-hero::before { background-size: auto 80%; background-position: 58% bottom; opacity: .25; }
+  .neo-hero-industry::before { display: none; }
+  .neo-search-help { grid-template-columns: auto 1fr; }
+  .neo-search-examples { grid-column: 1 / -1; justify-content: flex-start; padding-left: 27px; }
+}
+@media (max-width: 650px) {
+  .neo-hero-copy > p { font-size: 15px; }
+  .neo-search { min-height: 70px; padding: 0 15px; }
+  .neo-search input { font-size: 14px; }
+  .neo-search-help { font-size: 10px; }
+  .neo-search-examples { padding-left: 0; }
+}

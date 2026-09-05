@@ -74,14 +74,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.3.0 son coherentes', async () => {
+test('10 · versión y generación 3.4.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.3.0')
-  assert.match(server, /BENEFICIOS_UIC_330/)
-  assert.match(html, /BENEFICIOS_UIC_330/)
+  assert.equal(pkg.version, '3.4.0')
+  assert.match(server, /BENEFICIOS_UIC_340/)
+  assert.match(html, /BENEFICIOS_UIC_340/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -113,12 +113,15 @@ test('13 · Praxis está en Gestión empresarial y Render conserva el servicio a
 })
 
 
-test('14 · administración incorpora buscador escalable por beneficio y empresa', async () => {
+test('14 · administración incorpora buscador flexible por beneficio, empresa y palabras clave', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   assert.match(app, /Buscar beneficio o empresa/)
-  assert.match(app, /normalizeSearch/)
-  assert.match(app, /item\.title.*item\.partner.*item\.category.*item\.summary/)
+  const search = await read('src/search.js')
+  assert.match(search, /normalizeSearch/)
+  assert.match(app, /rankBenefits/)
+  assert.match(search, /searchScore/)
+  assert.match(search, /fuzzyTokenMatch/)
   assert.match(styles, /\.neo-admin-search/)
   assert.match(styles, /\.neo-admin-no-results/)
 })
@@ -184,4 +187,35 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
   assert.match(item.externalImageUrl, /^\/benefits\/.+\.svg$/)
   assert.equal(new Set(items.map(x => x.category)).size, 10)
+})
+
+
+test('21 · v3.4.0 potencia búsqueda pública y suma identidad industrial premium', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
+  assert.match(app, /Búsqueda flexible/)
+  assert.match(app, /Buscá Dálmine, salud, solar, CADEMA/)
+  assert.match(app, /rankBenefits\(categoryItems, query\)/)
+  assert.match(styles, /industrial-uic-pattern\.svg/)
+  assert.match(styles, /neo-hero-signals/)
+  assert.match(pattern, /<svg/)
+})
+
+test('22 · motor de búsqueda encuentra Dálmine por tilde, fragmento y pequeño error', async () => {
+  const { rankBenefits } = await import('../src/search.js')
+  const items = await catalog()
+  for (const query of ['Dálmine', 'Dalmine', 'dalmi', 'dalmnie']) {
+    const results = rankBenefits(items, query)
+    assert.equal(results[0]?.slug, 'club-villa-dalmine-beneficios-uic', query)
+  }
+})
+
+test('23 · motor de búsqueda indexa rubros, contactos y palabras del contenido', async () => {
+  const { rankBenefits } = await import('../src/search.js')
+  const items = await catalog()
+  assert.equal(rankBenefits(items, 'CADEMA')[0]?.slug, 'paseo-gavazzi-sigsa-cadema')
+  assert.equal(rankBenefits(items, 'Jimena')[0]?.slug, 'asesoramiento-legal-innova-lex')
+  assert.equal(rankBenefits(items, 'solar')[0]?.slug, 'energia-solar-grupo-solper')
+  assert.ok(rankBenefits(items, 'medio ambiente').some(item => item.category === 'Ambiente y sustentabilidad'))
 })

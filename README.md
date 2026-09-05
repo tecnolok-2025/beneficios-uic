@@ -1,4 +1,4 @@
-> **Revisión actual: v3.3.0 · BENEFICIOS_UIC_330 · completitud 26/26**
+> **Revisión actual: v3.4.0 · BENEFICIOS_UIC_340 · buscador flexible + diseño industrial premium**
 
 # Beneficios UIC — proyecto 3.2.2
 
