@@ -1129,5 +1129,276 @@
         "url": "https://uic-campana.com.ar/la-uic-fortalece-su-vinculo-con-villa-dalmine-a-traves-de-un-nuevo-convenio-de-cooperacion/"
       }
     ]
+  },
+  {
+    "slug": "affinity-broker-seguros-condiciones-preferenciales",
+    "title": "Affinity Broker: seguros con condiciones preferenciales",
+    "partner": "Affinity Broker · Provincia Seguros · UIPBA",
+    "category": "Broker de seguros",
+    "status": "activo",
+    "featured": true,
+    "summary": "Programa para empresas de Campana con tasas preferenciales en determinados riesgos y asesoramiento individual para revisar coberturas, detectar oportunidades de mejora y comparar alternativas de seguros.",
+    "description": "En el marco del acuerdo vigente entre Provincia Seguros y UIPBA, la UIC y Affinity Broker acercan a empresas de Campana un proceso de revisión aseguradora. Las empresas preseleccionadas reciben una entrevista individual y confidencial, luego se evalúan riesgos, se preparan cotizaciones y se presentan alternativas de cobertura acordes a cada caso.",
+    "concreteBenefit": "Acceso a condiciones preferenciales para determinados riesgos y a una revisión personalizada del programa de seguros de la empresa, con evaluación de riesgos, cotizaciones y alternativas de cobertura.",
+    "costsDiscounts": "Tasas preferenciales para riesgos alcanzados por el programa. Las condiciones finales dependen de la evaluación y cotización de cada empresa y cobertura.",
+    "requirements": [
+      "Ser empresa alcanzada o interesada en el programa canalizado por la UIC",
+      "Coordinar una entrevista individual y confidencial con Affinity Broker",
+      "Aportar la información necesaria para la evaluación de riesgos y cotización"
+    ],
+    "scope": "Empresas de Campana y empresas socias de la UIC interesadas en revisar y optimizar sus coberturas de seguros.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Affinity Broker",
+        "role": "Asesoramiento comercial y coordinación de entrevistas",
+        "phone": "+54 9 11 5455-0732",
+        "email": "comercial@affinitybroker.com.ar"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/affinity-broker-seguros-con-condiciones-preferenciales-para-empresas-de-campana/",
+    "agreementLinks": [
+      {
+        "label": "Programa Affinity Broker – condiciones preferenciales para empresas de Campana",
+        "url": "https://uic-campana.com.ar/affinity-broker-seguros-con-condiciones-preferenciales-para-empresas-de-campana/"
+      }
+    ],
+    "externalImageUrl": "/benefits/affinity-broker-seguros-uic.png",
+    "externalImageAlt": "Affinity Broker · Provincia Seguros · UIPBA · UIC",
+    "startDate": "2026-08-12",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
+  },
+  {
+    "slug": "app-uic-comunicacion-servicios-acceso",
+    "title": "App UIC: comunicación, servicios y acceso institucional",
+    "partner": "Unión Industrial de Campana",
+    "category": "Beneficios digitales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Una puerta de acceso unificada a publicaciones, agenda, beneficios, directorio de socios, comunicación institucional y herramientas productivas de la UIC, disponible desde web y como PWA.",
+    "description": "La App UIC centraliza información y servicios institucionales en una experiencia simple y accesible. Reúne novedades, agenda, beneficios, directorio de socios y canales de comunicación, y además integra accesos a Talento PyME y al sistema de Requerimientos Institucionales. Puede utilizarse desde navegador y también instalarse como aplicación web en iPhone y Android.",
+    "concreteBenefit": "Acceso desde un único lugar a los principales servicios digitales de la UIC, reduciendo búsquedas dispersas y facilitando la comunicación y la consulta cotidiana.",
+    "costsDiscounts": "Herramienta institucional de acceso para la comunidad UIC, disponible en web y como aplicación web progresiva (PWA).",
+    "requirements": [
+      "Acceder a la publicación institucional de la App UIC",
+      "Utilizar un navegador actualizado; para instalación móvil seguir las instrucciones de iPhone o Android",
+      "Para funciones destinadas a socios, identificarse cuando el sistema lo requiera"
+    ],
+    "scope": "Socios, empresas y comunidad vinculada a la Unión Industrial de Campana, según la función utilizada.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Administración UIC",
+        "role": "Soporte y orientación institucional",
+        "phone": "3489 65 0104",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementUrl": "https://uic-campana-app.onrender.com",
+    "agreementLinks": [
+      {
+        "label": "Ingresar a la App UIC",
+        "url": "https://uic-campana-app.onrender.com"
+      },
+      {
+        "label": "Nueva App UIC – comunicación, servicios y acceso institucional",
+        "url": "https://uic-campana.com.ar/nueva-app-uic-comunicacion-servicios-y-acceso-institucional-en-un-solo-lugar/"
+      }
+    ],
+    "externalImageUrl": "/benefits/app-uic-digital.png",
+    "externalImageAlt": "App UIC · comunicación, servicios y acceso inteligente",
+    "startDate": "2026-05-18",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
+  },
+  {
+    "slug": "talento-pyme-plataforma-vinculacion-laboral",
+    "title": "Talento PyME: vinculación laboral para el mundo productivo",
+    "partner": "Talento PyME · Unión Industrial de Campana",
+    "category": "Beneficios digitales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Plataforma de vinculación laboral para candidatos y empresas del ámbito productivo, industrial y técnico, con perfiles curriculares, búsquedas, filtros profesionales, postulaciones, trazabilidad y asistencia inteligente.",
+    "description": "Talento PyME ordena el vínculo entre candidatos y empresas con una lógica específicamente pensada para perfiles técnicos, operativos y profesionales. Los candidatos pueden construir y completar su perfil, cargar CV y postularse; las empresas pueden publicar búsquedas, aplicar filtros técnicos, gestionar candidatos y sostener trazabilidad. El sistema incorpora ayuda IA y soporte operativo sin reemplazar la intervención humana.",
+    "concreteBenefit": "Un canal especializado para encontrar, visibilizar y conectar talento técnico y productivo, evitando que perfiles valiosos queden fuera del radar de las empresas de la región.",
+    "costsDiscounts": "Acceso a la plataforma web/PWA conforme a la modalidad operativa vigente de Talento PyME.",
+    "requirements": [
+      "Ingresar como Candidato o Empresa y completar el registro correspondiente",
+      "Mantener el perfil o la identidad de empresa con información suficiente y actualizada",
+      "Utilizar búsquedas, postulaciones y contactos conforme a las reglas operativas de la plataforma"
+    ],
+    "scope": "Candidatos y empresas vinculados al ecosistema productivo, técnico e industrial.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Administración Talento PyME / UIC",
+        "role": "Soporte institucional y operativo",
+        "phone": "3489 65 0104",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementUrl": "https://talento-pyme.onrender.com",
+    "agreementLinks": [
+      {
+        "label": "Ingresar a Talento PyME",
+        "url": "https://talento-pyme.onrender.com"
+      },
+      {
+        "label": "Presentación institucional de Talento PyME en el CNP",
+        "url": "https://uic-campana.com.ar/cnp-primera-reunion-del-ano-coordinacion-talento-pyme-y-agenda-regional/"
+      }
+    ],
+    "externalImageUrl": "/benefits/talento-pyme-uic.png",
+    "externalImageAlt": "Talento PyME · plataforma de vinculación laboral",
+    "startDate": "2026-03-19",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
+  },
+  {
+    "slug": "requerimientos-institucionales-cpf",
+    "title": "Requerimientos Institucionales: ofertas y necesidades sin precio",
+    "partner": "Corredor Productivo Federal (CPF) · desarrollo institucional UIC",
+    "category": "Beneficios digitales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Plataforma institucional para conectar ofertas de capacidad y necesidades concretas entre empresas, cámaras e instituciones, con validación de usuarios, contacto controlado y trazabilidad, sin publicar precios.",
+    "description": "El sistema CPF fue concebido para generar un primer vínculo técnico, institucional y productivo. Admite publicaciones de OFERTA y NECESIDAD, protege los datos de contacto hasta que existe aceptación entre las partes y diferencia roles de Usuario Administrador, Asistente y Super Admin. La regla central es que dentro del sistema no se publican precios, rangos ni cotizaciones; la negociación económica ocurre luego y por fuera de la plataforma.",
+    "concreteBenefit": "Acceso a una red ordenada para visibilizar capacidades, publicar necesidades y detectar oportunidades de vinculación productiva bajo validación institucional y contacto controlado.",
+    "costsDiscounts": "El sistema opera sin publicación de precios: las condiciones económicas se negocian fuera de la plataforma una vez aceptado el contacto.",
+    "requirements": [
+      "Registrarse con datos de empresa y cámara o institución de referencia",
+      "Esperar la validación institucional del alta antes de operar",
+      "Publicar ofertas o necesidades reales sin incluir precios, rangos ni cotizaciones",
+      "Utilizar los datos de contacto únicamente para el requerimiento asociado"
+    ],
+    "scope": "Empresas, cámaras e instituciones adheridas o habilitadas dentro del Corredor Productivo Federal.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Administración CPF / UIC",
+        "role": "Orientación y soporte institucional",
+        "phone": "3489 65 0104",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementUrl": "https://cpf-web.onrender.com/",
+    "agreementLinks": [
+      {
+        "label": "Ingresar a Requerimientos Institucionales / CPF",
+        "url": "https://cpf-web.onrender.com/"
+      },
+      {
+        "label": "Referencia institucional UIC – App UIC y CPF",
+        "url": "https://uic-campana.com.ar/nueva-app-uic-comunicacion-servicios-y-acceso-institucional-en-un-solo-lugar/"
+      }
+    ],
+    "externalImageUrl": "/benefits/requerimientos-institucionales-cpf.png",
+    "externalImageAlt": "CPF · Sistema de Requerimientos Institucionales sin precios",
+    "startDate": "2026-05-19",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
+  },
+  {
+    "slug": "portal-beneficios-uic-digital",
+    "title": "Portal de Beneficios UIC: todos los beneficios en un solo lugar",
+    "partner": "Unión Industrial de Campana",
+    "category": "Beneficios digitales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Portal digital que reúne beneficios, convenios, servicios y oportunidades para socios UIC, con buscador flexible, categorías, contactos, material visual y acceso permanente desde web y App UIC.",
+    "description": "El Portal de Beneficios UIC concentra en un único catálogo los acuerdos y herramientas disponibles para las empresas asociadas. Permite buscar por empresa, fragmento del nombre, categoría, contacto o palabra clave; consultar condiciones y alcance; acceder a los contactos de cada prestador y de la UIC; y abrir las publicaciones o convenios respaldatorios. Su contenido se administra y actualiza de forma permanente.",
+    "concreteBenefit": "Consulta centralizada y rápida de todos los beneficios UIC, con información estructurada, contacto directo y acceso a los convenios o publicaciones relacionados.",
+    "costsDiscounts": "Acceso online permanente al catálogo; cada beneficio conserva sus propias condiciones económicas y requisitos.",
+    "requirements": [
+      "Ingresar al Portal de Beneficios UIC",
+      "Buscar por empresa, rubro o palabra clave",
+      "Consultar la ficha del beneficio y seguir el procedimiento indicado para acceder"
+    ],
+    "scope": "Empresas socias de la UIC y usuarios que consulten la información pública del portal, según las condiciones de cada beneficio.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Administración UIC",
+        "role": "Gestión y actualización del Portal de Beneficios",
+        "phone": "3489 65 0104",
+        "email": "uic@uic-campana.com.ar"
+      }
+    ],
+    "agreementUrl": "https://beneficios-uic.onrender.com",
+    "agreementLinks": [
+      {
+        "label": "Ingresar al Portal de Beneficios UIC",
+        "url": "https://beneficios-uic.onrender.com"
+      }
+    ],
+    "externalImageUrl": "/benefits/portal-beneficios-uic.png",
+    "externalImageAlt": "Nuevo Portal de Beneficios UIC",
+    "startDate": "2026-09-04",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": []
+  },
+  {
+    "slug": "convenio-marco-aderpe-uic",
+    "title": "UIC–ADERPE: cooperación industrial y articulación federal",
+    "partner": "ADERPE · Unión Industrial de Campana",
+    "category": "Acuerdos institucionales",
+    "status": "activo",
+    "featured": false,
+    "summary": "Convenio marco entre ADERPE y UIC para fortalecer la cooperación entre regiones industriales, integrar cadenas de valor, compartir buenas prácticas e impulsar capacitación, innovación, digitalización y desarrollo productivo.",
+    "description": "El convenio suscripto en Godoy Cruz establece una alianza estratégica entre la Asociación de Empresarios de Rodríguez Peña (ADERPE) y la Unión Industrial de Campana. Busca potenciar capacidades industriales de ambas regiones mediante cooperación mutua, articulación empresaria, intercambio de experiencias y desarrollo de iniciativas conjuntas, conectando el ecosistema productivo mendocino con Campana y su entorno industrial.",
+    "concreteBenefit": "Apertura de un canal institucional estable para vincular empresas de ambas regiones, promover proyectos conjuntos, intercambiar buenas prácticas y ampliar oportunidades de cooperación productiva y tecnológica.",
+    "costsDiscounts": "El convenio no establece un descuento único: funciona como marco institucional para desarrollar iniciativas, servicios y beneficios específicos que podrán instrumentarse en acciones posteriores.",
+    "requirements": [
+      "Ser empresa o actor vinculado a las instituciones participantes cuando la acción específica así lo requiera",
+      "Canalizar iniciativas y vinculaciones a través de UIC o ADERPE según corresponda",
+      "Cumplir las condiciones particulares de cada programa o acción que se derive del convenio marco"
+    ],
+    "scope": "Empresas y ecosistemas productivos vinculados a ADERPE y a la Unión Industrial de Campana, en el marco de las acciones conjuntas que se desarrollen.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Lic. Manuel Ponce",
+        "role": "Presidente – ADERPE",
+        "phone": "261 301-9823",
+        "email": "aderpe@aderpe.com"
+      }
+    ],
+    "agreementUrl": "https://uic-campana.com.ar/godoy-cruz-mendoza-%c2%b7-firma-de-convenio-marco-aderpe-union-industrial-de-campana/",
+    "agreementLinks": [
+      {
+        "label": "Firma de Convenio Marco ADERPE – Unión Industrial de Campana",
+        "url": "https://uic-campana.com.ar/godoy-cruz-mendoza-%c2%b7-firma-de-convenio-marco-aderpe-union-industrial-de-campana/"
+      },
+      {
+        "label": "Convenio Marco de Colaboración Institucional ADERPE – UIC (PDF)",
+        "url": "https://uic-campana.com.ar/wp-content/uploads/2025/11/250818-Acuerdo-Aderpe-UIC.pdf"
+      }
+    ],
+    "externalImageUrl": "/benefits/aderpe-uic-convenio.png",
+    "externalImageAlt": "Firma del convenio marco ADERPE – UIC en Godoy Cruz",
+    "startDate": "2025-10-14",
+    "endDate": null,
+    "published": true,
+    "analysisWarnings": [
+      "El convenio marco no fija un beneficio económico uniforme; los beneficios concretos dependen de las acciones específicas que se implementen bajo este acuerdo."
+    ]
   }
 ]

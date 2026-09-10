@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_340'
+const GENERATION = 'BENEFICIOS_UIC_351'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -68,6 +68,10 @@ async function initializeDatabase() {
       (slug,title,partner,category,status,featured,summary,description,concrete_benefit,costs_discounts,requirements,scope,contact_name,contact_phone,contact_email,company_contacts,agreement_url,agreement_links,external_image_url,external_image_alt,start_date,end_date,published)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,TRUE)
       ON CONFLICT (slug) DO UPDATE SET
+        category = CASE
+          WHEN benefits.slug = 'affinity-broker-seguros-condiciones-preferenciales' AND benefits.category = 'Seguros'
+          THEN EXCLUDED.category
+          ELSE benefits.category END,
         company_contacts = CASE
           WHEN jsonb_array_length(COALESCE(benefits.company_contacts, '[]'::jsonb)) = 0
             OR NOT EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(benefits.company_contacts, '[]'::jsonb)) c WHERE COALESCE(c->>'email','') <> '')
@@ -80,6 +84,7 @@ async function initializeDatabase() {
         external_image_url = CASE WHEN COALESCE(benefits.external_image_url,'') = '' THEN EXCLUDED.external_image_url ELSE benefits.external_image_url END,
         external_image_alt = CASE WHEN COALESCE(benefits.external_image_alt,'') = '' THEN EXCLUDED.external_image_alt ELSE benefits.external_image_alt END,
         updated_at = CASE WHEN
+          (benefits.slug = 'affinity-broker-seguros-condiciones-preferenciales' AND benefits.category = 'Seguros') OR
           (jsonb_array_length(COALESCE(benefits.company_contacts, '[]'::jsonb)) = 0 OR NOT EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(benefits.company_contacts, '[]'::jsonb)) c WHERE COALESCE(c->>'email','') <> '')) OR
           COALESCE(benefits.agreement_url,'') = '' OR
           jsonb_array_length(COALESCE(benefits.agreement_links, '[]'::jsonb)) = 0 OR
@@ -106,7 +111,7 @@ async function initializeDatabase() {
     (!row.agreement_url && (!Array.isArray(row.agreement_links) || row.agreement_links.length === 0)) ||
     !row.external_image_url)
   if (incomplete.length) console.warn(`Sincronización de completitud: ${incomplete.length} beneficio(s) conservan campos administrados sin completar: ${incomplete.map(x => x.slug).join(', ')}`)
-  else console.log('Sincronización de completitud OK · 26/26 beneficios con contacto, convenio e imagen')
+  else console.log('Sincronización de completitud OK · 32/32 beneficios con contacto, convenio e imagen')
 }
 async function listBenefits(includeHidden = false) {
   if (!pool) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)

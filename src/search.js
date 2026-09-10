@@ -48,7 +48,13 @@ const searchSynonyms = {
   video: ['audiovisual', 'comunicacion'],
   audiovisual: ['video', 'comunicacion'],
   inmueble: ['inmobiliario'],
-  inmobiliario: ['inmueble']
+  inmobiliario: ['inmueble'],
+  seguro: ['seguros', 'cobertura', 'broker'],
+  seguros: ['seguro', 'cobertura', 'broker'],
+  digital: ['app', 'plataforma', 'portal'],
+  talento: ['empleo', 'candidatos', 'laboral'],
+  requerimientos: ['cpf', 'ofertas', 'necesidades'],
+  institucional: ['convenio', 'acuerdo', 'cooperacion']
 }
 
 function tokenVariants(token) {

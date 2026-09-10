@@ -10,25 +10,25 @@ const catalog = async () => JSON.parse(await read('data/catalog.json'))
 const latestSlug = 'capacitacion-retencion-talento-etrr'
 const praxisSlug = 'finanzas-corporativas-praxis'
 
-test('01 · conserva los beneficios existentes y agrega Villa Dálmine como beneficio 26', async () => {
+test('01 · conserva los beneficios existentes e incorpora seis nuevas fichas hasta 32', async () => {
   const items = await catalog()
-  assert.equal(items.length, 26)
-  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 26)
+  assert.equal(items.length, 32)
+  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 32)
   assert.ok(items.some(item => item.slug === praxisSlug))
 })
 
-test('02 · mantiene exactamente 10 rubros funcionales', async () => {
+test('02 · mantiene 13 rubros funcionales con tres nuevas categorías', async () => {
   const items = await catalog()
-  assert.equal(new Set(items.map(item => item.category)).size, 10)
+  assert.equal(new Set(items.map(item => item.category)).size, 13)
 })
 
 test('03 · todos los beneficios están activos y los slugs son únicos', async () => {
   const items = await catalog()
   assert.ok(items.every(item => item.status === 'activo'))
-  assert.equal(new Set(items.map(item => item.slug)).size, 26)
+  assert.equal(new Set(items.map(item => item.slug)).size, 32)
 })
 
-test('04 · el último acuerdo destacado sigue siendo Escuela Técnica Roberto Rocca', async () => {
+test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', async () => {
   const items = await catalog()
   const latest = items.find(item => item.slug === latestSlug)
   assert.ok(latest)
@@ -36,11 +36,11 @@ test('04 · el último acuerdo destacado sigue siendo Escuela Técnica Roberto R
   assert.equal(latest.category, 'Capacitación y talento')
 })
 
-test('05 · no reaparece el filtro Acuerdos nuevos y el botón apunta a ETRR', async () => {
+test('05 · no reaparece el filtro Acuerdos nuevos y el botón apunta al nuevo acuerdo Affinity', async () => {
   const app = await read('src/App.jsx')
   assert.doesNotMatch(app, /'Acuerdos nuevos'/)
   assert.match(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(app, /capacitacion-retencion-talento-etrr/)
+  assert.match(app, /affinity-broker-seguros-condiciones-preferenciales/)
 })
 
 test('06 · Actualizar versión sigue trabajando dentro del portal', async () => {
@@ -74,14 +74,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.4.0 son coherentes', async () => {
+test('10 · versión y generación 3.5.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.4.0')
-  assert.match(server, /BENEFICIOS_UIC_340/)
-  assert.match(html, /BENEFICIOS_UIC_340/)
+  assert.equal(pkg.version, '3.5.1')
+  assert.match(server, /BENEFICIOS_UIC_351/)
+  assert.match(html, /BENEFICIOS_UIC_351/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -158,15 +158,15 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
 
 
 
-test('19 · los 26 beneficios quedan completos con contacto, correo, convenio e imagen', async () => {
+test('19 · los 32 beneficios quedan completos con contacto, convenio e imagen', async () => {
   const items = await catalog()
-  assert.equal(items.length, 26)
+  assert.equal(items.length, 32)
   for (const item of items) {
     assert.ok(Array.isArray(item.companyContacts) && item.companyContacts.length > 0, `${item.slug}: falta contacto`)
     assert.ok(item.companyContacts.some(contact => contact.name && contact.email), `${item.slug}: falta nombre/correo`)
     assert.ok(Array.isArray(item.agreementLinks) && item.agreementLinks.length > 0, `${item.slug}: falta convenio`)
     assert.ok(item.agreementLinks.every(link => link.label && /^https:\/\//.test(link.url)), `${item.slug}: enlace inválido`)
-    assert.match(item.externalImageUrl || '', /^\/benefits\/.+\.svg$/, `${item.slug}: falta imagen de respaldo`)
+    assert.match(item.externalImageUrl || '', /^\/benefits\/.+\.(?:svg|png|jpe?g|webp)$/i, `${item.slug}: falta imagen de respaldo`)
   }
 })
 
@@ -185,17 +185,17 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
   assert.ok(item)
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
-  assert.match(item.externalImageUrl, /^\/benefits\/.+\.svg$/)
-  assert.equal(new Set(items.map(x => x.category)).size, 10)
+  assert.match(item.externalImageUrl, /^\/benefits\/.+\.(?:svg|png|jpe?g|webp)$/i)
+  assert.equal(new Set(items.map(x => x.category)).size, 13)
 })
 
 
-test('21 · v3.4.0 potencia búsqueda pública y suma identidad industrial premium', async () => {
+test('21 · v3.5.1 conserva búsqueda pública e identidad industrial premium', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
   assert.match(app, /Búsqueda flexible/)
-  assert.match(app, /Buscá Dálmine, salud, solar, CADEMA/)
+  assert.match(app, /Buscá Dálmine, seguros, Talento PyME, ADERPE, solar/)
   assert.match(app, /rankBenefits\(categoryItems, query\)/)
   assert.match(styles, /industrial-uic-pattern\.svg/)
   assert.match(styles, /neo-hero-signals/)
@@ -218,4 +218,58 @@ test('23 · motor de búsqueda indexa rubros, contactos y palabras del contenido
   assert.equal(rankBenefits(items, 'Jimena')[0]?.slug, 'asesoramiento-legal-innova-lex')
   assert.equal(rankBenefits(items, 'solar')[0]?.slug, 'energia-solar-grupo-solper')
   assert.ok(rankBenefits(items, 'medio ambiente').some(item => item.category === 'Ambiente y sustentabilidad'))
+})
+
+
+test('24 · nuevas categorías y seis incorporaciones quedan presentes', async () => {
+  const items = await catalog()
+  const categories = new Set(items.map(item => item.category))
+  assert.ok(categories.has('Broker de seguros'))
+  assert.ok(categories.has('Beneficios digitales'))
+  assert.ok(categories.has('Acuerdos institucionales'))
+  for (const slug of [
+    'affinity-broker-seguros-condiciones-preferenciales',
+    'app-uic-comunicacion-servicios-acceso',
+    'talento-pyme-plataforma-vinculacion-laboral',
+    'requerimientos-institucionales-cpf',
+    'portal-beneficios-uic-digital',
+    'convenio-marco-aderpe-uic'
+  ]) assert.ok(items.some(item => item.slug === slug), slug)
+})
+
+test('25 · Affinity conserva contacto y enlace suministrados', async () => {
+  const item = (await catalog()).find(x => x.slug === 'affinity-broker-seguros-condiciones-preferenciales')
+  assert.equal(item.companyContacts[0].phone, '+54 9 11 5455-0732')
+  assert.equal(item.companyContacts[0].email, 'comercial@affinitybroker.com.ar')
+  assert.match(item.agreementUrl, /affinity-broker-seguros/)
+})
+
+test('26 · las seis nuevas fichas usan imágenes locales adjuntas', async () => {
+  const items = await catalog()
+  const slugs = new Set(['affinity-broker-seguros-condiciones-preferenciales','app-uic-comunicacion-servicios-acceso','talento-pyme-plataforma-vinculacion-laboral','requerimientos-institucionales-cpf','portal-beneficios-uic-digital','convenio-marco-aderpe-uic'])
+  for (const item of items.filter(x => slugs.has(x.slug))) {
+    assert.match(item.externalImageUrl, /^\/benefits\/.+\.png$/)
+    const local = path.join(root, 'public', item.externalImageUrl.replace(/^\//, ''))
+    assert.ok((await fs.stat(local)).size > 10000, item.slug)
+  }
+})
+
+test('27 · buscador encuentra las nuevas categorías y nombres', async () => {
+  const { rankBenefits } = await import('../src/search.js')
+  const items = await catalog()
+  assert.equal(rankBenefits(items, 'Affinity')[0]?.slug, 'affinity-broker-seguros-condiciones-preferenciales')
+  assert.equal(rankBenefits(items, 'Talento PyME')[0]?.slug, 'talento-pyme-plataforma-vinculacion-laboral')
+  assert.ok(rankBenefits(items, 'ADERPE').some(item => item.slug === 'convenio-marco-aderpe-uic'))
+  assert.ok(rankBenefits(items, 'seguros').some(item => item.category === 'Broker de seguros'))
+})
+
+
+test('28 · v3.5.1 migra de forma no destructiva la categoría de Affinity en Neon', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /affinity-broker-seguros-condiciones-preferenciales/)
+  assert.match(server, /benefits\.category = 'Seguros'/)
+  assert.match(server, /THEN EXCLUDED\.category/)
+  const items = await catalog()
+  const affinity = items.find(item => item.slug === 'affinity-broker-seguros-condiciones-preferenciales')
+  assert.equal(affinity.category, 'Broker de seguros')
 })

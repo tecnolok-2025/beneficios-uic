@@ -34,3 +34,9 @@ npm run build
 npm test
 npm start
 ```
+## v3.5.1
+
+Ajuste de nomenclatura solicitado: la categoría **Seguros** pasa a denominarse **Broker de seguros**. Affinity Broker permanece como la única ficha del rubro en esta revisión. No se modifican beneficios, contactos, imágenes, enlaces ni estructura de Neon. Total: 32 beneficios / 13 rubros.
+
+## v3.5.0
+Se incorporan 6 nuevas fichas: Affinity Broker, App UIC, Talento PyME, Requerimientos Institucionales/CPF, Portal de Beneficios UIC y Convenio Marco UIC–ADERPE. Se agregan los rubros Seguros, Beneficios digitales y Acuerdos institucionales. Total: 32 beneficios / 13 rubros.
