@@ -74,14 +74,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.5.1 son coherentes', async () => {
+test('10 · versión y generación 3.5.2 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.5.1')
-  assert.match(server, /BENEFICIOS_UIC_351/)
-  assert.match(html, /BENEFICIOS_UIC_351/)
+  assert.equal(pkg.version, '3.5.2')
+  assert.match(server, /BENEFICIOS_UIC_352/)
+  assert.match(html, /BENEFICIOS_UIC_352/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -190,7 +190,7 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
 })
 
 
-test('21 · v3.5.1 conserva búsqueda pública e identidad industrial premium', async () => {
+test('21 · v3.5.2 conserva búsqueda pública e identidad industrial premium', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
@@ -264,7 +264,7 @@ test('27 · buscador encuentra las nuevas categorías y nombres', async () => {
 })
 
 
-test('28 · v3.5.1 migra de forma no destructiva la categoría de Affinity en Neon', async () => {
+test('28 · v3.5.2 conserva la migración no destructiva de Affinity en Neon', async () => {
   const server = await read('server/index.js')
   assert.match(server, /affinity-broker-seguros-condiciones-preferenciales/)
   assert.match(server, /benefits\.category = 'Seguros'/)

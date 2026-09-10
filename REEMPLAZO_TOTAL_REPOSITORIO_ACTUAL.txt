@@ -1,7 +1,14 @@
-BENEFICIOS UIC 3.2.1 - REPOSITORIO ACTUAL
+BENEFICIOS UIC 3.5.2 - REPOSITORIO ACTUAL
 
 Este contenido se instala en el repositorio GitHub actual conectado al servicio Render beneficios-uic.
 Subir el contenido de este ZIP directamente a la raíz del repositorio.
 No se crea otro servicio Render y no se modifica ni se borra Neon.
+
+Estado esperado:
+- Version 3.5.2
+- Generacion BENEFICIOS_UIC_352
+- 32 beneficios
+- 13 categorias
+- Affinity Broker en Broker de seguros
 
 Verificar obligatoriamente que estén visibles package.json, render.yaml, src/, server/, public/ y data/ antes de confirmar.

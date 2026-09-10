@@ -1,4 +1,4 @@
-# Instalación v3.2.1 en el repositorio y Render actuales
+# Instalación v3.5.2 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -8,7 +8,7 @@ Esta entrega reemplaza el código del repositorio actual, pero conserva el servi
 2. Reemplazar los archivos del repositorio por el contenido de esta entrega.
 3. Subir **el contenido descomprimido** directamente a la raíz. No subir el ZIP ni una carpeta exterior.
 4. Verificar que en la raíz estén `package.json`, `render.yaml`, `server`, `src`, `public` y `data`.
-5. Confirmar que `public/logo-uic-oficial.jpeg` esté presente.
+5. Confirmar que `public/logo-uic-oficial.jpeg` y las imágenes de beneficios estén presentes.
 6. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
 
 ## Render
@@ -25,20 +25,19 @@ npm start
 El log de arranque debe incluir:
 
 ```text
-Beneficios UIC NUEVO v3.2.1 · BENEFICIOS_UIC_322
+Beneficios UIC v3.5.2 · BENEFICIOS_UIC_352
 ```
 
-La ruta `/api/health` debe informar `"version":"3.2.1"`, `"generation":"BENEFICIOS_UIC_322"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.5.2"`, `"generation":"BENEFICIOS_UIC_352"` y, en producción, `"catalogSource":"neon"`.
 
-## Verificación visual
+## Verificación funcional
 
-- En la cabecera debe verse el logo oficial de la Unión Industrial de Campana suministrado en esta revisión.
-- En Administración, arriba del listado izquierdo debe aparecer **Buscar beneficio o empresa**.
-- El nombre de la empresa/prestador debe verse destacado tanto en las tarjetas públicas como en el listado administrativo y el detalle.
+- El portal debe mostrar **32 beneficios** y **13 categorías**.
+- Affinity Broker debe figurar dentro de **Broker de seguros**.
+- Deben figurar **Beneficios digitales** y **Acuerdos institucionales**.
+- El buscador flexible debe encontrar nombres, fragmentos, categorías, contactos y palabras clave.
 - El acceso de asociación debe decir **Hacete socio**.
 
 ## Base de datos
 
-No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque ejecuta migraciones aditivas y el catálogo base utiliza `ON CONFLICT (slug) DO NOTHING`, por lo que no reemplaza beneficios ya editados en la base.
-
-La versión de Node queda fijada en 24.14.1 mediante `.node-version`.
+No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque conserva el esquema de actualización no destructivo y las ediciones administrativas existentes.

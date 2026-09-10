@@ -59,7 +59,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.5.1'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.5.2'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>

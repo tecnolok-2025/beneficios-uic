@@ -1,32 +1,39 @@
-> **Revisión actual: v3.4.0 · BENEFICIOS_UIC_340 · buscador flexible + diseño industrial premium**
+> **Revisión actual: v3.5.2 · BENEFICIOS_UIC_352 · 32 beneficios · 13 categorías**
 
-# Beneficios UIC — proyecto 3.2.2
+# Beneficios UIC — Portal institucional de beneficios
 
-Portal de beneficios de la Unión Industrial de Campana.
+Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
-## Qué conserva
+## Estado actual
 
-- La base PostgreSQL existente de Neon.
-- Los 26 beneficios y 10 rubros del catálogo base.
-- Los textos, contactos, flyers y ediciones administrativas guardados en Neon.
-- Alta, edición, publicación, eliminación y carga de flyers.
-- Control anticaché y compatibilidad con estructuras heredadas de la tabla `flyers`.
+- **32 beneficios activos** en el catálogo base.
+- **13 categorías** disponibles.
+- Base PostgreSQL existente en **Neon** preservada.
+- Alta, edición, publicación, eliminación y carga de flyers desde Administración.
+- Imágenes institucionales de respaldo, manteniendo prioridad para los flyers cargados por Administración.
+- Buscador flexible por nombre, fragmentos, categoría, texto, contacto y palabras clave, con normalización de tildes y tolerancia a pequeñas variaciones.
+- Presentación visual industrial premium y responsive para escritorio y celular.
 
-## Revisión 3.2.2
+## Categorías incorporadas en la etapa 3.5
 
-- Buscador en la parte superior del listado de Administración por beneficio, empresa, rubro o palabra clave.
-- Logo institucional UIC provisto para esta revisión en la cabecera.
-- Mayor jerarquía visual del nombre de la empresa/prestador.
-- Correcciones de robustez detectadas en la auditoría general.
-- Llamado de asociación unificado como **Hacete socio**.
+- **Broker de seguros** — Affinity Broker / Provincia Seguros / UIPBA.
+- **Beneficios digitales** — App UIC, Talento PyME, Requerimientos Institucionales / CPF y Portal de Beneficios UIC.
+- **Acuerdos institucionales** — Convenio Marco UIC–ADERPE.
 
-La generación se identifica como `BENEFICIOS_UIC_322`. El servidor no arranca si el frontend compilado no contiene esa marca.
+## Seguridad de actualización
 
-El catálogo local es solamente un respaldo. Si `data/catalog.json` faltara, el servidor continúa utilizando Neon.
+La actualización mantiene la misma conexión a Neon. El catálogo local (`data/catalog.json`) funciona como respaldo e inicialización controlada; no reemplaza destructivamente la información existente. Las incorporaciones de la serie 3.5 utilizan nuevos `slug` y la corrección de Affinity se realiza de manera no destructiva.
 
-La entrega está preparada para sustituir los archivos del GitHub ya conectado al servicio `beneficios-uic` de Render, sin crear otro servicio ni cambiar la base.
+## Identificación técnica
 
-## Desarrollo
+- **Versión:** `3.5.2`
+- **Generación:** `BENEFICIOS_UIC_352`
+- **Total de beneficios:** 32
+- **Total de categorías:** 13
+
+El servidor valida que el frontend compilado corresponda a la misma generación antes de iniciar.
+
+## Desarrollo / validación
 
 ```bash
 npm ci --include=dev
@@ -34,9 +41,17 @@ npm run build
 npm test
 npm start
 ```
-## v3.5.1
 
-Ajuste de nomenclatura solicitado: la categoría **Seguros** pasa a denominarse **Broker de seguros**. Affinity Broker permanece como la única ficha del rubro en esta revisión. No se modifican beneficios, contactos, imágenes, enlaces ni estructura de Neon. Total: 32 beneficios / 13 rubros.
+## Historial reciente
 
-## v3.5.0
-Se incorporan 6 nuevas fichas: Affinity Broker, App UIC, Talento PyME, Requerimientos Institucionales/CPF, Portal de Beneficios UIC y Convenio Marco UIC–ADERPE. Se agregan los rubros Seguros, Beneficios digitales y Acuerdos institucionales. Total: 32 beneficios / 13 rubros.
+### v3.5.2
+Revisión de limpieza documental y coherencia de versión. Se actualizan README, identificación visible, metadatos y pruebas para evitar referencias obsoletas. No cambia el contenido funcional de los 32 beneficios ni la estructura de Neon.
+
+### v3.5.1
+La categoría **Seguros** pasa a denominarse **Broker de seguros**. Affinity Broker permanece como ficha de ese rubro.
+
+### v3.5.0
+Se incorporan seis fichas: Affinity Broker, App UIC, Talento PyME, Requerimientos Institucionales / CPF, Portal de Beneficios UIC y Convenio Marco UIC–ADERPE.
+
+### v3.4.0
+Buscador flexible y rediseño visual industrial premium.
