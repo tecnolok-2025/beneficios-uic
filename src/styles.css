@@ -430,3 +430,38 @@ button { cursor: pointer; }
   .neo-search-help { font-size: 10px; }
   .neo-search-examples { padding-left: 0; }
 }
+
+/* v3.6.0 · colección UIPBA y estado de validación */
+.neo-impact-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.neo-impact-grid div { min-width: 0; }
+.neo-uipba-category { border-color: #9dcddb !important; background: linear-gradient(145deg,#ffffff,#eef9fc) !important; }
+.neo-uipba-category span { color: #075d7f; }
+.neo-uipba-category.active { background: linear-gradient(145deg,#073047,#0b6689) !important; border-color: #0b6689 !important; }
+.neo-uipba-category.active span { color: white; }
+.neo-uipba-note { display: flex; align-items: flex-start; gap: 14px; margin: -8px 0 22px; padding: 18px 20px; color: #244b5e; background: linear-gradient(130deg,#eaf8fc,#f8fcfd); border: 1px solid #b9dce8; border-left: 5px solid var(--blue); border-radius: 13px; }
+.neo-uipba-note > svg { flex: none; width: 25px; height: 25px; color: var(--blue); }
+.neo-uipba-note div { display: grid; gap: 5px; }
+.neo-uipba-note strong { color: var(--night); font-size: 13px; letter-spacing: .06em; }
+.neo-uipba-note span { font-size: 13px; line-height: 1.55; }
+.neo-card-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.neo-validation { display: inline-flex !important; align-items: center; gap: 5px; width: fit-content; margin: 0 !important; padding: 6px 8px; color: #805800 !important; background: #fff2c9; border: 1px solid #edd088; border-radius: 20px; font-size: 11px !important; font-weight: 900; line-height: 1.15 !important; letter-spacing: .025em !important; text-transform: uppercase; }
+.neo-validation svg { flex: none; width: 13px; height: 13px; }
+.neo-card-validation { border-color: #e5d4a3; }
+.neo-card-validation::before { background: linear-gradient(#e7b83f,#f2d88c); }
+.neo-card-validation .neo-condition { color: #77540b; background: #fff8e5; border-color: #ead8a5; }
+.neo-card-validation .neo-condition svg { color: #b7810e; }
+.neo-detail-tags { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 54px; }
+.neo-detail-hero .neo-detail-tags > span { margin-top: 0; }
+.neo-detail-category { color: #62daf5 !important; }
+.neo-detail-hero .neo-validation { color: #ffe6a5 !important; background: rgba(166,112,0,.20); border-color: rgba(255,221,139,.50); }
+.neo-validation-panel { background: linear-gradient(125deg,#fffaf0,#fff4d8) !important; border-color: #ead7a3 !important; border-left: 5px solid #d5a128 !important; }
+.neo-validation-panel > span { display: flex; align-items: center; gap: 8px; color: #8a6105 !important; }
+.neo-validation-panel > span svg { width: 20px; height: 20px; }
+.neo-validation-panel h2 { color: #684a08; }
+.neo-validation-panel p { margin-bottom: 0; color: #6b5a33; }
+
+@media (max-width: 720px) {
+  .neo-impact-grid { grid-template-columns: 1fr; }
+  .neo-card-badges { grid-column: 2; justify-content: flex-start; }
+  .neo-uipba-note { padding: 16px; }
+}

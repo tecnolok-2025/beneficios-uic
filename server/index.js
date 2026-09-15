@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_352'
+const GENERATION = 'BENEFICIOS_UIC_360'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -111,7 +111,7 @@ async function initializeDatabase() {
     (!row.agreement_url && (!Array.isArray(row.agreement_links) || row.agreement_links.length === 0)) ||
     !row.external_image_url)
   if (incomplete.length) console.warn(`Sincronización de completitud: ${incomplete.length} beneficio(s) conservan campos administrados sin completar: ${incomplete.map(x => x.slug).join(', ')}`)
-  else console.log('Sincronización de completitud OK · 32/32 beneficios con contacto, convenio e imagen')
+  else console.log(`Sincronización de completitud OK · ${localCatalog.length}/${localCatalog.length} beneficios con contacto, convenio e imagen`)
 }
 async function listBenefits(includeHidden = false) {
   if (!pool) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)

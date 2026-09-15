@@ -10,22 +10,25 @@ const catalog = async () => JSON.parse(await read('data/catalog.json'))
 const latestSlug = 'capacitacion-retencion-talento-etrr'
 const praxisSlug = 'finanzas-corporativas-praxis'
 
-test('01 · conserva los beneficios existentes e incorpora seis nuevas fichas hasta 32', async () => {
+test('01 · conserva los 32 beneficios e incorpora 13 fichas UIPBA hasta 45', async () => {
   const items = await catalog()
-  assert.equal(items.length, 32)
-  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 32)
+  assert.equal(items.length, 45)
+  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 45)
   assert.ok(items.some(item => item.slug === praxisSlug))
 })
 
-test('02 · mantiene 13 rubros funcionales con tres nuevas categorías', async () => {
+test('02 · mantiene los rubros existentes y suma la categoría UIPBA', async () => {
   const items = await catalog()
-  assert.equal(new Set(items.map(item => item.category)).size, 13)
+  const categories = new Set(items.map(item => item.category))
+  assert.equal(categories.size, 14)
+  assert.ok(categories.has('UIPBA'))
 })
 
-test('03 · todos los beneficios están activos y los slugs son únicos', async () => {
+test('03 · estados y slugs quedan coherentes con la revisión UIPBA', async () => {
   const items = await catalog()
-  assert.ok(items.every(item => item.status === 'activo'))
-  assert.equal(new Set(items.map(item => item.slug)).size, 32)
+  assert.equal(items.filter(item => item.status === 'activo').length, 37)
+  assert.equal(items.filter(item => item.status === 'revalidacion').length, 8)
+  assert.equal(new Set(items.map(item => item.slug)).size, 45)
 })
 
 test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', async () => {
@@ -36,11 +39,11 @@ test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', as
   assert.equal(latest.category, 'Capacitación y talento')
 })
 
-test('05 · no reaparece el filtro Acuerdos nuevos y el botón apunta al nuevo acuerdo Affinity', async () => {
+test('05 · no reaparece el filtro Acuerdos nuevos y el botón destaca Open English UIPBA', async () => {
   const app = await read('src/App.jsx')
   assert.doesNotMatch(app, /'Acuerdos nuevos'/)
   assert.match(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(app, /affinity-broker-seguros-condiciones-preferenciales/)
+  assert.match(app, /uipba-open-english-business-80-off/)
 })
 
 test('06 · Actualizar versión sigue trabajando dentro del portal', async () => {
@@ -74,14 +77,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.5.2 son coherentes', async () => {
+test('10 · versión y generación 3.6.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.5.2')
-  assert.match(server, /BENEFICIOS_UIC_352/)
-  assert.match(html, /BENEFICIOS_UIC_352/)
+  assert.equal(pkg.version, '3.6.0')
+  assert.match(server, /BENEFICIOS_UIC_360/)
+  assert.match(html, /BENEFICIOS_UIC_360/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -158,9 +161,9 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
 
 
 
-test('19 · los 32 beneficios quedan completos con contacto, convenio e imagen', async () => {
+test('19 · los 45 beneficios quedan completos con contacto, convenio e imagen', async () => {
   const items = await catalog()
-  assert.equal(items.length, 32)
+  assert.equal(items.length, 45)
   for (const item of items) {
     assert.ok(Array.isArray(item.companyContacts) && item.companyContacts.length > 0, `${item.slug}: falta contacto`)
     assert.ok(item.companyContacts.some(contact => contact.name && contact.email), `${item.slug}: falta nombre/correo`)
@@ -186,11 +189,11 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
   assert.match(item.externalImageUrl, /^\/benefits\/.+\.(?:svg|png|jpe?g|webp)$/i)
-  assert.equal(new Set(items.map(x => x.category)).size, 13)
+  assert.equal(new Set(items.map(x => x.category)).size, 14)
 })
 
 
-test('21 · v3.5.2 conserva búsqueda pública e identidad industrial premium', async () => {
+test('21 · v3.6.0 conserva búsqueda pública e identidad industrial premium', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
@@ -264,7 +267,7 @@ test('27 · buscador encuentra las nuevas categorías y nombres', async () => {
 })
 
 
-test('28 · v3.5.2 conserva la migración no destructiva de Affinity en Neon', async () => {
+test('28 · v3.6.0 conserva la migración no destructiva de Affinity en Neon', async () => {
   const server = await read('server/index.js')
   assert.match(server, /affinity-broker-seguros-condiciones-preferenciales/)
   assert.match(server, /benefits\.category = 'Seguros'/)
@@ -272,4 +275,37 @@ test('28 · v3.5.2 conserva la migración no destructiva de Affinity en Neon', a
   const items = await catalog()
   const affinity = items.find(item => item.slug === 'affinity-broker-seguros-condiciones-preferenciales')
   assert.equal(affinity.category, 'Broker de seguros')
+})
+
+
+test('29 · categoría UIPBA contiene 13 beneficios con cinco activos y ocho a validar', async () => {
+  const items = await catalog()
+  const uipba = items.filter(item => item.category === 'UIPBA')
+  assert.equal(uipba.length, 13)
+  assert.equal(uipba.filter(item => item.status === 'activo').length, 5)
+  assert.equal(uipba.filter(item => item.status === 'revalidacion').length, 8)
+})
+
+test('30 · Open English usa la pieza adjunta y condiciones comunicadas', async () => {
+  const items = await catalog()
+  const item = items.find(x => x.slug === 'uipba-open-english-business-80-off')
+  assert.ok(item)
+  assert.equal(item.status, 'activo')
+  assert.match(item.costsDiscounts, /80% OFF/i)
+  assert.match(item.costsDiscounts, /2 licencias/i)
+  assert.equal(item.companyContacts[0].email, 'asistenciapyme@uipba.org.ar')
+  assert.equal(item.externalImageUrl, '/benefits/uipba-open-english-business.png')
+  const image = await fs.readFile(path.join(root, 'public/benefits/uipba-open-english-business.png'))
+  assert.ok(image.length > 100000)
+})
+
+test('31 · portal muestra botón UIPBA y aviso A CHEQUEAR VALIDACIÓN', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /name === 'UIPBA'/)
+  assert.match(app, /A CHEQUEAR VALIDACIÓN/)
+  assert.match(app, /neo-uipba-note/)
+  assert.match(app, /neo-validation-panel/)
+  assert.match(styles, /\.neo-uipba-category/)
+  assert.match(styles, /\.neo-validation/)
 })

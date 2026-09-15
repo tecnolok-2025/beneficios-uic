@@ -1400,5 +1400,580 @@
     "analysisWarnings": [
       "El convenio marco no fija un beneficio económico uniforme; los beneficios concretos dependen de las acciones específicas que se implementen bajo este acuerdo."
     ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-open-english-business-80-off",
+    "title": "Open English Business · 80% OFF + 2 licencias",
+    "partner": "Open English Business · UIPBA",
+    "status": "activo",
+    "featured": true,
+    "summary": "Beneficio comunicado por UIPBA para sus socios y los socios de sus cámaras: 80% OFF y 2 licencias a precio especial para capacitación en inglés.",
+    "description": "La Unión Industrial de Campana accede a esta oportunidad por su vinculación institucional con UIPBA y la traslada a sus empresas asociadas. La comunicación recibida indica que el beneficio alcanza tanto a socios de UIPBA como a socios de sus cámaras.",
+    "concreteBenefit": "80% OFF + 2 licencias a precio especial en Open English Business, sujeto a las condiciones comerciales vigentes al momento de la gestión.",
+    "costsDiscounts": "80% OFF + 2 licencias a precio especial. Consultar modalidad, vigencia y condiciones finales antes de contratar.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar la gestión o validación a Administración UIC",
+      "Informar la empresa y cantidad de licencias requeridas",
+      "Confirmar condiciones comerciales vigentes con UIPBA / Open English Business"
+    ],
+    "scope": "Empresas asociadas a la UIC, en su carácter de cámara vinculada a UIPBA.",
+    "companyContacts": [
+      {
+        "name": "Asistencia PyME UIPBA",
+        "role": "Canal informado para consultas del beneficio Open English Business",
+        "phone": "",
+        "email": "asistenciapyme@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Beneficios para socios",
+        "url": "https://uipba.org.ar/raiz/socios/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/socios/",
+    "externalImageUrl": "/benefits/uipba-open-english-business.png",
+    "externalImageAlt": "Beneficio UIPBA · Open English Business · UIPBA",
+    "startDate": "2026-09-15",
+    "endDate": null,
+    "analysisWarnings": []
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-provincia-seguros-tarifas-bonificadas",
+    "title": "Provincia Seguros · tarifas bonificadas",
+    "partner": "Provincia Seguros · UIPBA",
+    "status": "activo",
+    "featured": false,
+    "summary": "UIPBA mantiene publicado el acceso a productos de Provincia Seguros con tarifas bonificadas para socios y atención especializada para PyMEs industriales.",
+    "description": "Dentro de UIPBA en Acción, Provincia Seguros figura como un beneficio para socios, con acciones orientadas a diseñar y proveer productos adecuados a las necesidades de las PyMEs industriales bonaerenses.",
+    "concreteBenefit": "Acceso a tarifas bonificadas y asesoramiento especializado en productos y coberturas de Provincia Seguros.",
+    "costsDiscounts": "Tarifas bonificadas para socios. La cotización y las condiciones específicas dependen del riesgo y producto solicitado.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de condición de socio",
+      "Indicar el tipo de cobertura requerida",
+      "Confirmar cotización y condiciones particulares antes de contratar"
+    ],
+    "scope": "Empresas asociadas a UIC alcanzadas por los beneficios institucionales de UIPBA.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "UIPBA en Acción / Beneficios PyME",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA en Acción · Provincia Seguros",
+        "url": "https://uipba.org.ar/raiz/uipba-en-accion/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/uipba-en-accion/",
+    "externalImageUrl": "/benefits/uipba-provincia-seguros.svg",
+    "externalImageAlt": "Beneficio UIPBA · Provincia Seguros · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": []
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-unlp-ingenieria-posgrado-15",
+    "title": "Facultad de Ingeniería UNLP · 15% por convenio UIPBA",
+    "partner": "Facultad de Ingeniería UNLP · UIPBA",
+    "status": "activo",
+    "featured": false,
+    "summary": "La oferta de posgrado 2026 de la Facultad de Ingeniería UNLP publica una bonificación adicional del 15% por convenio UIPBA en distintas propuestas académicas.",
+    "description": "La Facultad de Ingeniería de la Universidad Nacional de La Plata mantiene durante 2026 propuestas de posgrado que contemplan una bonificación del 15% asociada al convenio con UIPBA. La aplicabilidad depende de cada curso o programa publicado.",
+    "concreteBenefit": "Bonificación adicional del 15% en propuestas de posgrado que indiquen expresamente el convenio UIPBA.",
+    "costsDiscounts": "15% de bonificación por convenio UIPBA en las propuestas que lo contemplen. Puede coexistir con otras bonificaciones según las condiciones de cada actividad.",
+    "requirements": [
+      "Ser empresa o persona alcanzada por la vinculación institucional UIC–UIPBA",
+      "Elegir una propuesta que publique expresamente la bonificación por convenio UIPBA",
+      "Consultar cupos, requisitos académicos y compatibilidad de bonificaciones",
+      "Gestionar la acreditación institucional antes de abonar"
+    ],
+    "scope": "Socios UIC que puedan acreditar su pertenencia institucional y cumplan los requisitos de admisión de la propuesta académica.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Validación del convenio con Facultad de Ingeniería UNLP",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UNLP Ingeniería · programa con bonificación UIPBA",
+        "url": "https://posgrado.ing.unlp.edu.ar/posgrado/propuesta_academica/programa_profesional/?id_apli_carreras=20230426144927"
+      }
+    ],
+    "agreementUrl": "https://posgrado.ing.unlp.edu.ar/posgrado/propuesta_academica/programa_profesional/?id_apli_carreras=20230426144927",
+    "externalImageUrl": "/benefits/uipba-unlp-ingenieria.svg",
+    "externalImageAlt": "Beneficio UIPBA · Facultad de Ingeniería UNLP · UIPBA",
+    "startDate": "2026-01-01",
+    "endDate": null,
+    "analysisWarnings": []
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-programa-proveedores-energia-mineria-oil-gas",
+    "title": "Programa de proveedores · Energía, Minería y Oil & Gas",
+    "partner": "UIPBA · Empresas proveedoras PBA",
+    "status": "activo",
+    "featured": false,
+    "summary": "Programa 2026 para empresas bonaerenses proveedoras de Energía, Minería y Oil & Gas, con valor preferencial comunicado para socios de UIPBA y sus asociados.",
+    "description": "La iniciativa busca acompañar a empresas radicadas en la Provincia de Buenos Aires en su desarrollo e integración como proveedoras de sectores estratégicos. Incluye reuniones de trabajo, acompañamiento técnico y estratégico y asistencia para la vinculación sectorial.",
+    "concreteBenefit": "Acceso al programa con condición preferencial para socios de UIPBA y sus asociados, más acompañamiento técnico y vinculación sectorial.",
+    "costsDiscounts": "Valor preferencial informado al lanzamiento en abril de 2026: $50.000 para socios de UIPBA y sus asociados. Confirmar valor y disponibilidad vigentes antes de inscribirse.",
+    "requirements": [
+      "Empresa radicada en la Provincia de Buenos Aires",
+      "Ser socio UIC / asociado alcanzado por UIPBA",
+      "Consultar si continúan abiertas las incorporaciones al programa",
+      "Confirmar arancel vigente antes de la inscripción"
+    ],
+    "scope": "Empresas bonaerenses asociadas a UIC interesadas en integrarse como proveedoras de energía, minería y oil & gas.",
+    "companyContacts": [
+      {
+        "name": "Asistencia PyME UIPBA",
+        "role": "Programa de Empresas Proveedoras",
+        "phone": "",
+        "email": "asistenciapyme@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Convocatoria 2026 · Programa de Empresas Proveedoras",
+        "url": "https://cafmei.org.ar/programa-de-agrupacion-de-empresas-proveedoras-para-energia-mineria-y-oil-gas-empresas-radicadas-en-la-prov-de-buenos-aires/"
+      }
+    ],
+    "agreementUrl": "https://cafmei.org.ar/programa-de-agrupacion-de-empresas-proveedoras-para-energia-mineria-y-oil-gas-empresas-radicadas-en-la-prov-de-buenos-aires/",
+    "externalImageUrl": "/benefits/uipba-energia-mineria-oilgas.svg",
+    "externalImageAlt": "Beneficio UIPBA · UIPBA · Empresas proveedoras PBA",
+    "startDate": "2026-04-10",
+    "endDate": null,
+    "analysisWarnings": []
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-asistencia-pyme",
+    "title": "Asistencia PyME UIPBA · asesoramiento empresarial",
+    "partner": "UIPBA · Asistencia PyME",
+    "status": "activo",
+    "featured": false,
+    "summary": "Servicio de atención personalizada para socios en temas laborales, impositivos, comercio interior y exterior, financiamiento, energía, ambiente y gestiones con organismos públicos.",
+    "description": "UIPBA mantiene el servicio Asistencia PyME dentro de sus herramientas para socios. Brinda orientación y articulación institucional frente a consultas empresariales, líneas de crédito, gestiones con organismos y temas técnicos de interés industrial.",
+    "concreteBenefit": "Canal de asesoramiento y orientación institucional para resolver consultas empresariales y acceder a información técnica o gestiones ante organismos.",
+    "costsDiscounts": "Servicio institucional. Las eventuales gestiones, programas o servicios de terceros pueden tener condiciones propias.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Canalizar inicialmente la consulta por Administración UIC",
+      "Describir la temática y necesidad concreta",
+      "Aportar documentación adicional si UIPBA la solicita"
+    ],
+    "scope": "Empresas asociadas a UIC con consultas empresariales comprendidas en las áreas de asistencia de UIPBA.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Asistencia PyME / Departamentos técnicos",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Asistencia PyME",
+        "url": "https://uipba.org.ar/raiz/asistencia-pymi/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/asistencia-pymi/",
+    "externalImageUrl": "/benefits/uipba-asistencia-pyme.svg",
+    "externalImageAlt": "Beneficio UIPBA · UIPBA · Asistencia PyME",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": []
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-iram-bonificaciones",
+    "title": "IRAM · bonificaciones y capacitación",
+    "partner": "IRAM · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Antecedente UIPBA de bonificaciones en capacitación, seminarios, programa Mi Primer Certificación y uso de espacios de IRAM.",
+    "description": "El Anuario UIPBA 2019 documenta un convenio con IRAM que contemplaba bonificaciones en capacitaciones, seminarios, el programa Mi Primer Certificación y utilización de espacios. No se encontró una publicación pública 2026 que confirme que las mismas condiciones continúen vigentes.",
+    "concreteBenefit": "Antecedente de beneficios IRAM para socios UIPBA. A CHEQUEAR VALIDACIÓN antes de comunicar o utilizar.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA: condiciones, porcentajes, servicios alcanzados y vigencia actual.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "No contratar bajo condiciones históricas sin validación previa",
+      "Solicitar a UIC confirmación de vigencia ante UIPBA",
+      "Una vez validado, confirmar alcance y arancel con IRAM"
+    ],
+    "scope": "Referencia histórica de beneficio UIPBA para socios; publicación en portal UIC sujeta a validación de vigencia.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Validación de convenio histórico IRAM",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Anuario 2019 (antecedente IRAM)",
+        "url": "https://uipba.org.ar/wp-content/uploads/2022/03/anuario-2019.pdf"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/wp-content/uploads/2022/03/anuario-2019.pdf",
+    "externalImageUrl": "/benefits/uipba-iram.svg",
+    "externalImageAlt": "Beneficio UIPBA · IRAM · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-sancor-salud-beneficio-historico",
+    "title": "Sancor Salud · tarifa preferencial vía UIPBA",
+    "partner": "Sancor Salud · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Antecedente UIPBA de bonificaciones en planes de salud con tarifa preferencial para socios.",
+    "description": "UIPBA publicó un acuerdo con Sancor Salud dentro de Asistencia PyME para ofrecer a sus socios bonificaciones en planes de salud con tarifa preferencial. La publicación disponible es histórica y requiere revalidación antes de comunicar condiciones actuales.",
+    "concreteBenefit": "Antecedente de tarifa preferencial en planes de salud para socios UIPBA. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA: planes, porcentajes, elegibilidad y tarifas vigentes.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de vigencia a Administración UIC",
+      "No asumir que las condiciones históricas continúan sin cambios",
+      "Confirmar plan y tarifa final con el prestador"
+    ],
+    "scope": "Referencia histórica UIPBA para socios; se mantiene identificada como pendiente de validación.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Validación de beneficio histórico Sancor Salud",
+        "phone": "11 3764-0027",
+        "email": "socios@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · acuerdo histórico Sancor Salud",
+        "url": "https://uipba.org.ar/raiz/asistencia-pymi-con-sancor-salud-continuamos-aumentando-los-beneficios-a-socios/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/asistencia-pymi-con-sancor-salud-continuamos-aumentando-los-beneficios-a-socios/",
+    "externalImageUrl": "/benefits/uipba-sancor-salud.svg",
+    "externalImageAlt": "Beneficio UIPBA · Sancor Salud · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-movistar-negocios-bonificaciones",
+    "title": "Movistar Negocios · bonificaciones para PyMEs",
+    "partner": "Movistar Negocios · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Antecedente UIPBA de bonificaciones y asesoramiento personalizado sobre productos de Movistar Negocios para PyMEs.",
+    "description": "UIPBA publicó la ampliación de un acuerdo con Movistar que incluía bonificaciones para socios y asesoramiento personalizado sobre productos de Movistar Negocios. La comunicación disponible es histórica y no confirma por sí sola las condiciones 2026.",
+    "concreteBenefit": "Antecedente de bonificaciones y asesoramiento Movistar Negocios. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA: productos incluidos, porcentaje o tarifa y vigencia actual.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de vigencia a Administración UIC",
+      "Confirmar qué productos empresariales están incluidos",
+      "Solicitar propuesta comercial vigente antes de contratar"
+    ],
+    "scope": "Referencia histórica UIPBA para PyMEs asociadas; pendiente de validación 2026.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "PYMI, Comercio y Financiamiento / validación de convenio Movistar",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Movistar se suma a Beneficios PyME",
+        "url": "https://uipba.org.ar/raiz/movistar-se-suma-a-los-beneficios-pyme/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/movistar-se-suma-a-los-beneficios-pyme/",
+    "externalImageUrl": "/benefits/uipba-movistar.svg",
+    "externalImageAlt": "Beneficio UIPBA · Movistar Negocios · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-banco-nacion-beneficios-pyme",
+    "title": "Banco Nación · asesoramiento y capacitaciones",
+    "partner": "Banco Nación · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Antecedente UIPBA de asesoramiento, gestión e información personalizada y capacitaciones de Banco Nación para socios.",
+    "description": "El Anuario UIPBA 2019 registra un acuerdo mediante el cual UIPBA brindaba a socios asesoramiento, gestión e información personalizada y Banco Nación ofrecía capacitaciones sobre comercio exterior, finanzas y e-commerce. Debe confirmarse su vigencia actual.",
+    "concreteBenefit": "Antecedente de servicios y capacitaciones Banco Nación para socios UIPBA. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA: líneas, servicios, capacitaciones y condiciones vigentes.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar a Administración UIC la verificación de vigencia",
+      "No asumir vigentes líneas financieras históricas",
+      "Confirmar condiciones actuales directamente antes de cualquier operación"
+    ],
+    "scope": "Referencia histórica de Beneficios PyME UIPBA; requiere revalidación antes de su utilización.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "PYMI, Comercio y Financiamiento / validación Banco Nación",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Anuario 2019 (antecedente Banco Nación)",
+        "url": "https://uipba.org.ar/wp-content/uploads/2022/03/anuario-2019.pdf"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/wp-content/uploads/2022/03/anuario-2019.pdf",
+    "externalImageUrl": "/benefits/uipba-banco-nacion.svg",
+    "externalImageAlt": "Beneficio UIPBA · Banco Nación · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-ucema-descuentos-capacitacion",
+    "title": "UCEMA · descuentos y capacitaciones",
+    "partner": "Universidad del CEMA (UCEMA) · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Acuerdo documentado por UIPBA con descuentos para socios, empleados y familiares, además de capacitaciones y prácticas programadas.",
+    "description": "El Anuario UIPBA 2023 informa un acuerdo con UCEMA para actividades de capacitación y prácticas programadas y menciona descuentos para socios de UIPBA, sus empleados y familiares. No se encontró confirmación pública actual de las mismas condiciones.",
+    "concreteBenefit": "Antecedente de descuentos y capacitaciones UCEMA para la comunidad vinculada a UIPBA. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA y UCEMA: porcentajes, carreras o programas incluidos y vigencia actual.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de vigencia a Administración UIC",
+      "Identificar la capacitación o programa de interés",
+      "Confirmar alcance para empleados y familiares antes de inscribirse"
+    ],
+    "scope": "Referencia de acuerdo UIPBA 2022–2023, pendiente de revalidación para 2026.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Validación de acuerdo UCEMA",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Anuario 2023 (acuerdo UCEMA)",
+        "url": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf",
+    "externalImageUrl": "/benefits/uipba-ucema.svg",
+    "externalImageAlt": "Beneficio UIPBA · Universidad del CEMA (UCEMA) · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-softlanding-asesoramiento-tarifa-diferencial",
+    "title": "Softlanding · primer asesoramiento y tarifa diferencial",
+    "partner": "Softlanding · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Acuerdo documentado por UIPBA con primer asesoramiento gratuito, tarifa diferencial y capacitaciones para socios.",
+    "description": "El Anuario UIPBA 2023 documenta actividades conjuntas con Softlanding, capacitaciones, un primer asesoramiento gratuito para empresas y una tarifa diferencial en sus servicios. La vigencia de estas condiciones debe reconfirmarse.",
+    "concreteBenefit": "Antecedente de primer asesoramiento gratuito, tarifa diferencial y capacitaciones. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA / Softlanding: tarifa diferencial, alcance y vigencia actual.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de vigencia a Administración UIC",
+      "Describir el servicio requerido",
+      "Confirmar por escrito las condiciones comerciales vigentes"
+    ],
+    "scope": "Referencia de acuerdo UIPBA 2022–2023, pendiente de validación 2026.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Validación de acuerdo Softlanding",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Anuario 2023 (acuerdo Softlanding)",
+        "url": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf",
+    "externalImageUrl": "/benefits/uipba-softlanding.svg",
+    "externalImageAlt": "Beneficio UIPBA · Softlanding · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-centro-despachantes-aduana",
+    "title": "Centro de Despachantes de Aduana · capacitación e información",
+    "partner": "Centro Despachantes de Aduana (CDA) · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Convenio documentado por UIPBA para compartir información de utilidad y brindar capacitaciones y seminarios vinculados al comercio exterior.",
+    "description": "El Anuario UIPBA 2023 registra un convenio de colaboración impulsado por el Departamento de Comercio Exterior con el Centro Despachantes de Aduana, orientado al intercambio de información y a capacitaciones y seminarios. Debe verificarse la continuidad operativa del convenio para 2026.",
+    "concreteBenefit": "Acceso institucional a información, capacitaciones y seminarios de comercio exterior. A CHEQUEAR VALIDACIÓN.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN con UIPBA: agenda vigente, cupos, aranceles y alcance para socios de cámaras asociadas.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Solicitar validación de continuidad del convenio",
+      "Consultar agenda de actividades disponible",
+      "Confirmar condiciones de participación antes de inscribirse"
+    ],
+    "scope": "Referencia de convenio UIPBA–CDA documentado 2022–2023, pendiente de revalidación 2026.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Departamento de Comercio Exterior / convenio CDA",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Anuario 2023 (convenio CDA)",
+        "url": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/wp-content/uploads/2023/05/UIPBA-ANUARIO-2023-1.pdf",
+    "externalImageUrl": "/benefits/uipba-cda.svg",
+    "externalImageAlt": "Beneficio UIPBA · Centro Despachantes de Aduana (CDA) · UIPBA",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
+  },
+  {
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "category": "UIPBA",
+    "published": true,
+    "slug": "uipba-bvmw-cooperacion-alemania",
+    "title": "BVMW · cooperación e internacionalización",
+    "partner": "BVMW · Asociación Alemana de PyMEs · UIPBA",
+    "status": "revalidacion",
+    "featured": false,
+    "summary": "Convenio colaborativo UIPBA–BVMW orientado a cooperación, promoción de inversiones y vinculación entre sectores productivos de Argentina y Alemania.",
+    "description": "UIPBA firmó en diciembre de 2023 un convenio colaborativo con BVMW, la Asociación Alemana para Pequeñas y Medianas Empresas, para fomentar cooperación y promoción de inversiones. Es un marco institucional; antes de presentarlo como beneficio operativo individual debe validarse qué oportunidades concretas están disponibles en 2026.",
+    "concreteBenefit": "Marco de cooperación e internacionalización con BVMW. A CHEQUEAR VALIDACIÓN de oportunidades concretas disponibles para socios UIC.",
+    "costsDiscounts": "A CHEQUEAR VALIDACIÓN: actividades, misiones, servicios, eventuales aranceles y mecanismos de acceso vigentes.",
+    "requirements": [
+      "Ser empresa asociada a la UIC",
+      "Definir el objetivo de internacionalización o vinculación",
+      "Solicitar a UIC validación de oportunidades vigentes con UIPBA",
+      "Confirmar condiciones específicas de cada actividad o misión"
+    ],
+    "scope": "Marco institucional UIPBA–BVMW; la disponibilidad de beneficios concretos debe validarse caso por caso.",
+    "companyContacts": [
+      {
+        "name": "UIPBA · Atención a socios",
+        "role": "Vinculación institucional / cooperación BVMW",
+        "phone": "11 3764-0027",
+        "email": "uipba@uipba.org.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "UIPBA · Convenio colaborativo con BVMW",
+        "url": "https://uipba.org.ar/raiz/uipba-firmo-un-convenio-colaborativo-con-la-asociacion-alemana-para-pequenas-y-medianas-empresas-bvmw/"
+      }
+    ],
+    "agreementUrl": "https://uipba.org.ar/raiz/uipba-firmo-un-convenio-colaborativo-con-la-asociacion-alemana-para-pequenas-y-medianas-empresas-bvmw/",
+    "externalImageUrl": "/benefits/uipba-bvmw.svg",
+    "externalImageAlt": "Beneficio UIPBA · BVMW · Asociación Alemana de PyMEs · UIPBA",
+    "startDate": "2023-12-12",
+    "endDate": null,
+    "analysisWarnings": [
+      "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
+    ]
   }
 ]

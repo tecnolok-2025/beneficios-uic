@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071f2d"/><stop offset="1" stop-color="#0b6689"/></linearGradient></defs>
+<rect width="1200" height="720" fill="url(#g)"/><circle cx="1040" cy="80" r="260" fill="#1dc2eb" opacity=".12"/><circle cx="110" cy="650" r="210" fill="#ffffff" opacity=".05"/>
+<text x="80" y="95" fill="#66d9f3" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="700" letter-spacing="3">ENTIDAD MADRE · UIPBA</text>
+<text x="80" y="190" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="50" font-weight="800"><tspan x="80" dy="0">Provincia Seguros · tarifas</tspan><tspan x="80" dy="58">bonificadas</tspan></text>
+<text x="80" y="430" fill="#c9dce4" font-family="Arial,Helvetica,sans-serif" font-size="28" font-weight="600">Provincia Seguros · UIPBA</text>
+<rect x="80" y="515" width="470" height="72" rx="36" fill="#e7f8ef"/>
+<text x="115" y="561" fill="#167e52" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="800">ACTIVO / PUBLICADO</text>
+<text x="80" y="652" fill="#d9e8ee" font-family="Arial,Helvetica,sans-serif" font-size="23">Beneficios para socios UIC a través de UIPBA</text>
+</svg>

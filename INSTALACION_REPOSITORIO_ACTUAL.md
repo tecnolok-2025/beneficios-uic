@@ -1,4 +1,4 @@
-# Instalación v3.5.2 en el repositorio y Render actuales
+# Instalación v3.6.0 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -25,14 +25,14 @@ npm start
 El log de arranque debe incluir:
 
 ```text
-Beneficios UIC v3.5.2 · BENEFICIOS_UIC_352
+Beneficios UIC v3.6.0 · BENEFICIOS_UIC_360
 ```
 
-La ruta `/api/health` debe informar `"version":"3.5.2"`, `"generation":"BENEFICIOS_UIC_352"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.6.0"`, `"generation":"BENEFICIOS_UIC_360"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación funcional
 
-- El portal debe mostrar **32 beneficios** y **13 categorías**.
+- El portal debe mostrar **45 beneficios** y **14 categorías**.
 - Affinity Broker debe figurar dentro de **Broker de seguros**.
 - Deben figurar **Beneficios digitales** y **Acuerdos institucionales**.
 - El buscador flexible debe encontrar nombres, fragmentos, categorías, contactos y palabras clave.
