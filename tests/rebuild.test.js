@@ -10,25 +10,26 @@ const catalog = async () => JSON.parse(await read('data/catalog.json'))
 const latestSlug = 'capacitacion-retencion-talento-etrr'
 const praxisSlug = 'finanzas-corporativas-praxis'
 
-test('01 · conserva los 32 beneficios e incorpora 13 fichas UIPBA hasta 45', async () => {
+test('01 · conserva el catálogo v3.6.0 e incorpora 3 beneficios nuevos hasta 48', async () => {
   const items = await catalog()
-  assert.equal(items.length, 45)
-  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 45)
+  assert.equal(items.length, 48)
+  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 48)
   assert.ok(items.some(item => item.slug === praxisSlug))
 })
 
-test('02 · mantiene los rubros existentes y suma la categoría UIPBA', async () => {
+test('02 · mantiene los rubros existentes y suma Eventos y exposiciones', async () => {
   const items = await catalog()
   const categories = new Set(items.map(item => item.category))
-  assert.equal(categories.size, 14)
+  assert.equal(categories.size, 15)
   assert.ok(categories.has('UIPBA'))
+  assert.ok(categories.has('Eventos y exposiciones'))
 })
 
-test('03 · estados y slugs quedan coherentes con la revisión UIPBA', async () => {
+test('03 · estados y slugs quedan coherentes con la revisión 3.7.1', async () => {
   const items = await catalog()
-  assert.equal(items.filter(item => item.status === 'activo').length, 37)
+  assert.equal(items.filter(item => item.status === 'activo').length, 40)
   assert.equal(items.filter(item => item.status === 'revalidacion').length, 8)
-  assert.equal(new Set(items.map(item => item.slug)).size, 45)
+  assert.equal(new Set(items.map(item => item.slug)).size, 48)
 })
 
 test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', async () => {
@@ -39,11 +40,11 @@ test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', as
   assert.equal(latest.category, 'Capacitación y talento')
 })
 
-test('05 · no reaparece el filtro Acuerdos nuevos y el botón destaca Open English UIPBA', async () => {
+test('05 · no reaparece el filtro Acuerdos nuevos y el botón destaca un acuerdo reciente', async () => {
   const app = await read('src/App.jsx')
   assert.doesNotMatch(app, /'Acuerdos nuevos'/)
   assert.match(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(app, /uipba-open-english-business-80-off/)
+  assert.match(app, /red-summa-education-convenio-institucional-uic/)
 })
 
 test('06 · Actualizar versión sigue trabajando dentro del portal', async () => {
@@ -77,14 +78,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.6.0 son coherentes', async () => {
+test('10 · versión y generación 3.7.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.6.0')
-  assert.match(server, /BENEFICIOS_UIC_360/)
-  assert.match(html, /BENEFICIOS_UIC_360/)
+  assert.equal(pkg.version, '3.7.1')
+  assert.match(server, /BENEFICIOS_UIC_371/)
+  assert.match(html, /BENEFICIOS_UIC_371/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -161,9 +162,9 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
 
 
 
-test('19 · los 45 beneficios quedan completos con contacto, convenio e imagen', async () => {
+test('19 · los 48 beneficios quedan completos con contacto, convenio e imagen', async () => {
   const items = await catalog()
-  assert.equal(items.length, 45)
+  assert.equal(items.length, 48)
   for (const item of items) {
     assert.ok(Array.isArray(item.companyContacts) && item.companyContacts.length > 0, `${item.slug}: falta contacto`)
     assert.ok(item.companyContacts.some(contact => contact.name && contact.email), `${item.slug}: falta nombre/correo`)
@@ -189,11 +190,11 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
   assert.match(item.externalImageUrl, /^\/benefits\/.+\.(?:svg|png|jpe?g|webp)$/i)
-  assert.equal(new Set(items.map(x => x.category)).size, 14)
+  assert.equal(new Set(items.map(x => x.category)).size, 15)
 })
 
 
-test('21 · v3.6.0 conserva búsqueda pública e identidad industrial premium', async () => {
+test('21 · v3.7.1 conserva búsqueda pública e identidad industrial premium', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
@@ -217,7 +218,7 @@ test('22 · motor de búsqueda encuentra Dálmine por tilde, fragmento y pequeñ
 test('23 · motor de búsqueda indexa rubros, contactos y palabras del contenido', async () => {
   const { rankBenefits } = await import('../src/search.js')
   const items = await catalog()
-  assert.equal(rankBenefits(items, 'CADEMA')[0]?.slug, 'paseo-gavazzi-sigsa-cadema')
+  assert.equal(rankBenefits(items, 'CADEMA')[0]?.slug, 'cadema-bureau-barrancas-beneficio-uic')
   assert.equal(rankBenefits(items, 'Jimena')[0]?.slug, 'asesoramiento-legal-innova-lex')
   assert.equal(rankBenefits(items, 'solar')[0]?.slug, 'energia-solar-grupo-solper')
   assert.ok(rankBenefits(items, 'medio ambiente').some(item => item.category === 'Ambiente y sustentabilidad'))
@@ -267,7 +268,7 @@ test('27 · buscador encuentra las nuevas categorías y nombres', async () => {
 })
 
 
-test('28 · v3.6.0 conserva la migración no destructiva de Affinity en Neon', async () => {
+test('28 · v3.7.1 conserva la migración no destructiva de Affinity en Neon', async () => {
   const server = await read('server/index.js')
   assert.match(server, /affinity-broker-seguros-condiciones-preferenciales/)
   assert.match(server, /benefits\.category = 'Seguros'/)
@@ -308,4 +309,69 @@ test('31 · portal muestra botón UIPBA y aviso A CHEQUEAR VALIDACIÓN', async (
   assert.match(app, /neo-validation-panel/)
   assert.match(styles, /\.neo-uipba-category/)
   assert.match(styles, /\.neo-validation/)
+})
+
+
+test('32 · incorpora RED SUMMA como acuerdo institucional con contacto externo y pieza adjunta', async () => {
+  const items = await catalog()
+  const item = items.find(x => x.slug === 'red-summa-education-convenio-institucional-uic')
+  assert.ok(item)
+  assert.equal(item.category, 'Acuerdos institucionales')
+  assert.match(item.costsDiscounts, /8% adicional/)
+  assert.match(item.costsDiscounts, /5% adicional/)
+  assert.match(item.costsDiscounts, /60% o más/)
+  assert.equal(item.contactName, 'María José Godoy (Majo) – Administración UIC')
+  assert.equal(item.companyContacts[0].name, 'Javier Arteaga')
+  assert.equal(item.companyContacts[0].email, 'Javier.arteaga@asturias.edu.co')
+  const image = await fs.readFile(path.join(root, 'public/benefits/red-summa-uic-education.png'))
+  assert.ok(image.length > 100000)
+})
+
+test('33 · incorpora CADEMA BUREAU como beneficio inmobiliario empresarial', async () => {
+  const items = await catalog()
+  const item = items.find(x => x.slug === 'cadema-bureau-barrancas-beneficio-uic')
+  assert.ok(item)
+  assert.equal(item.category, 'Beneficios inmobiliarios')
+  assert.match(item.concreteBenefit, /10%/)
+  assert.equal(item.companyContacts[0].phone, '+54 9 3489 36-8518')
+  assert.equal(item.companyContacts[0].email, 'ventas@cademaprop.com.ar')
+  assert.match(item.agreementUrl, /cademaprop\.com\.ar\/bureau-barrancas-de-campana/)
+  const image = await fs.readFile(path.join(root, 'public/benefits/cadema-bureau-barrancas.webp'))
+  assert.ok(image.length > 50000)
+})
+
+test('34 · incorpora GlobalPorts en Eventos y exposiciones con vencimiento 2026', async () => {
+  const items = await catalog()
+  const item = items.find(x => x.slug === 'expo-globalports-2026-descuento-uic')
+  assert.ok(item)
+  assert.equal(item.category, 'Eventos y exposiciones')
+  assert.equal(item.endDate, '2026-11-04')
+  assert.match(item.concreteBenefit, /10% de descuento/)
+  assert.equal(item.companyContacts[0].email, 'info@globalports.com.ar')
+  assert.equal(item.companyContacts[0].phone, '+54 9 11 6651 3444')
+})
+
+test('35 · estado FINALIZADO se activa automáticamente al superar endDate', async () => {
+  const { effectiveStatus } = await import('../src/status.js')
+  const item = (await catalog()).find(x => x.slug === 'expo-globalports-2026-descuento-uic')
+  assert.equal(effectiveStatus(item, '2026-11-04'), 'activo')
+  assert.equal(effectiveStatus(item, '2026-11-05'), 'finalizado')
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /FINALIZADO/)
+  assert.match(app, /Fecha de fin \/ vencimiento automático/)
+  assert.match(styles, /\.neo-card-finished/)
+  assert.match(styles, /\.neo-finished-panel/)
+})
+
+
+test('37 · v3.7.1 endurece migración y evita caída por desconexión temporal de Neon', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS start_date DATE/)
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS end_date DATE/)
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS analysis_warnings JSONB/)
+  assert.match(server, /pool\.on\('error'/)
+  assert.match(server, /local-fallback/)
+  assert.match(server, /Neon no pudo inicializarse/)
 })

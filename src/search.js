@@ -54,7 +54,11 @@ const searchSynonyms = {
   digital: ['app', 'plataforma', 'portal'],
   talento: ['empleo', 'candidatos', 'laboral'],
   requerimientos: ['cpf', 'ofertas', 'necesidades'],
-  institucional: ['convenio', 'acuerdo', 'cooperacion']
+  institucional: ['convenio', 'acuerdo', 'cooperacion'],
+  evento: ['eventos', 'exposicion', 'expo'],
+  eventos: ['evento', 'exposicion', 'expo'],
+  exposicion: ['evento', 'eventos', 'expo'],
+  expo: ['evento', 'eventos', 'exposicion']
 }
 
 function tokenVariants(token) {

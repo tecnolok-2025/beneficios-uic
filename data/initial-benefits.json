@@ -1975,5 +1975,152 @@
     "analysisWarnings": [
       "A chequear validación con UIPBA antes de comunicar este beneficio como vigente."
     ]
+  },
+  {
+    "slug": "red-summa-education-convenio-institucional-uic",
+    "title": "RED SUMMA Education: formación online con beneficios preferenciales",
+    "partner": "RED SUMMA Education",
+    "category": "Acuerdos institucionales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Convenio institucional para acercar formación superior y ejecutiva a socios UIC: beca vigente +8% adicional en diplomados y +5% adicional en grado, pregrado, especializaciones, maestrías y MBA, con campañas estacionales que pueden llegar al 60% o más.",
+    "description": "El convenio de colaboración institucional vincula a la UIC con las instituciones integrantes de RED SUMMA para facilitar el acceso a formación académica y ejecutiva, priorizando propuestas que puedan cursarse íntegramente a distancia. Incluye cursos ejecutivos, diplomados, carreras, especializaciones, maestrías, MBA y acciones de educación continua. La oferta concreta, modalidad, cupos, valor de referencia y beneficio vigente deben confirmarse al momento de cada consulta.",
+    "concreteBenefit": "Acceso institucional a formación online con beneficios diferenciales para socios UIC, incluyendo descuentos adicionales sobre la beca vigente y campañas especiales, además de cursos ejecutivos y propuestas de habilidades aplicadas al mundo empresarial.",
+    "costsDiscounts": "Diplomados: beca vigente + 8% adicional. Grado y pregrado: beca vigente + 5% adicional. Especializaciones: beca vigente + 5% adicional. Maestrías y MBA: beca vigente + 5% adicional. Las campañas estacionales pueden ofrecer beneficios de hasta 60% o más, según programa, temporada y disponibilidad.",
+    "requirements": [
+      "Ser empresa socia activa de la UIC o persona vinculada a una empresa socia, según las condiciones del programa",
+      "Solicitar a la UIC la certificación de vinculación necesaria para aplicar el beneficio",
+      "Cumplir los requisitos de admisión, cupos y documentación de la institución educativa correspondiente",
+      "Confirmar antes de matricularse la beca, descuento, modalidad, vigencia y condiciones de la campaña aplicable"
+    ],
+    "scope": "Empresas socias activas UIC y, cuando el programa lo admita, titulares, directivos, empleados, colaboradores y grupo familiar hasta segundo grado de consanguinidad o afinidad.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "startDate": "2026-09-15",
+    "endDate": "2028-09-15",
+    "analysisWarnings": [
+      "La ficha se construye sobre la revisión final del convenio y la pieza institucional adjunta; el convenio todavía no fue publicado en la web de UIC.",
+      "La oferta académica y los porcentajes deben confirmarse con RED SUMMA al momento de cada matrícula."
+    ],
+    "companyContacts": [
+      {
+        "name": "Javier Arteaga",
+        "role": "Director General – RED SUMMA",
+        "phone": "+57 321 2015320",
+        "email": "Javier.arteaga@asturias.edu.co"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Sitio oficial RED SUMMA Education",
+        "url": "https://redsummaeducation.net/"
+      }
+    ],
+    "agreementUrl": "https://redsummaeducation.net/",
+    "externalImageUrl": "/benefits/red-summa-uic-education.png",
+    "externalImageAlt": "UIC + RED SUMMA Education · beneficios de formación para industrias y PyMEs",
+    "published": true
+  },
+  {
+    "slug": "cadema-bureau-barrancas-beneficio-uic",
+    "title": "BUREAU – Barrancas de Campana: oficinas con bonificación para socios UIC",
+    "partner": "CADEMA Bienes Raíces · BUREAU – Barrancas de Campana",
+    "category": "Beneficios inmobiliarios",
+    "status": "activo",
+    "featured": true,
+    "summary": "Convenio empresarial para empresas socias UIC interesadas en unidades de BUREAU – Barrancas de Campana, con bonificaciones de hasta 10%, atención prioritaria, acceso a preventa y condiciones comerciales sujetas a cotización individual.",
+    "description": "CADEMA comercializa el proyecto BUREAU – Barrancas de Campana, desarrollado por LB Company. El convenio crea un canal empresarial para que las empresas socias de la UIC accedan a información ordenada sobre oficinas, locales, unidades disponibles, financiación y condiciones de preventa. La contratación es directa entre CADEMA, el desarrollador y el interesado; la UIC actúa como articulador institucional y canal de difusión.",
+    "concreteBenefit": "Bonificación de hasta el 10% sobre el precio de referencia o lista vigente de la unidad consultada, más atención prioritaria, acceso a información de preventa y cotización individual con condiciones transparentes.",
+    "costsDiscounts": "Hasta 10% de bonificación, según unidad, etapa, disponibilidad y forma de pago. Como referencia comercial, el material informa 20% de anticipo, 70% financiado en 30 cuotas mensuales y 10% contra entrega, sujeto a confirmación. La comisión inmobiliaria total prevista es 4%: 3% para CADEMA y 1% para UIC como gratificación institucional, sin costo adicional para la empresa adquirente.",
+    "requirements": [
+      "Ser empresa socia activa de la UIC",
+      "Acreditar la condición de socia al iniciar la consulta o antes de la cotización definitiva",
+      "Solicitar a CADEMA una cotización individual con unidad, precio de referencia, bonificación, forma de pago, vigencia y disponibilidad",
+      "Confirmar condiciones comerciales vigentes antes de reservar; el beneficio no es acumulable con otras promociones salvo aprobación escrita"
+    ],
+    "scope": "Empresas socias UIC interesadas en oficinas, locales u otras unidades comercializadas por CADEMA dentro del proyecto BUREAU – Barrancas de Campana.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "startDate": null,
+    "endDate": null,
+    "analysisWarnings": [
+      "La fecha de firma y el nombre/cargo del representante de CADEMA permanecen a completar en la revisión adjunta; la vigencia contractual es de 24 meses desde la firma.",
+      "Precios, stock, financiación y bonificación definitiva deben constar en la cotización individual de CADEMA."
+    ],
+    "companyContacts": [
+      {
+        "name": "Equipo Comercial CADEMA Bienes Raíces",
+        "role": "Comercialización BUREAU – Barrancas de Campana",
+        "phone": "+54 9 3489 36-8518",
+        "email": "ventas@cademaprop.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "BUREAU – Barrancas de Campana · CADEMA",
+        "url": "https://cademaprop.com.ar/bureau-barrancas-de-campana/"
+      }
+    ],
+    "agreementUrl": "https://cademaprop.com.ar/bureau-barrancas-de-campana/",
+    "externalImageUrl": "/benefits/cadema-bureau-barrancas.webp",
+    "externalImageAlt": "BUREAU – Barrancas de Campana · proyecto comercializado por CADEMA",
+    "published": true
+  },
+  {
+    "slug": "expo-globalports-2026-descuento-uic",
+    "title": "Expo GlobalPorts 2026: 10% de descuento para socios UIC",
+    "partner": "GlobalPorts",
+    "category": "Eventos y exposiciones",
+    "status": "activo",
+    "featured": true,
+    "summary": "Beneficio exclusivo para empresas socias UIC que participen en Expo GlobalPorts 2026: 10% de descuento sobre los valores comerciales de participación, con exposición, conferencias, workshops, rondas de negocios y networking.",
+    "description": "Expo GlobalPorts 2026 se realizará los días 3 y 4 de noviembre en la Bolsa de Cereales de Buenos Aires. Reúne empresas, autoridades, especialistas y referentes de la actividad portuaria, marítima, fluvial, logística, energética e industrial, con foco en Hidrovía Paraguay–Paraná, offshore, infraestructura portuaria, transporte multimodal, energía, minería e industria naval.",
+    "concreteBenefit": "10% de descuento para empresas socias UIC sobre los valores comerciales de participación. Además, si cinco empresas socias UIC participan con stand, GlobalPorts otorgará a la UIC un stand institucional sin cargo.",
+    "costsDiscounts": "10% de descuento sobre los valores comerciales publicados por GlobalPorts. Los valores generales no incluyen IVA. El beneficio debe confirmarse al contratar la participación y está sujeto a disponibilidad de espacios y condiciones del organizador.",
+    "requirements": [
+      "Ser empresa socia activa de la UIC",
+      "Informar la condición de socia UIC antes de confirmar la contratación",
+      "Consultar disponibilidad, plan de participación y condiciones comerciales directamente con GlobalPorts",
+      "Tener en cuenta que el programa es tentativo y puede estar sujeto a cambios"
+    ],
+    "scope": "Empresas socias UIC interesadas en participar como expositoras, sponsors o asistentes corporativos de Expo GlobalPorts 2026, según las alternativas comerciales disponibles.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "startDate": "2026-09-21",
+    "endDate": "2026-11-04",
+    "analysisWarnings": [
+      "Beneficio específico de la edición 2026. A partir del 5 de noviembre de 2026 el portal lo mostrará automáticamente como FINALIZADO hasta que se actualice la edición 2027."
+    ],
+    "companyContacts": [
+      {
+        "name": "Equipo Comercial GlobalPorts",
+        "role": "Expo GlobalPorts 2026 · participación y sponsoreo",
+        "phone": "+54 9 11 6651 3444",
+        "email": "info@globalports.com.ar"
+      },
+      {
+        "name": "Marketing GlobalPorts",
+        "role": "Gráfica y materiales de stands",
+        "phone": "",
+        "email": "marketing@globalports.com.ar"
+      }
+    ],
+    "agreementLinks": [
+      {
+        "label": "Sitio oficial Expo GlobalPorts 2026",
+        "url": "https://eventos.globalports.com.ar/"
+      },
+      {
+        "label": "Detalle del evento en GlobalPorts",
+        "url": "https://www.globalports.com.ar/events/expo-globalports-2026-hidrovia-off-shore-logistica-para-el-comercio-exterior/"
+      }
+    ],
+    "agreementUrl": "https://eventos.globalports.com.ar/",
+    "externalImageUrl": "/benefits/expo-globalports-2026.svg",
+    "externalImageAlt": "Expo GlobalPorts 2026 · 10% de descuento para empresas socias UIC",
+    "published": true
   }
 ]

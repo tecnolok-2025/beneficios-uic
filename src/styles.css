@@ -465,3 +465,17 @@ button { cursor: pointer; }
   .neo-card-badges { grid-column: 2; justify-content: flex-start; }
   .neo-uipba-note { padding: 16px; }
 }
+
+/* v3.7.1 · vigencia automática para eventos y beneficios con fecha de fin */
+.neo-finished { display: inline-flex !important; align-items: center; gap: 5px; width: fit-content; margin: 0 !important; padding: 6px 8px; color: #55636c !important; background: #eef1f3; border: 1px solid #c9d0d4; border-radius: 20px; font-size: 11px !important; font-weight: 900; line-height: 1.15 !important; letter-spacing: .04em !important; text-transform: uppercase; }
+.neo-finished svg { flex: none; width: 13px; height: 13px; }
+.neo-card-finished { border-color: #cfd7db; filter: saturate(.62); }
+.neo-card-finished::before { background: linear-gradient(#8c9aa2,#c8d0d5); }
+.neo-card-finished .neo-condition { color: #59656c; background: #f1f4f5; border-color: #d5dde1; }
+.neo-card-finished .neo-condition svg { color: #77858d; }
+.neo-detail-hero .neo-finished { color: #e4eaed !important; background: rgba(91,109,119,.24); border-color: rgba(218,229,234,.36); }
+.neo-finished-panel { background: linear-gradient(125deg,#f7f9fa,#edf1f3) !important; border-color: #d0d8dc !important; border-left: 5px solid #7c8b93 !important; }
+.neo-finished-panel > span { display: flex; align-items: center; gap: 8px; color: #5d6a71 !important; }
+.neo-finished-panel > span svg { width: 20px; height: 20px; }
+.neo-finished-panel h2 { color: #3f4c53; }
+.neo-finished-panel p { margin-bottom: 0; color: #5a676e; }

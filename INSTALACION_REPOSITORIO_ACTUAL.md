@@ -1,4 +1,4 @@
-# Instalación v3.6.0 en el repositorio y Render actuales
+# Instalación v3.7.1 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -25,16 +25,17 @@ npm start
 El log de arranque debe incluir:
 
 ```text
-Beneficios UIC v3.6.0 · BENEFICIOS_UIC_360
+Beneficios UIC v3.7.1 · BENEFICIOS_UIC_371
 ```
 
-La ruta `/api/health` debe informar `"version":"3.6.0"`, `"generation":"BENEFICIOS_UIC_360"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.7.1"`, `"generation":"BENEFICIOS_UIC_371"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación funcional
 
-- El portal debe mostrar **45 beneficios** y **14 categorías**.
+- El portal debe mostrar **48 beneficios** y **15 categorías**.
 - Affinity Broker debe figurar dentro de **Broker de seguros**.
-- Deben figurar **Beneficios digitales** y **Acuerdos institucionales**.
+- Deben figurar **Beneficios digitales**, **Acuerdos institucionales** y **Eventos y exposiciones**.
+- Expo GlobalPorts 2026 debe pasar automáticamente a **FINALIZADO** después del 04/11/2026.
 - El buscador flexible debe encontrar nombres, fragmentos, categorías, contactos y palabras clave.
 - El acceso de asociación debe decir **Hacete socio**.
 

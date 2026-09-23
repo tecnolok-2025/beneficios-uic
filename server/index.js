@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_360'
+const GENERATION = 'BENEFICIOS_UIC_371'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -27,6 +27,13 @@ function normalizeDatabaseUrl(value) {
 
 const databaseUrl = normalizeDatabaseUrl(process.env.DATABASE_URL)
 const pool = databaseUrl ? new pg.Pool({ connectionString: databaseUrl, max: 5, ...(/localhost|127\.0\.0\.1/.test(databaseUrl) ? { ssl: false } : {}) }) : null
+let databaseAvailable = Boolean(pool)
+if (pool) {
+  pool.on('error', error => {
+    databaseAvailable = false
+    console.error(`Neon: error en conexión inactiva; el proceso continuará activo (${error.code || error.message})`)
+  })
+}
 
 async function readLocalCatalog() {
   try {
@@ -41,6 +48,12 @@ async function readLocalCatalog() {
 
 const localCatalog = await readLocalCatalog()
 
+function dateOnly(value) {
+  if (!value) return null
+  if (value instanceof Date) return value.toISOString().slice(0, 10)
+  return String(value).slice(0, 10)
+}
+
 function rowToBenefit(row, flyers = []) {
   return {
     id: row.id, slug: row.slug, title: row.title, partner: row.partner, category: row.category,
@@ -48,7 +61,7 @@ function rowToBenefit(row, flyers = []) {
     concreteBenefit: row.concrete_benefit, costsDiscounts: row.costs_discounts,
     requirements: row.requirements || [], scope: row.scope, contactName: row.contact_name,
     contactPhone: row.contact_phone, contactEmail: row.contact_email, companyContacts: row.company_contacts || [],
-    agreementUrl: row.agreement_url || '', agreementLinks: row.agreement_links || [], externalImageUrl: row.external_image_url || '', externalImageAlt: row.external_image_alt || '', startDate: row.start_date, endDate: row.end_date, published: row.published, flyers: flyers.length ? flyers : (row.external_image_url ? [{ id: `external-${row.id}`, url: row.external_image_url, alt: row.external_image_alt || row.partner || row.title }] : [])
+    agreementUrl: row.agreement_url || '', agreementLinks: row.agreement_links || [], externalImageUrl: row.external_image_url || '', externalImageAlt: row.external_image_alt || '', startDate: dateOnly(row.start_date), endDate: dateOnly(row.end_date), published: row.published, flyers: flyers.length ? flyers : (row.external_image_url ? [{ id: `external-${row.id}`, url: row.external_image_url, alt: row.external_image_alt || row.partner || row.title }] : [])
   }
 }
 
@@ -114,16 +127,37 @@ async function initializeDatabase() {
   else console.log(`Sincronización de completitud OK · ${localCatalog.length}/${localCatalog.length} beneficios con contacto, convenio e imagen`)
 }
 async function listBenefits(includeHidden = false) {
-  if (!pool) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
-  const result = await pool.query(`SELECT * FROM benefits ${includeHidden ? '' : 'WHERE published=TRUE'} ORDER BY featured DESC, title`)
-  if (!result.rows.length && localCatalog.length) return localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
-  const ids = result.rows.map(row => row.id)
-  const flyerResult = ids.length ? await pool.query('SELECT id,benefit_id,alt_text,position FROM flyers WHERE benefit_id = ANY($1::bigint[]) ORDER BY position', [ids]) : { rows: [] }
-  return result.rows.map(row => rowToBenefit(row, flyerResult.rows.filter(flyer => String(flyer.benefit_id) === String(row.id)).map(flyer => ({ id: flyer.id, url: `/api/flyers/${flyer.id}`, alt: flyer.alt_text }))))
+  const localItems = () => localCatalog.filter(item => includeHidden || item.published !== false).map(localBenefit)
+  if (!pool) return localItems()
+  try {
+    const result = await pool.query(`SELECT * FROM benefits ${includeHidden ? '' : 'WHERE published=TRUE'} ORDER BY featured DESC, title`)
+    databaseAvailable = true
+    if (!result.rows.length && localCatalog.length) return localItems()
+    const ids = result.rows.map(row => row.id)
+    const flyerResult = ids.length ? await pool.query('SELECT id,benefit_id,alt_text,position FROM flyers WHERE benefit_id = ANY($1::bigint[]) ORDER BY position', [ids]) : { rows: [] }
+    return result.rows.map(row => rowToBenefit(row, flyerResult.rows.filter(flyer => String(flyer.benefit_id) === String(row.id)).map(flyer => ({ id: flyer.id, url: `/api/flyers/${flyer.id}`, alt: flyer.alt_text }))))
+  } catch (error) {
+    databaseAvailable = false
+    console.error(`Neon temporalmente no disponible; usando catálogo local (${error.code || error.message})`)
+    if (localCatalog.length) return localItems()
+    throw error
+  }
+}
+
+function argentinaDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date)
+  const values = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]))
+  return `${values.year}-${values.month}-${values.day}`
+}
+function effectiveServerStatus(item, today = argentinaDateKey()) {
+  const raw = item?.status || 'activo'
+  if (raw === 'finalizado' || raw === 'revalidacion') return raw
+  const endDate = dateOnly(item?.endDate || item?.end_date)
+  return endDate && endDate < today ? 'finalizado' : raw
 }
 
 function safeText(value, max = 2000) { return String(value ?? '').trim().slice(0, max) }
-function safeStatus(value) { return ['activo','revalidacion','proximo'].includes(value) ? value : 'activo' }
+function safeStatus(value) { return ['activo','revalidacion','proximo','finalizado'].includes(value) ? value : 'activo' }
 function slugify(value) { return safeText(value, 180).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
 function safeId(value) { return /^\d+$/.test(String(value)) ? String(value) : null }
 
@@ -153,7 +187,7 @@ app.get('/api/health', async (_req, res) => {
   try {
     const items = await listBenefits()
     const dalmine = items.find(item => item.slug === 'club-villa-dalmine-beneficios-uic')
-    res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT, database: Boolean(pool), catalogSource: pool ? 'neon' : 'local', catalog: { published: items.length, active: items.filter(x => x.status === 'activo').length, categories: new Set(items.map(x => x.category)).size, villaDalmine: Boolean(dalmine) } })
+    res.json({ ok: true, version: VERSION, generation: GENERATION, commit: BUILD_COMMIT, databaseConfigured: Boolean(pool), database: databaseAvailable, catalogSource: databaseAvailable ? 'neon' : (pool ? 'local-fallback' : 'local'), catalog: { published: items.length, active: items.filter(x => effectiveServerStatus(x) === 'activo').length, finalizado: items.filter(x => effectiveServerStatus(x) === 'finalizado').length, categories: new Set(items.map(x => x.category)).size, villaDalmine: Boolean(dalmine) } })
   } catch (error) { res.status(503).json({ ok: false, version: VERSION, generation: GENERATION, error: error.message }) }
 })
 
@@ -320,6 +354,12 @@ app.use((error, req, res, _next) => {
   res.status(error.status || 500).json({ error: error.status ? error.message : 'Ocurrió un error inesperado' })
 })
 
-await initializeDatabase()
+try {
+  await initializeDatabase()
+  databaseAvailable = Boolean(pool)
+} catch (error) {
+  databaseAvailable = false
+  console.error(`Neon no pudo inicializarse; el portal continuará con catálogo local y reintentará en las consultas (${error.code || error.message})`)
+}
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`Beneficios UIC NUEVO v${VERSION} · ${GENERATION} · puerto ${PORT}`))
 process.on('SIGTERM', async () => { server.close(); await pool?.end(); process.exit(0) })

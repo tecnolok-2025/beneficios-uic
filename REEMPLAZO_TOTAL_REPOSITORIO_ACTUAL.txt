@@ -1,14 +1,18 @@
-BENEFICIOS UIC 3.6.0 - REPOSITORIO ACTUAL
+BENEFICIOS UIC 3.7.1 - REPOSITORIO ACTUAL
 
 Este contenido se instala en el repositorio GitHub actual conectado al servicio Render beneficios-uic.
 Subir el contenido de este ZIP directamente a la raíz del repositorio.
 No se crea otro servicio Render y no se modifica ni se borra Neon.
 
 Estado esperado:
-- Version 3.6.0
-- Generacion BENEFICIOS_UIC_360
-- 45 beneficios
-- 14 categorias
+- Version 3.7.1
+- Generacion BENEFICIOS_UIC_371
+- 48 beneficios
+- 15 categorias
+- RED SUMMA en Acuerdos institucionales
+- CADEMA BUREAU en Beneficios inmobiliarios
+- Expo GlobalPorts 2026 en Eventos y exposiciones
+- Expo GlobalPorts pasa automaticamente a FINALIZADO despues del 04/11/2026
 - Affinity Broker en Broker de seguros
 
 Verificar obligatoriamente que estén visibles package.json, render.yaml, src/, server/, public/ y data/ antes de confirmar.
