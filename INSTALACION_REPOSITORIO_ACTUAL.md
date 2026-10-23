@@ -1,4 +1,4 @@
-# Instalación v3.7.1 en el repositorio y Render actuales
+# Instalación v3.8.0 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -8,8 +8,7 @@ Esta entrega reemplaza el código del repositorio actual, pero conserva el servi
 2. Reemplazar los archivos del repositorio por el contenido de esta entrega.
 3. Subir **el contenido descomprimido** directamente a la raíz. No subir el ZIP ni una carpeta exterior.
 4. Verificar que en la raíz estén `package.json`, `render.yaml`, `server`, `src`, `public` y `data`.
-5. Confirmar que `public/logo-uic-oficial.jpeg` y las imágenes de beneficios estén presentes.
-6. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
+5. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
 
 ## Render
 
@@ -22,23 +21,20 @@ npm ci --include=dev && npm run build
 npm start
 ```
 
-El log de arranque debe incluir:
+El log de arranque debe incluir `Beneficios UIC NUEVO v3.8.0 · BENEFICIOS_UIC_380`.
 
-```text
-Beneficios UIC v3.7.1 · BENEFICIOS_UIC_371
-```
-
-La ruta `/api/health` debe informar `"version":"3.7.1"`, `"generation":"BENEFICIOS_UIC_371"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICIOS_UIC_380"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación funcional
 
-- El portal debe mostrar **48 beneficios** y **15 categorías**.
-- Affinity Broker debe figurar dentro de **Broker de seguros**.
-- Deben figurar **Beneficios digitales**, **Acuerdos institucionales** y **Eventos y exposiciones**.
-- Expo GlobalPorts 2026 debe pasar automáticamente a **FINALIZADO** después del 04/11/2026.
-- El buscador flexible debe encontrar nombres, fragmentos, categorías, contactos y palabras clave.
-- El acceso de asociación debe decir **Hacete socio**.
+- El portal debe mostrar **51 beneficios** y **16 categorías**.
+- CEOP debe figurar en **Acuerdos institucionales** con Hugo López y Sandra Rodríguez.
+- TIBEST debe figurar en **Broker de seguros**.
+- Praxis debe aparecer una sola vez, en **Gestión empresarial**, como Departamento de Finanzas Corporativas UIC – Praxis Finanzas.
+- DNV debe figurar en **Certificación y calidad**.
+- El buscador debe encontrar `CEOP`, `TIBEST`, `Praxis`, `DNV`, `ISO` y `certificación`.
+- El resto del catálogo, estados y beneficios UIPBA deben conservarse.
 
 ## Base de datos
 
-No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque conserva el esquema de actualización no destructivo y las ediciones administrativas existentes.
+No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque inserta los tres slugs nuevos y actualiza exclusivamente la ficha existente de Praxis. No elimina otros beneficios ni flyers cargados desde Administración.

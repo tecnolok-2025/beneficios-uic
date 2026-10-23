@@ -58,7 +58,12 @@ const searchSynonyms = {
   evento: ['eventos', 'exposicion', 'expo'],
   eventos: ['evento', 'exposicion', 'expo'],
   exposicion: ['evento', 'eventos', 'expo'],
-  expo: ['evento', 'eventos', 'exposicion']
+  expo: ['evento', 'eventos', 'exposicion'],
+  certificacion: ['calidad', 'auditoria', 'iso', 'dnv'],
+  calidad: ['certificacion', 'auditoria', 'iso'],
+  coaching: ['liderazgo', 'ceop', 'formacion'],
+  broker: ['seguro', 'seguros', 'tibest'],
+  corporativas: ['finanzas', 'praxis', 'financiamiento']
 }
 
 function tokenVariants(token) {

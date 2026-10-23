@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_371'
+const GENERATION = 'BENEFICIOS_UIC_380'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -116,6 +116,26 @@ async function initializeDatabase() {
     SET partner='Paseo Gavazzi · SYGSA S.A. · CADEMA', updated_at=NOW()
     WHERE slug='paseo-gavazzi-sigsa-cadema'
       AND partner IN ('Paseo Gavazzi · SIGSA · Cadema','Paseo Gavazzi · SIGSA · CADEMA')`)
+
+  // v3.8.0 · actualización explícita de la ficha Praxis solicitada por UIC.
+  // Se limita a este slug y no modifica flyers cargados desde Administración ni otras fichas de Neon.
+  const praxis = localCatalog.find(item => item.slug === 'finanzas-corporativas-praxis')
+  if (praxis) {
+    await pool.query(`UPDATE benefits SET
+      title=$1, partner=$2, category=$3, status=$4, featured=$5,
+      summary=$6, description=$7, concrete_benefit=$8, costs_discounts=$9,
+      requirements=$10, scope=$11, contact_name=$12, contact_phone=$13, contact_email=$14,
+      company_contacts=$15, agreement_url=$16, agreement_links=$17,
+      external_image_url=$18, external_image_alt=$19, start_date=$20, end_date=$21,
+      published=$22, updated_at=NOW()
+      WHERE slug='finanzas-corporativas-praxis'`, [
+        praxis.title, praxis.partner, praxis.category, praxis.status || 'activo', Boolean(praxis.featured),
+        praxis.summary || '', praxis.description || '', praxis.concreteBenefit || '', praxis.costsDiscounts || '',
+        JSON.stringify(praxis.requirements || []), praxis.scope || '', praxis.contactName || '', praxis.contactPhone || '', praxis.contactEmail || '',
+        JSON.stringify(praxis.companyContacts || []), praxis.agreementUrl || '', JSON.stringify(praxis.agreementLinks || []),
+        praxis.externalImageUrl || '', praxis.externalImageAlt || '', praxis.startDate || null, praxis.endDate || null, praxis.published !== false
+      ])
+  }
 
   const verification = await pool.query(`SELECT slug, company_contacts, agreement_url, agreement_links, external_image_url
     FROM benefits WHERE slug = ANY($1::text[])`, [localCatalog.map(item => item.slug)])

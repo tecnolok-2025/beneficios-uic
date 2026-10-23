@@ -7,7 +7,7 @@ import {
 import { rankBenefits } from './search.js'
 import { effectiveStatus } from './status.js'
 
-const recentSlugs = new Set(['affinity-broker-seguros-condiciones-preferenciales', 'app-uic-comunicacion-servicios-acceso', 'talento-pyme-plataforma-vinculacion-laboral', 'requerimientos-institucionales-cpf', 'portal-beneficios-uic-digital', 'convenio-marco-aderpe-uic', 'uipba-open-english-business-80-off', 'uipba-provincia-seguros-tarifas-bonificadas', 'uipba-unlp-ingenieria-posgrado-15', 'uipba-programa-proveedores-energia-mineria-oil-gas', 'uipba-asistencia-pyme', 'uipba-iram-bonificaciones', 'uipba-sancor-salud-beneficio-historico', 'uipba-movistar-negocios-bonificaciones', 'uipba-banco-nacion-beneficios-pyme', 'uipba-ucema-descuentos-capacitacion', 'uipba-softlanding-asesoramiento-tarifa-diferencial', 'uipba-centro-despachantes-aduana', 'uipba-bvmw-cooperacion-alemania', 'red-summa-education-convenio-institucional-uic', 'cadema-bureau-barrancas-beneficio-uic', 'expo-globalports-2026-descuento-uic'])
+const recentSlugs = new Set(['dnv-certificacion-sistemas-gestion-uic', 'finanzas-corporativas-praxis', 'tibest-broker-seguros-uic', 'ceop-internacional-formacion-liderazgo-uic', 'affinity-broker-seguros-condiciones-preferenciales', 'app-uic-comunicacion-servicios-acceso', 'talento-pyme-plataforma-vinculacion-laboral', 'requerimientos-institucionales-cpf', 'portal-beneficios-uic-digital', 'convenio-marco-aderpe-uic', 'uipba-open-english-business-80-off', 'uipba-provincia-seguros-tarifas-bonificadas', 'uipba-unlp-ingenieria-posgrado-15', 'uipba-programa-proveedores-energia-mineria-oil-gas', 'uipba-asistencia-pyme', 'uipba-iram-bonificaciones', 'uipba-sancor-salud-beneficio-historico', 'uipba-movistar-negocios-bonificaciones', 'uipba-banco-nacion-beneficios-pyme', 'uipba-ucema-descuentos-capacitacion', 'uipba-softlanding-asesoramiento-tarifa-diferencial', 'uipba-centro-despachantes-aduana', 'uipba-bvmw-cooperacion-alemania', 'red-summa-education-convenio-institucional-uic', 'cadema-bureau-barrancas-beneficio-uic', 'expo-globalports-2026-descuento-uic'])
 
 const emptyBenefit = {
   title: '', partner: '', category: '', status: 'activo', featured: false, summary: '', description: '',
@@ -60,7 +60,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.7.1'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.8.0'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -98,7 +98,7 @@ function Home() {
     return rankBenefits(categoryItems, query)
   }, [items, category, query])
   const explore = () => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
-  const showLatestAgreement = () => go('/beneficio/red-summa-education-convenio-institucional-uic')
+  const showLatestAgreement = () => go('/beneficio/ceop-internacional-formacion-liderazgo-uic')
   useEffect(() => {
     const saved = Number(sessionStorage.getItem('beneficios-uic-scroll'))
     if (Number.isFinite(saved) && saved > 0) {
@@ -119,8 +119,8 @@ function Home() {
         </div>
         <aside className="neo-impact">
           <span className="neo-impact-label">IMPACTO PARA EL SOCIO</span>
-          <div className="neo-big-number"><strong>{items.length || 48}</strong><span>beneficios<br/>en el portal</span></div>
-          <div className="neo-impact-grid"><div><strong>{categories.length ? categories.length - 1 : 15}</strong><span>rubros</span></div><div><strong>{items.filter(item => effectiveStatus(item) === 'activo').length || 40}</strong><span>beneficios activos</span></div><div><strong>{items.filter(item => effectiveStatus(item) === 'revalidacion').length || 8}</strong><span>a validar</span></div></div>
+          <div className="neo-big-number"><strong>{items.length || 51}</strong><span>beneficios<br/>en el portal</span></div>
+          <div className="neo-impact-grid"><div><strong>{categories.length ? categories.length - 1 : 16}</strong><span>rubros</span></div><div><strong>{items.filter(item => effectiveStatus(item) === 'activo').length || 43}</strong><span>beneficios activos</span></div><div><strong>{items.filter(item => effectiveStatus(item) === 'revalidacion').length || 8}</strong><span>a validar</span></div></div>
           <div className="neo-impact-foot"><Check/> Acceso simple, condiciones claras y contacto directo.</div>
         </aside>
       </div>
@@ -130,7 +130,7 @@ function Home() {
 
     <section id="catalogo" className="neo-catalog neo-shell">
       <div className="neo-section-title"><span>EXPLORÁ EL NUEVO CATÁLOGO</span><h2>Encontrá una oportunidad para tu empresa</h2><p>Elegí un rubro o buscá por servicio, empresa o palabra clave.</p></div>
-      <label className="neo-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscá Dálmine, seguros, Talento PyME, ADERPE, solar…" aria-label="Buscar beneficios" autoComplete="off"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label><div className="neo-search-help"><ShieldCheck/><span><strong>Búsqueda flexible:</strong> encuentra por empresa, parte del nombre, rubro, contacto o palabra clave; ignora tildes y tolera pequeños errores.</span><div className="neo-search-examples">{['seguros','Talento PyME','ADERPE','Dálmine'].map(example => <button key={example} onClick={() => setQuery(example)}>{example}</button>)}</div></div>
+      <label className="neo-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscá DNV, CEOP, TIBEST, Praxis, Talento PyME…" aria-label="Buscar beneficios" autoComplete="off"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label><div className="neo-search-help"><ShieldCheck/><span><strong>Búsqueda flexible:</strong> encuentra por empresa, parte del nombre, rubro, contacto o palabra clave; ignora tildes y tolera pequeños errores.</span><div className="neo-search-examples">{['DNV','CEOP','TIBEST','Praxis'].map(example => <button key={example} onClick={() => setQuery(example)}>{example}</button>)}</div></div>
       <div className="neo-categories">{categories.map(name => <button key={name} className={`${category === name ? 'active' : ''} ${name === 'UIPBA' ? 'neo-uipba-category' : ''}`} onClick={() => setCategory(name)}>{name === 'Todos' ? <LayoutGrid/> : name === 'UIPBA' ? <Building2/> : <ChevronRight/>}<span>{name}</span></button>)}</div>
       {category === 'UIPBA' && <div className="neo-uipba-note"><Building2/><div><strong>ENTIDAD MADRE · UIPBA</strong><span>Reúne beneficios, servicios y convenios trasladados a los socios UIC. Las fichas marcadas <b>A CHEQUEAR VALIDACIÓN</b> provienen de antecedentes publicados por UIPBA y requieren confirmar vigencia antes de utilizarlas.</span></div></div>}
       <div className="neo-results"><strong>{category}</strong><span>{visible.length} resultado{visible.length === 1 ? '' : 's'}</span></div>

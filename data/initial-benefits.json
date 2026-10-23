@@ -1033,50 +1033,54 @@
   },
   {
     "slug": "finanzas-corporativas-praxis",
-    "title": "Finanzas corporativas y acceso a financiamiento a medida",
-    "partner": "Praxis Finanzas",
+    "title": "Departamento de Finanzas Corporativas UIC – Praxis Finanzas",
+    "partner": "Praxis Finanzas · Departamento de Finanzas Corporativas UIC",
     "category": "Gestión empresarial",
     "status": "activo",
     "featured": true,
-    "summary": "Asesoramiento especializado para socios UIC en liquidez, financiamiento, cobertura e inversiones, con relevamiento de necesidades y comparación de alternativas del mercado bancario y de capitales.",
-    "description": "Praxis Finanzas actúa como aliado técnico del Departamento de Finanzas Corporativas de la UIC. El servicio parte de conocer la situación de cada empresa y relevar sus necesidades antes de recomendar alternativas. Puede abarcar mercado de capitales, leasing, ALyCs, SGR y bancos mayoristas, con criterio independiente y acompañamiento durante la operación. Praxis se presenta como agente productor regulado ante la CNV y aclara que no administra ni custodia fondos o títulos: la ejecución y custodia se canalizan mediante los actores registrados correspondientes.",
-    "concreteBenefit": "Acceso al Departamento de Finanzas Corporativas UIC–Praxis por el solo hecho de ser socio, con diagnóstico, recomendación y acompañamiento financiero a medida, evitando soluciones genéricas o productos enlatados.",
-    "costsDiscounts": "El acceso al servicio se habilita por la condición de socio UIC. Si se concreta una operación, las comisiones y costos de mercado se informan previamente y quedan detallados antes de realizar cada movimiento.",
+    "summary": "Canal exclusivo para empresas socias UIC con diagnóstico financiero, análisis de liquidez, financiamiento, inversiones y coberturas, comparación de alternativas y acompañamiento técnico a medida.",
+    "description": "El Departamento de Finanzas Corporativas UIC, en alianza con Praxis Finanzas, crea un canal institucional estable para que las empresas socias accedan a diagnóstico y alternativas de mercado de capitales, leasing, ALyCs, SGR y bancos, según corresponda. El servicio parte de comprender la necesidad concreta de cada empresa, compara alternativas y acompaña la implementación. La UIC vincula y ordena el canal; Praxis y los agentes habilitados asumen la intervención técnica y regulada. La UIC no administra fondos, no custodia activos y no ejecuta operaciones financieras.",
+    "concreteBenefit": "Acceso prioritario y trazable al Departamento de Finanzas Corporativas UIC–Praxis, con diagnóstico de estructura financiera, comparación de alternativas y acompañamiento para decisiones de liquidez, capital de trabajo, inversión, garantías, leasing y mercado de capitales.",
+    "costsDiscounts": "El acceso al canal se habilita para empresas socias UIC. Antes de cualquier operación deben informarse condiciones, costos, comisiones, plazos y actores intervinientes; la empresa decide y contrata de manera directa. No existe garantía de aprobación de financiamiento ni obligación de operar.",
     "requirements": [
       "Ser empresa socia activa de la Unión Industrial de Campana",
-      "Canalizar el contacto inicial a través de la UIC o del contacto de Praxis Finanzas",
-      "Compartir la necesidad concreta de liquidez, financiamiento, cobertura o inversión para realizar el relevamiento",
-      "Aceptar previamente los costos y comisiones informados si se decide concretar una operación"
+      "Canalizar el contacto inicial por la UIC o por el referente de Praxis identificado para el convenio",
+      "Aportar información básica sobre la situación financiera y la necesidad a analizar",
+      "Aceptar expresamente las condiciones, costos y documentación de la alternativa elegida antes de concretar una operación"
     ],
-    "scope": "Empresas socias de la UIC que necesiten analizar liquidez, capital de trabajo, inversiones, cobertura, leasing, mercado de capitales, SGR o alternativas de financiamiento.",
+    "scope": "Empresas socias UIC que necesiten analizar estructura financiera, liquidez, capital de trabajo, inversiones, mercado de capitales, leasing, ALyCs, SGR, bancos, garantías o coberturas financieras.",
     "contactName": "María José Godoy (Majo) – Administración UIC",
     "contactPhone": "3489 65 0104",
     "contactEmail": "uic@uic-campana.com.ar",
     "companyContacts": [
       {
-        "name": "Cristian E. Castro",
-        "role": "Director – Praxis Finanzas",
+        "name": "Cristian Castro",
+        "role": "Presidente – Praxis Finanzas",
         "phone": "+54 9 11 4058-4258",
         "email": "info@praxisfinanzas.com.ar"
       }
     ],
-    "agreementUrl": "https://uic-campana.com.ar/praxis-finanzas-servicios-financieros-para-socios-uic/",
+    "agreementUrl": "https://praxisfinanzas.com.ar/",
     "startDate": "2026-08-31",
     "endDate": null,
     "published": true,
     "analysisWarnings": [],
     "agreementLinks": [
       {
-        "label": "Praxis Finanzas – servicios financieros para socios UIC",
-        "url": "https://uic-campana.com.ar/praxis-finanzas-servicios-financieros-para-socios-uic/"
+        "label": "Praxis Finanzas – sitio oficial",
+        "url": "https://praxisfinanzas.com.ar/"
       },
       {
-        "label": "Praxis Finanzas – nota institucional UIC",
-        "url": "https://uic-campana.com.ar/lo-que-hay-que-conocer-del-socio-praxis-finanzas/"
+        "label": "Praxis Finanzas – contacto",
+        "url": "https://praxisfinanzas.com.ar/contacto/"
+      },
+      {
+        "label": "Praxis Finanzas – antecedente publicado por UIC",
+        "url": "https://uic-campana.com.ar/praxis-finanzas-servicios-financieros-para-socios-uic/"
       }
     ],
-    "externalImageUrl": "/benefits/finanzas-corporativas-praxis.svg",
-    "externalImageAlt": "Beneficio UIC · Praxis Finanzas"
+    "externalImageUrl": "/benefits/praxis-departamento-finanzas-corporativas.png",
+    "externalImageAlt": "Praxis Finanzas · Departamento de Finanzas Corporativas UIC"
   },
   {
     "slug": "club-villa-dalmine-beneficios-uic",
@@ -2121,6 +2125,150 @@
     "agreementUrl": "https://eventos.globalports.com.ar/",
     "externalImageUrl": "/benefits/expo-globalports-2026.svg",
     "externalImageAlt": "Expo GlobalPorts 2026 · 10% de descuento para empresas socias UIC",
+    "published": true
+  },
+  {
+    "slug": "ceop-internacional-formacion-liderazgo-uic",
+    "title": "CEOP Internacional: formación, liderazgo y desarrollo humano",
+    "partner": "CEOP Internacional",
+    "category": "Acuerdos institucionales",
+    "status": "activo",
+    "featured": true,
+    "summary": "Convenio institucional para acercar a Campana formación en coaching ontológico, liderazgo, comunicación, facilitación y desarrollo humano, con beneficios para personas vinculadas a empresas socias UIC y evaluación de una cohorte o sede local.",
+    "description": "CEOP Internacional y la UIC establecen un marco de colaboración para acercar propuestas formativas al ecosistema productivo regional. El acuerdo contempla difusión, actividades de presentación, condiciones diferenciales para beneficiarios acreditados y la posibilidad de instrumentar una cohorte o sede en Campana si se alcanzan las condiciones académicas, operativas y de inscripción definidas por CEOP. La inscripción, facturación, prestación académica y definición de cupos, docentes, contenidos y calendario corresponden directamente a CEOP.",
+    "concreteBenefit": "50% de bonificación sobre la matrícula anual de la formación principal, condición preferencial sobre los aranceles formativos y acceso prioritario a charlas, cupos institucionales o actividades abiertas que CEOP y UIC definan para la comunidad empresaria.",
+    "costsDiscounts": "50% de bonificación sobre la matrícula anual vigente. La bonificación sobre los aranceles formativos se confirmará con CEOP al momento de la inscripción, ya que el documento de referencia presenta una inconsistencia interna en ese porcentaje. Si existe una promoción pública más favorable para un concepto, se aplica la condición más conveniente; los beneficios no son acumulables salvo autorización expresa de CEOP.",
+    "requirements": [
+      "Ser persona vinculada a una empresa socia activa de la UIC y acreditar dicha condición",
+      "Cumplir los requisitos de admisión, documentación y cupos definidos por CEOP",
+      "Realizar la inscripción y contratación directamente con CEOP por el canal identificado como UIC Campana",
+      "Confirmar antes de matricularse el porcentaje vigente aplicable a los aranceles formativos y cualquier promoción pública concurrente"
+    ],
+    "scope": "Empresarios, equipos de conducción, profesionales y personas vinculadas a empresas socias UIC interesadas en formación de coaching ontológico, liderazgo, comunicación, facilitación y desarrollo humano.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Hugo López",
+        "role": "Director Ejecutivo – CEOP Internacional",
+        "phone": "+54 9 11 5041-0453",
+        "email": "sedepilar@ceopra.com.ar"
+      },
+      {
+        "name": "Sandra Rodríguez",
+        "role": "Directora de Formación – CEOP Internacional",
+        "phone": "+54 9 11 5041-0453",
+        "email": "sedepilar@ceopra.com.ar"
+      }
+    ],
+    "agreementUrl": "https://ceopra.com.ar/",
+    "agreementLinks": [
+      {
+        "label": "CEOP Internacional – sitio institucional",
+        "url": "https://ceopra.com.ar/"
+      },
+      {
+        "label": "CEOP Internacional – Sede Pilar",
+        "url": "https://ceopra.com.ar/pilar"
+      }
+    ],
+    "externalImageUrl": "/benefits/ceop-internacional-uic.png",
+    "externalImageAlt": "CEOP Internacional · formación, liderazgo y desarrollo humano · convenio UIC",
+    "startDate": "2026-10-22",
+    "endDate": "2028-10-22",
+    "published": true
+  },
+  {
+    "slug": "tibest-broker-seguros-uic",
+    "title": "TIBEST: broker de seguros con atención preferencial",
+    "partner": "TIBEST · Broker de Seguros",
+    "category": "Broker de seguros",
+    "status": "activo",
+    "featured": true,
+    "summary": "Canal preferencial para empresas socias UIC con asesoramiento especializado, comparación entre compañías, condiciones diferenciales cuando correspondan, emisión digital y acompañamiento integral en la gestión de siniestros.",
+    "description": "TIBEST es un broker de seguros con más de veinte años de trayectoria. El convenio crea un canal institucional para que empresas socias UIC, sus titulares, directivos y colaboradores autorizados puedan relevar riesgos y necesidades, comparar alternativas de distintas aseguradoras cuando resulte técnicamente posible, contratar directamente y contar con seguimiento posterior. La UIC actúa únicamente como articulador y certifica la condición de socio; la intermediación, cotización, contratación, cobranza y gestión de pólizas corresponden a TIBEST y a las aseguradoras intervinientes.",
+    "concreteBenefit": "Acceso a asesoramiento y atención preferencial por el canal UIC, con relevamiento del riesgo, cotización multi-compañía cuando sea posible, presentación comparativa, contratación directa y acompañamiento durante la vigencia de la póliza.",
+    "costsDiscounts": "Condiciones comerciales y de servicio diferenciales según producto, riesgo y aseguradora. Pueden incluir alternativas de precio, alcance, financiación, asistencia, beneficios adicionales o prioridad de atención. El convenio no fija un porcentaje uniforme de descuento: la condición concreta se identifica en cada cotización.",
+    "requirements": [
+      "Ser empresa socia activa de la Unión Industrial de Campana al momento de solicitar la cotización o contratar",
+      "Acreditar la condición de socio por el procedimiento definido por la UIC",
+      "Aportar la información necesaria para el relevamiento del riesgo y la cotización",
+      "Aceptar las condiciones particulares de la aseguradora elegida; la pertenencia a UIC no implica aceptación automática del riesgo"
+    ],
+    "scope": "Flotas y automotores, ART, responsabilidad civil, coberturas patrimoniales, vida colectivo, seguros de personas, seguro técnico, equipos e instalaciones, transporte de mercaderías, caución, garantías y otras coberturas disponibles según aseguradora.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Alejandro Hipler",
+        "role": "Adscripto a Dirección Comercial – TIBEST Broker de Seguros",
+        "phone": "+54 11 7152-1830",
+        "email": "alejandro.hipler@tibest.com.ar"
+      }
+    ],
+    "agreementUrl": "https://tibest.com.ar/",
+    "agreementLinks": [
+      {
+        "label": "TIBEST – sitio oficial",
+        "url": "https://tibest.com.ar/"
+      },
+      {
+        "label": "TIBEST – preguntas frecuentes y coberturas",
+        "url": "https://tibest.com.ar/preguntas-frecuentes/"
+      }
+    ],
+    "externalImageUrl": "/benefits/tibest-broker-uic.png",
+    "externalImageAlt": "TIBEST · Broker de Seguros · beneficio para socios UIC",
+    "startDate": "2026-10-22",
+    "endDate": "2028-10-22",
+    "published": true
+  },
+  {
+    "slug": "dnv-certificacion-sistemas-gestion-uic",
+    "title": "DNV: certificación y capacitación con beneficios para socios UIC",
+    "partner": "DNV Argentina S.A. · Business Assurance",
+    "category": "Certificación y calidad",
+    "status": "activo",
+    "featured": true,
+    "summary": "Beneficios para empresas socias UIC en certificación de sistemas de gestión, emisión de certificados acreditados y capacitación, junto con acceso a herramientas digitales cuando corresponda.",
+    "description": "El convenio entre DNV Argentina S.A. y la UIC facilita a las empresas asociadas el acceso a servicios de certificación, auditoría, evaluación y capacitación en sistemas de gestión. DNV mantiene plena independencia técnica e imparcialidad; cada empresa contrata directamente con DNV y el beneficio no garantiza la obtención de una certificación. El acuerdo también prevé jornadas técnicas, webinars, contenidos y actividades de actualización para la comunidad UIC.",
+    "concreteBenefit": "12% de descuento sobre auditorías iniciales de certificación (Etapas 1 y 2), 10% sobre la emisión de certificados acreditados y 10% en cursos de sistemas de gestión, más herramientas digitales sin cargo cuando resulten aplicables.",
+    "costsDiscounts": "12% de descuento en auditorías iniciales del proceso de certificación; 10% sobre emisión de certificados acreditados; 10% en cursos de sistemas de gestión en todas las modalidades. Las herramientas digitales sin cargo —autoevaluaciones, benchmarking y preparación de auditorías— se brindan cuando correspondan al servicio contratado.",
+    "requirements": [
+      "Ser empresa asociada a la Unión Industrial de Campana",
+      "Celebrar el contrato correspondiente directamente con DNV",
+      "Cumplir los requisitos técnicos, documentales y de elegibilidad del servicio solicitado",
+      "Tener presente que los descuentos y actividades no garantizan la certificación ni condicionan el resultado de las auditorías"
+    ],
+    "scope": "Empresas socias UIC interesadas en certificación, auditoría, evaluación y capacitación en sistemas de gestión, calidad, seguridad, sustentabilidad, riesgos y mejora continua.",
+    "contactName": "María José Godoy (Majo) – Administración UIC",
+    "contactPhone": "3489 65 0104",
+    "contactEmail": "uic@uic-campana.com.ar",
+    "companyContacts": [
+      {
+        "name": "Diego Sánchez",
+        "role": "Gerente Comercial – DNV Business Assurance",
+        "phone": "+54 11 4021-4200",
+        "email": "marketing.ba@dnvgl.com"
+      }
+    ],
+    "agreementUrl": "https://www.dnv.com/ar/assurance/business-assurance-certificacion/",
+    "agreementLinks": [
+      {
+        "label": "DNV Argentina – Business Assurance y certificación",
+        "url": "https://www.dnv.com/ar/assurance/business-assurance-certificacion/"
+      },
+      {
+        "label": "DNV Argentina – contacto Business Assurance",
+        "url": "https://www.dnv.com/ar/assurance/contact/business-assurance-contact/"
+      }
+    ],
+    "externalImageUrl": "/benefits/dnv-certificacion-uic.png",
+    "externalImageAlt": "DNV · certificación y capacitación · beneficio para socios UIC",
+    "startDate": "2026-10-02",
+    "endDate": "2028-10-02",
     "published": true
   }
 ]

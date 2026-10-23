@@ -10,26 +10,27 @@ const catalog = async () => JSON.parse(await read('data/catalog.json'))
 const latestSlug = 'capacitacion-retencion-talento-etrr'
 const praxisSlug = 'finanzas-corporativas-praxis'
 
-test('01 · conserva el catálogo v3.6.0 e incorpora 3 beneficios nuevos hasta 48', async () => {
+test('01 · conserva la base v3.7.1 y llega a 51 fichas sin duplicar Praxis', async () => {
   const items = await catalog()
-  assert.equal(items.length, 48)
-  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 48)
+  assert.equal(items.length, 51)
+  assert.equal(JSON.parse(await read('data/initial-benefits.json')).length, 51)
   assert.ok(items.some(item => item.slug === praxisSlug))
 })
 
-test('02 · mantiene los rubros existentes y suma Eventos y exposiciones', async () => {
+test('02 · mantiene los rubros existentes y suma Certificación y calidad', async () => {
   const items = await catalog()
   const categories = new Set(items.map(item => item.category))
-  assert.equal(categories.size, 15)
+  assert.equal(categories.size, 16)
   assert.ok(categories.has('UIPBA'))
   assert.ok(categories.has('Eventos y exposiciones'))
+  assert.ok(categories.has('Certificación y calidad'))
 })
 
-test('03 · estados y slugs quedan coherentes con la revisión 3.7.1', async () => {
+test('03 · estados y slugs quedan coherentes con la revisión 3.8.0', async () => {
   const items = await catalog()
-  assert.equal(items.filter(item => item.status === 'activo').length, 40)
+  assert.equal(items.filter(item => item.status === 'activo').length, 43)
   assert.equal(items.filter(item => item.status === 'revalidacion').length, 8)
-  assert.equal(new Set(items.map(item => item.slug)).size, 48)
+  assert.equal(new Set(items.map(item => item.slug)).size, 51)
 })
 
 test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', async () => {
@@ -44,7 +45,7 @@ test('05 · no reaparece el filtro Acuerdos nuevos y el botón destaca un acuerd
   const app = await read('src/App.jsx')
   assert.doesNotMatch(app, /'Acuerdos nuevos'/)
   assert.match(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(app, /red-summa-education-convenio-institucional-uic/)
+  assert.match(app, /ceop-internacional-formacion-liderazgo-uic/)
 })
 
 test('06 · Actualizar versión sigue trabajando dentro del portal', async () => {
@@ -78,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.7.1 son coherentes', async () => {
+test('10 · versión y generación 3.8.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.7.1')
-  assert.match(server, /BENEFICIOS_UIC_371/)
-  assert.match(html, /BENEFICIOS_UIC_371/)
+  assert.equal(pkg.version, '3.8.0')
+  assert.match(server, /BENEFICIOS_UIC_380/)
+  assert.match(html, /BENEFICIOS_UIC_380/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -109,9 +110,9 @@ test('13 · Praxis está en Gestión empresarial y Render conserva el servicio a
   const items = await catalog()
   const praxis = items.find(item => item.slug === praxisSlug)
   const render = await read('render.yaml')
-  assert.equal(praxis?.partner, 'Praxis Finanzas')
+  assert.equal(praxis?.partner, 'Praxis Finanzas · Departamento de Finanzas Corporativas UIC')
   assert.equal(praxis?.category, 'Gestión empresarial')
-  assert.match(praxis?.agreementUrl || '', /uic-campana\.com\.ar/)
+  assert.match(praxis?.agreementUrl || '', /praxisfinanzas\.com\.ar/)
   assert.match(render, /startCommand: npm start/)
   assert.match(render, /healthCheckPath: \/api\/health/)
 })
@@ -162,9 +163,9 @@ test('18 · asociación queda unificada como Hacete socio', async () => {
 
 
 
-test('19 · los 48 beneficios quedan completos con contacto, convenio e imagen', async () => {
+test('19 · los 51 beneficios quedan completos con contacto, convenio e imagen', async () => {
   const items = await catalog()
-  assert.equal(items.length, 48)
+  assert.equal(items.length, 51)
   for (const item of items) {
     assert.ok(Array.isArray(item.companyContacts) && item.companyContacts.length > 0, `${item.slug}: falta contacto`)
     assert.ok(item.companyContacts.some(contact => contact.name && contact.email), `${item.slug}: falta nombre/correo`)
@@ -190,16 +191,16 @@ test('Villa Dálmine queda como beneficio 26 con contactos e imagen', async () =
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
   assert.match(item.externalImageUrl, /^\/benefits\/.+\.(?:svg|png|jpe?g|webp)$/i)
-  assert.equal(new Set(items.map(x => x.category)).size, 15)
+  assert.equal(new Set(items.map(x => x.category)).size, 16)
 })
 
 
-test('21 · v3.7.1 conserva búsqueda pública e identidad industrial premium', async () => {
+test('21 · v3.8.0 conserva búsqueda pública e identidad industrial premium', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
   assert.match(app, /Búsqueda flexible/)
-  assert.match(app, /Buscá Dálmine, seguros, Talento PyME, ADERPE, solar/)
+  assert.match(app, /Buscá DNV, CEOP, TIBEST, Praxis, Talento PyME/)
   assert.match(app, /rankBenefits\(categoryItems, query\)/)
   assert.match(styles, /industrial-uic-pattern\.svg/)
   assert.match(styles, /neo-hero-signals/)
@@ -268,7 +269,7 @@ test('27 · buscador encuentra las nuevas categorías y nombres', async () => {
 })
 
 
-test('28 · v3.7.1 conserva la migración no destructiva de Affinity en Neon', async () => {
+test('28 · v3.8.0 conserva la migración no destructiva de Affinity en Neon', async () => {
   const server = await read('server/index.js')
   assert.match(server, /affinity-broker-seguros-condiciones-preferenciales/)
   assert.match(server, /benefits\.category = 'Seguros'/)
@@ -365,7 +366,51 @@ test('35 · estado FINALIZADO se activa automáticamente al superar endDate', as
 })
 
 
-test('37 · v3.7.1 endurece migración y evita caída por desconexión temporal de Neon', async () => {
+
+test('36 · v3.8.0 incorpora CEOP, TIBEST y DNV y actualiza Praxis sin duplicarlo', async () => {
+  const items = await catalog()
+  const ceop = items.find(x => x.slug === 'ceop-internacional-formacion-liderazgo-uic')
+  const tibest = items.find(x => x.slug === 'tibest-broker-seguros-uic')
+  const dnv = items.find(x => x.slug === 'dnv-certificacion-sistemas-gestion-uic')
+  const praxis = items.filter(x => x.slug === 'finanzas-corporativas-praxis')
+  assert.equal(ceop?.category, 'Acuerdos institucionales')
+  assert.equal(tibest?.category, 'Broker de seguros')
+  assert.equal(dnv?.category, 'Certificación y calidad')
+  assert.equal(praxis.length, 1)
+  assert.equal(praxis[0].category, 'Gestión empresarial')
+  assert.equal(ceop.companyContacts[0].name, 'Hugo López')
+  assert.equal(ceop.companyContacts[1].name, 'Sandra Rodríguez')
+  assert.doesNotMatch(JSON.stringify(ceop), /Martha Mamtoiuk/i)
+})
+
+test('36b · nuevos convenios usan imágenes locales extraídas de los documentos fuente', async () => {
+  const items = await catalog()
+  for (const slug of ['ceop-internacional-formacion-liderazgo-uic','tibest-broker-seguros-uic','finanzas-corporativas-praxis','dnv-certificacion-sistemas-gestion-uic']) {
+    const item = items.find(x => x.slug === slug)
+    assert.match(item.externalImageUrl, /^\/benefits\/.+\.png$/)
+    const image = await fs.readFile(path.join(root, 'public', item.externalImageUrl.replace(/^\//, '')))
+    assert.ok(image.length > 3000, slug)
+  }
+})
+
+test('36c · DNV y TIBEST conservan los beneficios económicos principales del convenio', async () => {
+  const items = await catalog()
+  const dnv = items.find(x => x.slug === 'dnv-certificacion-sistemas-gestion-uic')
+  const tibest = items.find(x => x.slug === 'tibest-broker-seguros-uic')
+  assert.match(dnv.costsDiscounts, /12%/)
+  assert.match(dnv.costsDiscounts, /10%/)
+  assert.match(tibest.costsDiscounts, /no fija un porcentaje uniforme/i)
+  assert.equal(tibest.companyContacts[0].email, 'alejandro.hipler@tibest.com.ar')
+})
+
+test('36d · migración de Neon refresca sólo la ficha Praxis ya existente', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /actualización explícita de la ficha Praxis solicitada por UIC/)
+  assert.match(server, /WHERE slug='finanzas-corporativas-praxis'/)
+  assert.match(server, /no modifica flyers cargados desde Administración/)
+})
+
+test('37 · v3.8.0 conserva migración robusta y fallback ante desconexión temporal de Neon', async () => {
   const server = await read('server/index.js')
   const schema = await read('server/schema.sql')
   assert.match(schema, /ADD COLUMN IF NOT EXISTS start_date DATE/)

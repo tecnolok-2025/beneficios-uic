@@ -1,0 +1,29 @@
+BENEFICIOS UIC · PARCHE v3.7.1 → v3.8.0
+
+Copiar el contenido de este parche sobre la RAÍZ del repositorio v3.7.1.
+No crear otro servicio Render. No borrar ni cambiar DATABASE_URL.
+
+Resultado esperado: v3.8.0 · BENEFICIOS_UIC_380 · 51 beneficios · 16 categorías.
+Nuevos: CEOP, TIBEST y DNV. Praxis se actualiza sin duplicarse.
+
+ARCHIVOS INCLUIDOS:
+- AUDITORIA_v3.8.0.md
+- INSTALACION_REPOSITORIO_ACTUAL.md
+- PARCHE_v3.7.1_a_v3.8.0.md
+- PROYECTO_NUEVO_NO_MEZCLAR.txt
+- README.md
+- REEMPLAZO_TOTAL_REPOSITORIO_ACTUAL.txt
+- REVISION_3_8_0.md
+- data/catalog.json
+- data/initial-benefits.json
+- index.html
+- package-lock.json
+- package.json
+- public/benefits/ceop-internacional-uic.png
+- public/benefits/dnv-certificacion-uic.png
+- public/benefits/praxis-departamento-finanzas-corporativas.png
+- public/benefits/tibest-broker-uic.png
+- server/index.js
+- src/App.jsx
+- src/search.js
+- tests/rebuild.test.js
