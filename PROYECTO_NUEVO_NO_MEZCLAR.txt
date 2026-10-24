@@ -1,4 +1,4 @@
-BENEFICIOS UIC 3.8.0 - NO CREAR OTRO SERVICIO
+BENEFICIOS UIC 3.9.0 - NO CREAR OTRO SERVICIO
 
 Esta entrega debe instalarse en el repositorio GitHub ACTUAL conectado al servicio Render beneficios-uic.
 No crear un repositorio nuevo.
@@ -6,4 +6,5 @@ No crear un servicio Render nuevo.
 No modificar ni borrar DATABASE_URL ni la base Neon existente.
 Reemplazar el código del repositorio actual con este contenido y desplegar la rama main.
 
-Identificacion esperada: v3.8.0 · BENEFICIOS_UIC_380 · 51 beneficios · 16 categorias.
+Identificacion esperada: v3.9.0 · BENEFICIOS_UIC_390 · 51 beneficios · 16 categorias.
+Difusion de Beneficios: visible en portada, acceso temporal exclusivo del administrador con la misma clave actual.

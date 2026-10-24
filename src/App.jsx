@@ -60,7 +60,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.8.0'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.9.0'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -114,7 +114,7 @@ function Home() {
           <span className="neo-eyebrow"><Factory/> PORTAL INDUSTRIAL UIC · BENEFICIOS PARA SOCIOS</span>
           <h1>Tu empresa puede llegar <em>más lejos.</em></h1>
           <p>Acuerdos, servicios y oportunidades para fortalecer la competitividad de las empresas que integran la Unión Industrial de Campana.</p><div className="neo-hero-signals"><span>INDUSTRIA</span><span>INNOVACIÓN</span><span>COMUNIDAD</span></div>
-          <div className="neo-hero-buttons"><button onClick={explore}>Descubrir beneficios <ArrowRight/></button><button onClick={showLatestAgreement}><Sparkles/> Descubrir beneficios de nuevos acuerdos</button></div>
+          <div className="neo-hero-buttons"><button onClick={explore}>Descubrir beneficios <ArrowRight/></button><button onClick={showLatestAgreement}><Sparkles/> Descubrir beneficios de nuevos acuerdos</button><button className="neo-diffusion-entry" onClick={() => go('/difusion')}><Mail/> Difusión de Beneficios</button></div>
           <div className="neo-reassurance"><ShieldCheck/> Información validada y administrada por la Unión Industrial de Campana</div>
         </div>
         <aside className="neo-impact">
@@ -165,10 +165,11 @@ function Detail({ slug }) {
   </main><Footer/></>
 }
 
-function Login({ onSuccess }) {
+function Login({ onSuccess, mode = 'admin' }) {
   const [password, setPassword] = useState(''); const [error, setError] = useState('')
+  const diffusion = mode === 'diffusion'
   const login = async event => { event.preventDefault(); setError(''); try { await request('/api/admin/login', { method: 'POST', body: JSON.stringify({ password }) }); onSuccess() } catch (error) { setError(error.message) } }
-  return <div className="neo-login"><form onSubmit={login}><div className="neo-lock"><LockKeyhole/></div><span>NUEVA ADMINISTRACIÓN</span><h1>Gestión de beneficios</h1><p>Ingresá con la clave configurada en Render.</p><label>Contraseña<input type="password" value={password} onChange={event => setPassword(event.target.value)} autoFocus/></label>{error && <div className="neo-form-error">{error}</div>}<button>Ingresar <ArrowRight/></button><button type="button" className="neo-back" onClick={() => go('/')}><ArrowLeft/> Volver al portal</button></form></div>
+  return <div className="neo-login"><form onSubmit={login}><div className="neo-lock"><LockKeyhole/></div><span>{diffusion ? 'ACCESO TEMPORAL RESTRINGIDO' : 'NUEVA ADMINISTRACIÓN'}</span><h1>{diffusion ? 'Difusión de Beneficios' : 'Gestión de beneficios'}</h1><p>{diffusion ? 'Módulo en construcción. Durante esta etapa sólo puede ingresar el administrador utilizando la misma clave del Portal de Beneficios.' : 'Ingresá con la clave configurada en Render.'}</p><label>Contraseña administrativa<input type="password" value={password} onChange={event => setPassword(event.target.value)} autoFocus/></label>{error && <div className="neo-form-error">{error}</div>}<button>Ingresar <ArrowRight/></button><button type="button" className="neo-back" onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></form></div>
 }
 
 function Field({ label, value, onChange, textarea = false, type = 'text' }) {
@@ -253,11 +254,46 @@ function Admin() {
   return <><Header admin/><main className="neo-admin-page"><div className="neo-shell"><div className="neo-admin-heading"><div><span>PANEL PRIVADO</span><h1>Administración del nuevo portal</h1><p>Alta, edición, publicación y material visual desde una sola pantalla.</p></div><button onClick={logout}><LogOut/> Cerrar sesión</button></div><Editor items={items} selected={selected} setSelected={setSelected} reload={reload}/></div></main></>
 }
 
+function normalizeCompanySearch(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() }
+
+function Diffusion() {
+  const [authenticated, setAuthenticated] = useState(null)
+  const [items, setItems] = useState([])
+  const [query, setQuery] = useState('')
+  const [selectedCompany, setSelectedCompany] = useState(null)
+  const load = async () => setItems(await request('/api/admin/beneficios'))
+  useEffect(() => { request('/api/admin/me').then(async data => { setAuthenticated(data.authenticated); if (data.authenticated) await load() }).catch(() => setAuthenticated(false)) }, [])
+  const companies = useMemo(() => {
+    const grouped = new Map()
+    for (const item of items) {
+      const name = String(item.partner || item.title || 'Empresa sin identificar').trim()
+      if (!grouped.has(name)) grouped.set(name, [])
+      grouped.get(name).push(item)
+    }
+    const needle = normalizeCompanySearch(query)
+    return [...grouped.entries()].map(([name, benefits]) => ({ name, benefits })).filter(company => !needle || normalizeCompanySearch(company.name).includes(needle) || company.benefits.some(item => normalizeCompanySearch(`${item.title} ${item.category}`).includes(needle))).sort((a,b) => a.name.localeCompare(b.name, 'es'))
+  }, [items, query])
+  if (authenticated === null) return <div className="neo-loading">Verificando acceso…</div>
+  if (!authenticated) return <Login mode="diffusion" onSuccess={async () => { setAuthenticated(true); await load() }}/>
+  const selected = selectedCompany ? companies.find(company => company.name === selectedCompany) || null : null
+  return <><Header admin/><main className="neo-diffusion-page"><div className="neo-shell">
+    <div className="neo-diffusion-top"><button onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button><span><ShieldCheck/> ACCESO TEMPORAL · SOLO ADMINISTRADOR</span></div>
+    <section className="neo-diffusion-intro"><div><span>MÓDULO EN CONSTRUCCIÓN</span><h1>Difusión de Beneficios</h1><p>Esta es la futura herramienta de autogestión para las empresas con beneficios UIC. En esta etapa permanece bloqueada para terceros y utiliza exclusivamente la misma autenticación administrativa del portal.</p></div><div className="neo-diffusion-lock"><LockKeyhole/><strong>Acceso público deshabilitado</strong><small>Registro, recuperación de contraseña y envío por empresa se habilitarán únicamente cuando el módulo quede validado.</small></div></section>
+    <section className="neo-diffusion-status"><div><strong>{companies.length}</strong><span>empresas / prestadores identificados</span></div><div><strong>{items.length}</strong><span>beneficios vinculados</span></div><div><strong>0</strong><span>empresas habilitadas al público</span></div></section>
+    <section className="neo-diffusion-workspace">
+      <div className="neo-diffusion-directory"><div className="neo-diffusion-directory-head"><span>DIRECTORIO DE EMPRESAS</span><h2>Seleccioná una empresa</h2><p>Vista de construcción. En la versión pública, cada empresa se buscará aquí y luego realizará su registro o ingreso propio.</p></div><label className="neo-search neo-diffusion-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar empresa o beneficio…" aria-label="Buscar empresa para difusión" autoComplete="off"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label><div className="neo-diffusion-company-list">{companies.map(company => <button key={company.name} className={selectedCompany === company.name ? 'active' : ''} onClick={() => setSelectedCompany(company.name)}><Building2/><span><strong>{company.name}</strong><small>{company.benefits.length} beneficio{company.benefits.length === 1 ? '' : 's'}</small></span><ChevronRight/></button>)}</div></div>
+      <div className="neo-diffusion-preview">{selected ? <><div className="neo-diffusion-preview-head"><span>VISTA PREVIA DEL FUTURO PANEL</span><h2>{selected.name}</h2><p>Una sola cuenta de empresa administrará todos sus beneficios; el cupo de comunicación será independiente para cada beneficio.</p></div>{selected.benefits.map(item => <article key={item.id}><div><span>{item.category}</span><h3>{item.title}</h3><p>{item.summary}</p></div><div className="neo-diffusion-benefit-state"><strong>🟢 Futuro cupo individual</strong><small>El calendario mensual se controlará por este beneficio.</small><button disabled>Preparar difusión · Próxima etapa</button></div></article>)}</> : <div className="neo-diffusion-placeholder"><Mail/><h2>Elegí una empresa</h2><p>Podrás revisar cómo quedarán agrupados sus beneficios antes de habilitar el acceso público.</p></div>}</div>
+    </section>
+    <div className="neo-diffusion-bottom"><button onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div>
+  </div></main><Footer/></>
+}
+
 function Footer() { return <footer className="neo-footer"><div className="neo-shell"><Brand/><p>Unión Industrial de Campana · Beneficios que fortalecen a nuestra comunidad productiva.</p><a href="https://uic-campana.com.ar/" target="_blank" rel="noreferrer">uic-campana.com.ar</a></div></footer> }
 
 export default function App() {
   const route = useRoute()
   if (route === '/administracion') return <Admin/>
+  if (route === '/difusion') return <Diffusion/>
   if (route.startsWith('/beneficio/')) return <Detail slug={decodeURIComponent(route.split('/')[2] || '')}/>
   return <Home/>
 }

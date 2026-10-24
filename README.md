@@ -1,8 +1,20 @@
-> **Revisión actual: v3.8.0 · BENEFICIOS_UIC_380 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.0 · BENEFICIOS_UIC_390 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
+
+
+## Revisión v3.9.0 · 23/10/2026
+
+- Incorpora el botón público **Difusión de Beneficios** en el Portal.
+- Durante esta etapa el módulo permanece **cerrado a empresas y terceros**.
+- El acceso temporal reutiliza exactamente la autenticación administrativa existente (`ADMIN_PASSWORD` + sesión segura del portal).
+- Si el administrador ya inició sesión, puede entrar directamente; si no, se solicita la misma clave utilizada en **Agregar beneficio / Administración**.
+- Dentro del módulo se incorpora un directorio de empresas/prestadores con buscador y agrupación automática de todos sus beneficios.
+- Se deja visible la lógica futura: una sola cuenta por empresa y cupo mensual independiente por cada beneficio, pero sin activar aún registro, recuperación de contraseña ni envío de correos.
+- Se agrega retorno explícito **Volver al Portal de Beneficios** en el acceso y dentro del nuevo módulo.
+- No se modifica el catálogo, Neon, los convenios ni los 51 beneficios de v3.8.0.
 
 ## Revisión v3.8.0 · 23/10/2026
 
@@ -45,8 +57,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.8.0`
-- **Generación:** `BENEFICIOS_UIC_380`
+- **Versión:** `3.9.0`
+- **Generación:** `BENEFICIOS_UIC_390`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -64,6 +76,9 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.0
+Agrega el acceso **Difusión de Beneficios** en modo de construcción protegido exclusivamente por la misma autenticación administrativa existente, con buscador y agrupación de empresas y retorno explícito al Portal.
 
 ### v3.8.0
 Incorpora CEOP Internacional, TIBEST Broker de Seguros y DNV Business Assurance; actualiza Praxis Finanzas sin duplicarlo; crea la categoría Certificación y calidad; mantiene la arquitectura Neon/Render.

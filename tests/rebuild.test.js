@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.8.0 son coherentes', async () => {
+test('10 · versión y generación 3.9.0 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.8.0')
-  assert.match(server, /BENEFICIOS_UIC_380/)
-  assert.match(html, /BENEFICIOS_UIC_380/)
+  assert.equal(pkg.version, '3.9.0')
+  assert.match(server, /BENEFICIOS_UIC_390/)
+  assert.match(html, /BENEFICIOS_UIC_390/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -419,4 +419,39 @@ test('37 · v3.8.0 conserva migración robusta y fallback ante desconexión temp
   assert.match(server, /pool\.on\('error'/)
   assert.match(server, /local-fallback/)
   assert.match(server, /Neon no pudo inicializarse/)
+})
+
+
+test('42 · Difusión de Beneficios queda visible pero protegida por la misma sesión administrativa', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Difusión de Beneficios/)
+  assert.match(app, /go\('\/difusion'\)/)
+  assert.match(app, /route === '\/difusion'/)
+  assert.match(app, /request\('\/api\/admin\/me'\)/)
+  assert.match(app, /request\('\/api\/admin\/login'/)
+  assert.match(app, /mode="diffusion"/)
+  assert.match(app, /ACCESO TEMPORAL RESTRINGIDO/)
+  assert.match(app, /Acceso público deshabilitado/)
+})
+
+test('43 · el módulo de difusión muestra buscador de empresas y agrupa beneficios por prestador', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /DIRECTORIO DE EMPRESAS/)
+  assert.match(app, /Buscar empresa o beneficio/)
+  assert.match(app, /const grouped = new Map\(\)/)
+  assert.match(app, /company\.benefits\.length/)
+  assert.match(app, /Futuro cupo individual/)
+})
+
+test('44 · Difusión conserva retorno explícito al Portal de Beneficios', async () => {
+  const app = await read('src/App.jsx')
+  const matches = app.match(/Volver al Portal de Beneficios/g) || []
+  assert.ok(matches.length >= 3)
+})
+
+test('45 · registro y envío de empresas continúan deliberadamente deshabilitados en esta etapa', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Registro, recuperación de contraseña y envío por empresa se habilitarán únicamente cuando el módulo quede validado/)
+  assert.match(app, /Preparar difusión · Próxima etapa/)
+  assert.match(app, /<button disabled>/)
 })

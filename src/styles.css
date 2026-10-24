@@ -479,3 +479,64 @@ button { cursor: pointer; }
 .neo-finished-panel > span svg { width: 20px; height: 20px; }
 .neo-finished-panel h2 { color: #3f4c53; }
 .neo-finished-panel p { margin-bottom: 0; color: #5a676e; }
+
+/* v3.9.0 · Difusión de Beneficios · acceso temporal sólo administrador */
+.neo-diffusion-entry { background: #0c5069 !important; border: 1px solid rgba(255,255,255,.25) !important; }
+.neo-diffusion-entry svg { width: 18px; }
+.neo-diffusion-page { min-height: calc(100vh - 84px); padding: 34px 0 80px; background: #edf3f5; }
+.neo-diffusion-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.neo-diffusion-top button, .neo-diffusion-bottom button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 13px; color: var(--night); background: white; border: 1px solid var(--line); border-radius: 9px; font-weight: 850; }
+.neo-diffusion-top button svg, .neo-diffusion-bottom button svg { width: 17px; }
+.neo-diffusion-top > span { display: inline-flex; align-items: center; gap: 7px; color: #7a4e00; background: #fff5d7; border: 1px solid #ead49b; border-radius: 999px; padding: 8px 12px; font-size: 10px; font-weight: 900; letter-spacing: .07em; }
+.neo-diffusion-top > span svg { width: 16px; }
+.neo-diffusion-intro { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 24px; padding: 28px; color: white; background: linear-gradient(125deg,var(--night),#0b607e); border-radius: 18px; box-shadow: 0 20px 50px rgba(7,31,45,.15); }
+.neo-diffusion-intro > div:first-child > span, .neo-diffusion-directory-head > span, .neo-diffusion-preview-head > span { font-size: 9px; font-weight: 900; letter-spacing: .16em; color: #65cbe9; }
+.neo-diffusion-intro h1 { margin: 8px 0 10px; font-size: 42px; }
+.neo-diffusion-intro p { max-width: 780px; margin: 0; color: #d8edf4; line-height: 1.65; }
+.neo-diffusion-lock { align-self: stretch; display: grid; align-content: center; gap: 8px; padding: 20px; background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.18); border-radius: 13px; }
+.neo-diffusion-lock svg { width: 30px; height: 30px; color: #6bd4f2; }
+.neo-diffusion-lock strong { font-size: 15px; }
+.neo-diffusion-lock small { color: #d8edf4; line-height: 1.5; }
+.neo-diffusion-status { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 18px 0; }
+.neo-diffusion-status > div { display: flex; align-items: center; gap: 12px; padding: 15px 18px; background: white; border: 1px solid var(--line); border-radius: 12px; }
+.neo-diffusion-status strong { color: var(--blue); font-size: 28px; }
+.neo-diffusion-status span { color: var(--muted); font-size: 11px; font-weight: 800; line-height: 1.35; }
+.neo-diffusion-workspace { display: grid; grid-template-columns: 380px minmax(0,1fr); gap: 18px; align-items: start; }
+.neo-diffusion-directory, .neo-diffusion-preview { background: white; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; }
+.neo-diffusion-directory { padding: 18px; }
+.neo-diffusion-directory-head h2, .neo-diffusion-preview-head h2 { margin: 6px 0; color: var(--night); }
+.neo-diffusion-directory-head p, .neo-diffusion-preview-head p { margin: 0 0 15px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.neo-diffusion-search { margin: 14px 0 10px !important; }
+.neo-diffusion-company-list { max-height: 620px; overflow: auto; border-top: 1px solid var(--line); }
+.neo-diffusion-company-list > button { width: 100%; display: grid; grid-template-columns: 28px minmax(0,1fr) 18px; align-items: center; gap: 9px; padding: 12px 8px; text-align: left; color: var(--text); background: white; border: 0; border-bottom: 1px solid var(--line); }
+.neo-diffusion-company-list > button.active { background: #eaf7fb; box-shadow: inset 3px 0 var(--blue); }
+.neo-diffusion-company-list > button > svg { width: 18px; color: var(--blue); }
+.neo-diffusion-company-list span { display: grid; gap: 3px; }
+.neo-diffusion-company-list strong { font-size: 12px; line-height: 1.35; }
+.neo-diffusion-company-list small { color: var(--muted); font-size: 10px; }
+.neo-diffusion-preview { min-height: 470px; padding: 22px; }
+.neo-diffusion-preview > article { display: grid; grid-template-columns: minmax(0,1fr) 230px; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line); }
+.neo-diffusion-preview > article:first-of-type { border-top: 0; }
+.neo-diffusion-preview article span { color: var(--blue); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.neo-diffusion-preview article h3 { margin: 5px 0; color: var(--night); font-size: 17px; }
+.neo-diffusion-preview article p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.neo-diffusion-benefit-state { display: grid; align-content: center; gap: 6px; padding: 12px; background: #f5f9fa; border-radius: 10px; }
+.neo-diffusion-benefit-state strong { font-size: 11px; }
+.neo-diffusion-benefit-state small { color: var(--muted); font-size: 10px; line-height: 1.35; }
+.neo-diffusion-benefit-state button { margin-top: 5px; padding: 9px 10px; border: 0; border-radius: 7px; color: #75878f; background: #dfe8eb; font-size: 10px; font-weight: 850; }
+.neo-diffusion-placeholder { min-height: 420px; display: grid; place-items: center; align-content: center; text-align: center; color: var(--muted); }
+.neo-diffusion-placeholder svg { width: 38px; height: 38px; color: var(--blue); }
+.neo-diffusion-placeholder h2 { margin: 10px 0 4px; color: var(--night); }
+.neo-diffusion-placeholder p { max-width: 420px; margin: 0; font-size: 12px; line-height: 1.55; }
+.neo-diffusion-bottom { margin-top: 20px; }
+@media (max-width: 900px) {
+  .neo-diffusion-intro, .neo-diffusion-workspace { grid-template-columns: 1fr; }
+  .neo-diffusion-status { grid-template-columns: 1fr; }
+  .neo-diffusion-top { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 650px) {
+  .neo-diffusion-intro { padding: 20px; }
+  .neo-diffusion-intro h1 { font-size: 32px; }
+  .neo-diffusion-preview > article { grid-template-columns: 1fr; }
+  .neo-diffusion-company-list { max-height: 420px; }
+}

@@ -1,4 +1,4 @@
-# Instalación v3.8.0 en el repositorio y Render actuales
+# Instalación v3.9.0 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -21,11 +21,18 @@ npm ci --include=dev && npm run build
 npm start
 ```
 
-El log de arranque debe incluir `Beneficios UIC NUEVO v3.8.0 · BENEFICIOS_UIC_380`.
+El log de arranque debe incluir `Beneficios UIC NUEVO v3.9.0 · BENEFICIOS_UIC_390`.
 
-La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICIOS_UIC_380"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICIOS_UIC_390"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación funcional
+
+- En la portada debe aparecer el botón **Difusión de Beneficios**.
+- Al ingresar a `/difusion`, un visitante sin sesión debe ver la pantalla de acceso temporal restringido.
+- La misma clave administrativa de `Agregar beneficio` debe permitir el ingreso.
+- Dentro de Difusión debe verse el directorio buscable de empresas y la agrupación de sus beneficios.
+- Registro de empresas, recuperación de contraseña y envío deben permanecer deshabilitados en esta revisión.
+- Debe existir **Volver al Portal de Beneficios** tanto en el login como dentro del módulo.
 
 - El portal debe mostrar **51 beneficios** y **16 categorías**.
 - CEOP debe figurar en **Acuerdos institucionales** con Hugo López y Sandra Rodríguez.
