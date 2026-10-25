@@ -1,0 +1,45 @@
+{
+  "approvalEmail": "uic@uic-campana.com.ar",
+  "maintenanceContact": {
+    "name": "María José Godoy (Majo)",
+    "phone": "3489 65 0104",
+    "email": "uic@uic-campana.com.ar"
+  },
+  "companyOverrides": {
+    "tibest-broker-seguros-uic": "BULLETBABA SRL - TIBEST",
+    "finanzas-corporativas-praxis": "PRAXIS FINANZAS SA",
+    "dnv-certificacion-sistemas-gestion-uic": "DNV ARGENTINA",
+    "affinity-broker-seguros-condiciones-preferenciales": "AFFINITY BROKER S.A.",
+    "diagnostico-ambiental-ecogoal": "ECOGOAL",
+    "desarrollo-comercial-inventiva": "INVENTIVA",
+    "asesoramiento-legal-innova-lex": "INNOVA LEX",
+    "diagnostico-ciberseguridad-pecantech": "PECANTECH",
+    "legajos-digitales-compusistem": "COMPUSISTEM S.A.",
+    "energia-solar-grupo-solper": "GRUPO SOLPER",
+    "sostenibilidad-esg-colmena360": "DEBORA BIAIN - COLMENA 360",
+    "sugarcoach-diabetes-colmena360": "DEBORA BIAIN - COLMENA 360",
+    "tratamiento-efluentes-ferraro": "FERRARO Y ASOCIADOS SRL",
+    "reciclaje-textil-ecirtex": "PR.UNI. Protective Uniforms",
+    "paseo-gavazzi-sigsa-cadema": "INMOBILIARIA CADEMA SA",
+    "cadema-bureau-barrancas-beneficio-uic": "INMOBILIARIA CADEMA SA"
+  },
+  "testCompanies": [
+    {
+      "key": "tecno-logisti-k-sa",
+      "name": "TECNO LOGISTI-K SA",
+      "contactName": "Néstor Manucci",
+      "role": "Director",
+      "email": "nestor.manucci@tecnolok.com.ar",
+      "phone": "011 66812532",
+      "testMode": true,
+      "benefits": [
+        {
+          "slug": "test-tecno-logisti-k-sa",
+          "title": "Difusión de prueba · Tecno Logisti-K SA",
+          "category": "Prueba controlada",
+          "summary": "Canal privado para validar el circuito de prueba, autorización y envío antes de habilitar empresas externas."
+        }
+      ]
+    }
+  ]
+}

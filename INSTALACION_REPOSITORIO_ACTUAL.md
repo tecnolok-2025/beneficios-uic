@@ -1,4 +1,4 @@
-# Instalación v3.9.0 en el repositorio y Render actuales
+# Instalación v3.9.1 en el repositorio y Render actuales
 
 Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
 
@@ -21,9 +21,9 @@ npm ci --include=dev && npm run build
 npm start
 ```
 
-El log de arranque debe incluir `Beneficios UIC NUEVO v3.9.0 · BENEFICIOS_UIC_390`.
+El log de arranque debe incluir `Beneficios UIC NUEVO v3.9.1 · BENEFICIOS_UIC_391`.
 
-La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICIOS_UIC_390"` y, en producción, `"catalogSource":"neon"`.
+La ruta `/api/health` debe informar `"version":"3.9.1"`, `"generation":"BENEFICIOS_UIC_391"` y, en producción, `"catalogSource":"neon"`.
 
 ## Verificación funcional
 
@@ -31,7 +31,10 @@ La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICI
 - Al ingresar a `/difusion`, un visitante sin sesión debe ver la pantalla de acceso temporal restringido.
 - La misma clave administrativa de `Agregar beneficio` debe permitir el ingreso.
 - Dentro de Difusión debe verse el directorio buscable de empresas y la agrupación de sus beneficios.
-- Registro de empresas, recuperación de contraseña y envío deben permanecer deshabilitados en esta revisión.
+- Registro público de empresas y recuperación de contraseña deben permanecer deshabilitados en esta revisión.
+- El administrador debe poder abrir **Destinatarios**, ver socios y convenios/no socios, editar datos y destildar/habilitar cada empresa.
+- Sólo **TECNO LOGISTI-K SA** debe poder abrir el editor de difusión en esta etapa.
+- El envío real debe permanecer bloqueado mientras `DIFFUSION_SEND_ENABLED=false`.
 - Debe existir **Volver al Portal de Beneficios** tanto en el login como dentro del módulo.
 
 - El portal debe mostrar **51 beneficios** y **16 categorías**.
@@ -45,3 +48,20 @@ La ruta `/api/health` debe informar `"version":"3.8.0"`, `"generation":"BENEFICI
 ## Base de datos
 
 No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque inserta los tres slugs nuevos y actualiza exclusivamente la ficha existente de Praxis. No elimina otros beneficios ni flyers cargados desde Administración.
+
+## Variables nuevas de Difusión v3.9.1
+
+Mantener inicialmente:
+
+```text
+DIFFUSION_SEND_ENABLED=false
+DIFFUSION_FROM_EMAIL=beneficios_campana@gmail.com
+DIFFUSION_APPROVAL_EMAIL=uic@uic-campana.com.ar
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=
+SMTP_PASS=
+```
+
+No colocar la contraseña real de Gmail en GitHub. `SMTP_PASS` debe cargarse como secreto en Render. El envío sólo debe activarse después de probar la casilla emisora y revisar el padrón.

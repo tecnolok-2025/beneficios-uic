@@ -80,3 +80,63 @@ ALTER TABLE flyers ALTER COLUMN position SET NOT NULL;
 ALTER TABLE flyers ADD COLUMN IF NOT EXISTS image_data BYTEA;
 ALTER TABLE flyers ADD COLUMN IF NOT EXISTS mime_type TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS traces_created_idx ON traces(created_at DESC);
+
+-- v3.9.1 · Difusión de Beneficios (piloto administrativo)
+CREATE TABLE IF NOT EXISTS diffusion_recipients (
+  id BIGSERIAL PRIMARY KEY,
+  source_key TEXT UNIQUE NOT NULL,
+  source_type TEXT NOT NULL CHECK (source_type IN ('socio','convenio','manual')),
+  member_number TEXT NOT NULL DEFAULT '',
+  company_name TEXT NOT NULL,
+  contact_name TEXT NOT NULL DEFAULT '',
+  cuit TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  active_code TEXT NOT NULL DEFAULT '',
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  email_valid BOOLEAN NOT NULL DEFAULT TRUE,
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS diffusion_campaigns (
+  id BIGSERIAL PRIMARY KEY,
+  company_key TEXT NOT NULL,
+  company_name TEXT NOT NULL,
+  benefit_slug TEXT NOT NULL,
+  benefit_title TEXT NOT NULL,
+  originator_name TEXT NOT NULL DEFAULT '',
+  originator_email TEXT NOT NULL,
+  subject TEXT NOT NULL DEFAULT '',
+  body_markup TEXT NOT NULL DEFAULT '',
+  font_family TEXT NOT NULL DEFAULT 'Arial',
+  font_size TEXT NOT NULL DEFAULT 'normal',
+  status TEXT NOT NULL DEFAULT 'draft',
+  safety_status TEXT NOT NULL DEFAULT 'pending',
+  safety_notes TEXT NOT NULL DEFAULT '',
+  test_sent_at TIMESTAMPTZ,
+  approval_requested_at TIMESTAMPTZ,
+  approved_at TIMESTAMPTZ,
+  rejected_at TIMESTAMPTZ,
+  sent_at TIMESTAMPTZ,
+  next_allowed_at TIMESTAMPTZ,
+  recipient_count INTEGER NOT NULL DEFAULT 0,
+  content_deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS diffusion_campaign_files (
+  id BIGSERIAL PRIMARY KEY,
+  campaign_id BIGINT NOT NULL REFERENCES diffusion_campaigns(id) ON DELETE CASCADE,
+  filename TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL DEFAULT 0,
+  file_data BYTEA NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS diffusion_recipients_type_idx ON diffusion_recipients(source_type, company_name);
+CREATE INDEX IF NOT EXISTS diffusion_campaigns_status_idx ON diffusion_campaigns(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS diffusion_campaigns_benefit_idx ON diffusion_campaigns(company_key, benefit_slug, sent_at DESC);

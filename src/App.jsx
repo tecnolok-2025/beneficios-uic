@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, BadgePercent, Building2, Check, ChevronRight, CircleAlert, Factory,
   HeartHandshake, LayoutGrid, LockKeyhole, LogOut, Mail, Menu, Phone, Plus, RefreshCw,
@@ -60,7 +60,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.9.0'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.9.1'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -256,36 +256,101 @@ function Admin() {
 
 function normalizeCompanySearch(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() }
 
+function MaintenancePanel({ contact }) {
+  return <div className="neo-maintenance"><ShieldCheck/><span>MODO MANTENIMIENTO</span><h2>Estamos realizando tareas de mantenimiento.</h2><p>El módulo de Difusión de Beneficios se encuentra temporalmente no disponible. Por favor intentá nuevamente más tarde o comunicate con Administración UIC.</p><strong>{contact?.name || 'María José Godoy (Majo)'}</strong><a href={`tel:${contact?.phone || '3489650104'}`}>{contact?.phone || '3489 65 0104'}</a><button onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div>
+}
+
+function RecipientContactRow({ item, onSaved }) {
+  const [form,setForm]=useState({...item}); const [saving,setSaving]=useState(false); const [message,setMessage]=useState('')
+  useEffect(()=>setForm({...item}),[item])
+  const change=(key,value)=>setForm(current=>({...current,[key]:value}))
+  const save=async()=>{setSaving(true);setMessage('');try{const saved=await request(`/api/admin/difusion/recipients/${item.id}`,{method:'PUT',body:JSON.stringify({companyName:form.company_name,contactName:form.contact_name,email:form.email,phone:form.phone,enabled:form.enabled,notes:form.notes})});setForm(saved);setMessage('Guardado');onSaved?.(saved)}catch(e){setMessage(e.message)}finally{setSaving(false)}}
+  return <article className={`neo-recipient-contact ${!form.email_valid ? 'invalid' : ''}`}>
+    <div className="neo-recipient-fields"><input value={form.company_name || ''} onChange={e=>change('company_name',e.target.value)} aria-label="Empresa"/><input value={form.contact_name || ''} onChange={e=>change('contact_name',e.target.value)} placeholder="Contacto" aria-label="Contacto"/><input value={form.email || ''} onChange={e=>change('email',e.target.value)} placeholder="Correo" aria-label="Correo"/><input value={form.phone || ''} onChange={e=>change('phone',e.target.value)} placeholder="Teléfono" aria-label="Teléfono"/></div>
+    <div className="neo-recipient-meta"><span>{form.source_type === 'socio' ? `SOCIO UIC${form.member_number ? ` Nº ${form.member_number}` : ''}` : form.source_type === 'convenio' ? 'CONVENIO / NO SOCIO' : 'ALTA MANUAL'}</span>{!form.email_valid && <strong>Correo a revisar · este contacto no recibe envíos</strong>}{form.notes && <small>{form.notes}</small>}</div>
+    <div className="neo-recipient-actions"><button onClick={save} disabled={saving}>{saving ? 'Guardando…' : 'Guardar contacto'}</button>{message && <small>{message}</small>}</div>
+  </article>
+}
+
+function RecipientCompany({ sourceType, companyName, contacts, onChanged }) {
+  const [busy,setBusy]=useState(false); const [message,setMessage]=useState('')
+  const validContacts=contacts.filter(x=>x.email_valid)
+  const enabled=validContacts.length>0 && validContacts.some(x=>x.enabled)
+  const toggle=async(value)=>{setBusy(true);setMessage('');try{const updated=await request('/api/admin/difusion/recipient-companies/toggle',{method:'PUT',body:JSON.stringify({sourceType,companyName,enabled:value})});onChanged?.(updated);setMessage(value?'Empresa habilitada':'Empresa destildada')}catch(e){setMessage(e.message)}finally{setBusy(false)}}
+  return <section className={`neo-recipient-company ${!validContacts.length ? 'invalid' : ''}`}>
+    <div className="neo-recipient-company-head">
+      <label className="neo-recipient-check"><input type="checkbox" checked={enabled} disabled={busy||!validContacts.length} onChange={e=>toggle(e.target.checked)}/><span>Recibe comunicaciones</span></label>
+      <div><strong>{companyName}</strong><small>{contacts.length} contacto{contacts.length===1?'':'s'} · {sourceType==='socio'?'Socio UIC':sourceType==='convenio'?'Convenio / no socio':'Alta manual'}</small></div>
+      <span className={`neo-recipient-company-state ${enabled?'on':'off'}`}>{enabled?'HABILITADA':'DESTILDADA'}</span>
+    </div>
+    {message&&<div className="neo-recipient-company-message">{message}</div>}
+    <div className="neo-recipient-company-contacts">{contacts.map(item=><RecipientContactRow key={item.id} item={item} onSaved={onChanged}/>)}</div>
+  </section>
+}
+
+function RecipientManager({ maintenanceContact }) {
+  const [items,setItems]=useState([]); const [query,setQuery]=useState(''); const [loading,setLoading]=useState(true); const [error,setError]=useState(''); const [adding,setAdding]=useState(false)
+  const [newItem,setNewItem]=useState({sourceType:'socio',companyName:'',contactName:'',email:'',phone:'',enabled:true,notes:''})
+  const load=()=>request('/api/admin/difusion/recipients').then(setItems).catch(e=>setError(e.message)).finally(()=>setLoading(false))
+  useEffect(load,[])
+  const filtered=useMemo(()=>{const needle=normalizeCompanySearch(query);return items.filter(x=>!needle||normalizeCompanySearch(`${x.company_name} ${x.contact_name} ${x.email}`).includes(needle))},[items,query])
+  const groups=[['socio','SOCIOS UIC'],['convenio','CONVENIOS / NO SOCIOS'],['manual','ALTAS MANUALES']]
+  const add=async()=>{setAdding(true);setError('');try{await request('/api/admin/difusion/recipients',{method:'POST',body:JSON.stringify(newItem)});setNewItem({sourceType:'socio',companyName:'',contactName:'',email:'',phone:'',enabled:true,notes:''});await load()}catch(e){setError(e.message)}finally{setAdding(false)}}
+  const mergeUpdated=(updated)=>{const list=Array.isArray(updated)?updated:[updated];setItems(current=>current.map(x=>list.find(u=>u.id===x.id)||x))}
+  if(loading)return <div className="neo-loading">Cargando destinatarios…</div>
+  if(error && !items.length)return <MaintenancePanel contact={maintenanceContact}/>
+  return <section className="neo-recipients"><div className="neo-section-heading"><span>PADRÓN ÚNICO DE ENVÍO</span><h2>Socios y empresas con convenio</h2><p>Cada empresa tiene su propia casilla <strong>Recibe comunicaciones</strong>. Destildar no borra la empresa ni sus contactos: sólo la excluye de los próximos envíos. Las empresas con más de un contacto conservan una sola habilitación empresarial.</p></div>
+    <div className="neo-recipient-summary"><div><strong>{new Set(items.map(x=>`${x.source_type}:${x.company_name}`)).size}</strong><span>empresas</span></div><div><strong>{new Set(items.filter(x=>x.enabled&&x.email_valid).map(x=>`${x.source_type}:${x.company_name}`)).size}</strong><span>empresas habilitadas</span></div><div><strong>{new Set(items.filter(x=>x.source_type==='convenio').map(x=>x.company_name)).size}</strong><span>convenios / no socios</span></div></div>
+    <label className="neo-search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa, contacto o correo…"/>{query&&<button onClick={()=>setQuery('')}><X/></button>}</label>
+    <details className="neo-add-recipient"><summary><Plus/> Agregar empresa o contacto</summary><div className="neo-add-recipient-form"><select value={newItem.sourceType} onChange={e=>setNewItem({...newItem,sourceType:e.target.value})}><option value="socio">Socio UIC</option><option value="convenio">Convenio / no socio</option><option value="manual">Alta manual</option></select><input placeholder="Empresa" value={newItem.companyName} onChange={e=>setNewItem({...newItem,companyName:e.target.value})}/><input placeholder="Contacto" value={newItem.contactName} onChange={e=>setNewItem({...newItem,contactName:e.target.value})}/><input placeholder="Correo" value={newItem.email} onChange={e=>setNewItem({...newItem,email:e.target.value})}/><input placeholder="Teléfono" value={newItem.phone} onChange={e=>setNewItem({...newItem,phone:e.target.value})}/><label><input type="checkbox" checked={newItem.enabled} onChange={e=>setNewItem({...newItem,enabled:e.target.checked})}/> Recibe comunicaciones</label><button onClick={add} disabled={adding}>{adding?'Agregando…':'Agregar'}</button></div></details>
+    {error&&<div className="neo-form-error">{error}</div>}
+    {groups.map(([type,title])=>{const group=filtered.filter(x=>x.source_type===type);if(!group.length)return null;const byCompany=[...group.reduce((map,item)=>{const key=item.company_name||'Sin empresa';if(!map.has(key))map.set(key,[]);map.get(key).push(item);return map},new Map()).entries()];return <div className="neo-recipient-group" key={type}><div className="neo-recipient-group-head"><h3>{title}</h3><span>{byCompany.length} empresa{byCompany.length===1?'':'s'}</span></div>{byCompany.map(([companyName,contacts])=><RecipientCompany key={`${type}:${companyName}`} sourceType={type} companyName={companyName} contacts={contacts} onChanged={mergeUpdated}/>)}</div>})}
+  </section>
+}
+
+function CampaignEditor({ company, benefit, settings, onClose }) {
+  const [subject,setSubject]=useState(''); const [body,setBody]=useState(''); const [fontFamily,setFontFamily]=useState('Arial'); const [fontSize,setFontSize]=useState('normal'); const [files,setFiles]=useState([]); const [campaign,setCampaign]=useState(null); const [busy,setBusy]=useState(false); const [message,setMessage]=useState(''); const textareaRef=useRef(null)
+  const invalidate=()=>{if(campaign)setCampaign(null)}
+  const wrap=(left,right=left)=>{const el=textareaRef.current;if(!el)return;const a=el.selectionStart,b=el.selectionEnd;const value=body;setBody(value.slice(0,a)+left+value.slice(a,b)+right+value.slice(b));invalidate();requestAnimationFrame(()=>{el.focus();el.setSelectionRange(a+left.length,b+left.length)})}
+  const save=async()=>{setBusy(true);setMessage('');try{const data=new FormData();Object.entries({companyKey:company.key,companyName:company.name,benefitSlug:benefit.slug,benefitTitle:benefit.title,originatorName:company.contactName||'Néstor Manucci',originatorEmail:company.email||'',subject,bodyMarkup:body,fontFamily,fontSize}).forEach(([k,v])=>data.append(k,v));files.forEach(file=>data.append('files',file));const saved=await request('/api/admin/difusion/campaigns',{method:'POST',body:data});setCampaign(saved);setMessage(saved.safety_status==='blocked'?'Contenido bloqueado: revisá el texto antes de continuar.':'Borrador guardado y controlado.') }catch(e){setMessage(e.message)}finally{setBusy(false)}}
+  const action=async(kind)=>{if(!campaign)return setMessage('Guardá primero el borrador.');setBusy(true);setMessage('');try{const result=await request(`/api/admin/difusion/campaigns/${campaign.id}/${kind}`,{method:'POST',body:'{}'});setCampaign(result);setMessage(kind==='test'?'Prueba enviada únicamente al responsable. No consume el cupo mensual.':'Solicitud enviada a UIC para validación. Todavía no se envió a socios.')}catch(e){setMessage(e.message)}finally{setBusy(false)}}
+  return <section className="neo-campaign-editor"><div className="neo-campaign-head"><div><span>PILOTO CONTROLADO · TECNO LOGISTI-K SA</span><h2>Preparar difusión</h2><p>{benefit.title}</p></div><button onClick={onClose}><X/> Cerrar</button></div>
+    <div className="neo-campaign-warning"><ShieldCheck/><div><strong>Secuencia obligatoria</strong><p>1) Guardar borrador. 2) Enviar una prueba al correo de la empresa. 3) Solicitar validación a UIC. 4) Sólo después de la aprobación se envía la comunicación final: primero al responsable y luego al padrón habilitado.</p></div></div>
+    {(!settings?.sendEnabled||!settings?.mailConfigured)&&<div className="neo-campaign-disabled"><CircleAlert/><span>El motor de correo real está protegido y todavía no está activado en Render. Podés preparar y revisar el contenido, pero ningún correo saldrá hasta configurar la casilla emisora y habilitar DIFFUSION_SEND_ENABLED.</span></div>}
+    <label>Asunto<input value={subject} onChange={e=>{setSubject(e.target.value);invalidate()}} placeholder="Asunto de la comunicación" maxLength="300"/></label>
+    <div className="neo-editor-toolbar"><button type="button" onClick={()=>wrap('**')}>B</button><button type="button" onClick={()=>wrap('_')}>I</button><button type="button" onClick={()=>wrap('__')}>U</button><select value={fontFamily} onChange={e=>{setFontFamily(e.target.value);invalidate()}}><option>Arial</option><option>Verdana</option><option>Tahoma</option><option>Georgia</option></select><select value={fontSize} onChange={e=>{setFontSize(e.target.value);invalidate()}}><option value="small">Texto chico</option><option value="normal">Texto normal</option><option value="large">Texto grande</option></select></div>
+    <label>Contenido<textarea ref={textareaRef} value={body} onChange={e=>{setBody(e.target.value);invalidate()}} rows="12" placeholder="Escribí la comunicación. Usá B, I y U para marcar texto seleccionado." maxLength="12000"/></label>
+    <label className="neo-upload"><Upload/><span>{files.length?`${files.length} archivo(s) seleccionado(s)`:'Adjuntar JPG, PNG o PDF · hasta 3 archivos'}</span><input type="file" multiple accept="image/jpeg,image/png,application/pdf" onChange={e=>{setFiles([...e.target.files].slice(0,3));invalidate()}}/></label>
+    {files.length>0&&<div className="neo-upload-files">{files.map(f=><span key={`${f.name}-${f.size}`}>{f.name} · {(f.size/1024/1024).toFixed(2)} MB</span>)}</div>}
+    {campaign&&<div className={`neo-safety-result ${campaign.safety_status}`}><strong>Control automático: {campaign.safety_status==='ok'?'APROBADO INICIALMENTE':campaign.safety_status==='review'?'REQUIERE VALIDACIÓN':'BLOQUEADO'}</strong><span>{campaign.safety_notes}</span></div>}
+    {message&&<div className="neo-message">{message}</div>}
+    <div className="neo-campaign-actions"><button onClick={save} disabled={busy}>{busy?'Procesando…':'Guardar borrador'}</button><button onClick={()=>action('test')} disabled={busy||!campaign||campaign.safety_status==='blocked'}>Enviar correo de prueba</button><button onClick={()=>action('request-approval')} disabled={busy||!campaign||!campaign.test_sent_at}>Solicitar validación UIC</button></div>
+    <div className="neo-validation-explanation"><Mail/><p><strong>¿Cómo sabrá la empresa que fue validado?</strong> Después de la aprobación, la comunicación final vuelve a llegar primero a su propio correo. Recién después se distribuye al padrón. Si UIC no la valida, ese segundo correo final nunca llega.</p></div>
+  </section>
+}
+
+function ApprovalQueue({ settings }) {
+  const [items,setItems]=useState([]); const [loading,setLoading]=useState(true); const [message,setMessage]=useState('')
+  const load=()=>request('/api/admin/difusion/campaigns?status=pending').then(setItems).catch(e=>setMessage(e.message)).finally(()=>setLoading(false)); useEffect(load,[])
+  const reject=async id=>{const reason=window.prompt('Motivo del rechazo (opcional):','Requiere corrección antes de enviar.')||'';try{await request(`/api/admin/difusion/campaigns/${id}/reject`,{method:'POST',body:JSON.stringify({reason})});await load()}catch(e){setMessage(e.message)}}
+  const approve=async id=>{const confirm=window.prompt('CONTROL DE SEGURIDAD: escribí ENVIAR para autorizar el correo final a todo el padrón.','');if(!confirm)return;try{const result=await request(`/api/admin/difusion/campaigns/${id}/approve`,{method:'POST',body:JSON.stringify({confirm})});setMessage(`Envío autorizado: primero llegó al responsable y luego a ${result.bccRecipients} destinatarios habilitados.`);await load()}catch(e){setMessage(e.message)}}
+  if(loading)return <div className="neo-loading">Cargando validaciones…</div>
+  return <section className="neo-approvals"><div className="neo-section-heading"><span>COMISIÓN DIRECTIVA / ADMINISTRACIÓN</span><h2>Validaciones pendientes</h2><p>Ninguna comunicación llega al padrón sin esta autorización. La aprobación exige escribir ENVIAR para evitar clics accidentales.</p></div>{(!settings?.sendEnabled||!settings?.mailConfigured)&&<div className="neo-campaign-disabled"><CircleAlert/><span>El envío real sigue desactivado en Render. Aprobar no será posible hasta configurar el correo.</span></div>}{message&&<div className="neo-message">{message}</div>}{!items.length?<div className="neo-empty-approval"><Check/><strong>No hay comunicaciones pendientes.</strong></div>:items.map(item=><article className="neo-approval-card" key={item.id}><div className="neo-approval-head"><span>{item.company_name}</span><strong>{item.benefit_title}</strong></div><h3>{item.subject}</h3><pre>{item.body_markup}</pre><div className="neo-approval-meta"><span>Origen: {item.originator_email}</span><span>Control: {item.safety_status}</span><span>{item.files?.length||0} adjunto(s)</span></div><div className="neo-approval-actions"><button className="danger" onClick={()=>reject(item.id)}>Rechazar</button><button onClick={()=>approve(item.id)}>Aprobar y enviar</button></div></article>)}</section>
+}
+
 function Diffusion() {
-  const [authenticated, setAuthenticated] = useState(null)
-  const [items, setItems] = useState([])
-  const [query, setQuery] = useState('')
-  const [selectedCompany, setSelectedCompany] = useState(null)
-  const load = async () => setItems(await request('/api/admin/beneficios'))
-  useEffect(() => { request('/api/admin/me').then(async data => { setAuthenticated(data.authenticated); if (data.authenticated) await load() }).catch(() => setAuthenticated(false)) }, [])
-  const companies = useMemo(() => {
-    const grouped = new Map()
-    for (const item of items) {
-      const name = String(item.partner || item.title || 'Empresa sin identificar').trim()
-      if (!grouped.has(name)) grouped.set(name, [])
-      grouped.get(name).push(item)
-    }
-    const needle = normalizeCompanySearch(query)
-    return [...grouped.entries()].map(([name, benefits]) => ({ name, benefits })).filter(company => !needle || normalizeCompanySearch(company.name).includes(needle) || company.benefits.some(item => normalizeCompanySearch(`${item.title} ${item.category}`).includes(needle))).sort((a,b) => a.name.localeCompare(b.name, 'es'))
-  }, [items, query])
-  if (authenticated === null) return <div className="neo-loading">Verificando acceso…</div>
-  if (!authenticated) return <Login mode="diffusion" onSuccess={async () => { setAuthenticated(true); await load() }}/>
-  const selected = selectedCompany ? companies.find(company => company.name === selectedCompany) || null : null
-  return <><Header admin/><main className="neo-diffusion-page"><div className="neo-shell">
-    <div className="neo-diffusion-top"><button onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button><span><ShieldCheck/> ACCESO TEMPORAL · SOLO ADMINISTRADOR</span></div>
-    <section className="neo-diffusion-intro"><div><span>MÓDULO EN CONSTRUCCIÓN</span><h1>Difusión de Beneficios</h1><p>Esta es la futura herramienta de autogestión para las empresas con beneficios UIC. En esta etapa permanece bloqueada para terceros y utiliza exclusivamente la misma autenticación administrativa del portal.</p></div><div className="neo-diffusion-lock"><LockKeyhole/><strong>Acceso público deshabilitado</strong><small>Registro, recuperación de contraseña y envío por empresa se habilitarán únicamente cuando el módulo quede validado.</small></div></section>
-    <section className="neo-diffusion-status"><div><strong>{companies.length}</strong><span>empresas / prestadores identificados</span></div><div><strong>{items.length}</strong><span>beneficios vinculados</span></div><div><strong>0</strong><span>empresas habilitadas al público</span></div></section>
-    <section className="neo-diffusion-workspace">
-      <div className="neo-diffusion-directory"><div className="neo-diffusion-directory-head"><span>DIRECTORIO DE EMPRESAS</span><h2>Seleccioná una empresa</h2><p>Vista de construcción. En la versión pública, cada empresa se buscará aquí y luego realizará su registro o ingreso propio.</p></div><label className="neo-search neo-diffusion-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar empresa o beneficio…" aria-label="Buscar empresa para difusión" autoComplete="off"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label><div className="neo-diffusion-company-list">{companies.map(company => <button key={company.name} className={selectedCompany === company.name ? 'active' : ''} onClick={() => setSelectedCompany(company.name)}><Building2/><span><strong>{company.name}</strong><small>{company.benefits.length} beneficio{company.benefits.length === 1 ? '' : 's'}</small></span><ChevronRight/></button>)}</div></div>
-      <div className="neo-diffusion-preview">{selected ? <><div className="neo-diffusion-preview-head"><span>VISTA PREVIA DEL FUTURO PANEL</span><h2>{selected.name}</h2><p>Una sola cuenta de empresa administrará todos sus beneficios; el cupo de comunicación será independiente para cada beneficio.</p></div>{selected.benefits.map(item => <article key={item.id}><div><span>{item.category}</span><h3>{item.title}</h3><p>{item.summary}</p></div><div className="neo-diffusion-benefit-state"><strong>🟢 Futuro cupo individual</strong><small>El calendario mensual se controlará por este beneficio.</small><button disabled>Preparar difusión · Próxima etapa</button></div></article>)}</> : <div className="neo-diffusion-placeholder"><Mail/><h2>Elegí una empresa</h2><p>Podrás revisar cómo quedarán agrupados sus beneficios antes de habilitar el acceso público.</p></div>}</div>
-    </section>
-    <div className="neo-diffusion-bottom"><button onClick={() => go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div>
-  </div></main><Footer/></>
+  const [authenticated,setAuthenticated]=useState(null); const [companies,setCompanies]=useState([]); const [settings,setSettings]=useState(null); const [query,setQuery]=useState(''); const [selectedCompany,setSelectedCompany]=useState(null); const [tab,setTab]=useState('empresas'); const [editing,setEditing]=useState(null); const [maintenance,setMaintenance]=useState(false)
+  const load=async()=>{const [companyData,settingData]=await Promise.all([request('/api/admin/difusion/companies'),request('/api/admin/difusion/settings')]);setCompanies(companyData);setSettings(settingData);setMaintenance(!settingData.databaseAvailable)}
+  useEffect(()=>{request('/api/admin/me').then(async data=>{setAuthenticated(data.authenticated);if(data.authenticated)await load()}).catch(()=>setAuthenticated(false))},[])
+  const visible=useMemo(()=>{const needle=normalizeCompanySearch(query);return companies.filter(company=>!needle||normalizeCompanySearch(company.name).includes(needle)||company.benefits.some(item=>normalizeCompanySearch(`${item.title} ${item.category}`).includes(needle)))},[companies,query])
+  if(authenticated===null)return <div className="neo-loading">Verificando acceso…</div>
+  if(!authenticated)return <Login mode="diffusion" onSuccess={async()=>{setAuthenticated(true);await load()}}/>
+  const selected=selectedCompany?companies.find(company=>company.key===selectedCompany)||null:null
+  return <><Header admin/><main className="neo-diffusion-page"><div className="neo-shell"><div className="neo-diffusion-top"><button onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button><span><ShieldCheck/> ACCESO TEMPORAL · SOLO ADMINISTRADOR</span></div>
+    <section className="neo-diffusion-intro"><div><span>PILOTO v3.9.1</span><h1>Difusión de Beneficios</h1><p>El acceso público continúa bloqueado. Esta revisión permite probar el circuito con Tecno Logisti-K SA, administrar el padrón de destinatarios y validar comunicaciones antes de cualquier envío general.</p></div><div className="neo-diffusion-lock"><LockKeyhole/><strong>Acceso público deshabilitado</strong><small>Las futuras cuentas de empresas, registro y recuperación de contraseña todavía no están expuestas.</small></div></section>
+    <nav className="neo-diffusion-tabs"><button className={tab==='empresas'?'active':''} onClick={()=>setTab('empresas')}><Building2/> Empresas y beneficios</button><button className={tab==='destinatarios'?'active':''} onClick={()=>setTab('destinatarios')}><Users/> Destinatarios</button><button className={tab==='validaciones'?'active':''} onClick={()=>setTab('validaciones')}><ShieldCheck/> Validaciones</button></nav>
+    {maintenance?<MaintenancePanel contact={settings?.maintenanceContact}/>:tab==='destinatarios'?<RecipientManager maintenanceContact={settings?.maintenanceContact}/>:tab==='validaciones'?<ApprovalQueue settings={settings}/>:editing?<CampaignEditor company={editing.company} benefit={editing.benefit} settings={settings} onClose={()=>setEditing(null)}/>:<><section className="neo-diffusion-status"><div><strong>{companies.length}</strong><span>empresas / prestadores identificados</span></div><div><strong>1</strong><span>empresa piloto habilitada</span></div><div><strong>{settings?.sendEnabled&&settings?.mailConfigured?'ACTIVO':'PROTEGIDO'}</strong><span>motor de correo</span></div></section><section className="neo-diffusion-workspace"><div className="neo-diffusion-directory"><div className="neo-diffusion-directory-head"><span>DIRECTORIO DE EMPRESAS</span><h2>Seleccioná una empresa</h2><p>Tecno Logisti-K SA está incorporada como empresa de prueba. Las demás continúan en modo vista previa hasta la apertura pública.</p></div><label className="neo-search neo-diffusion-search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa o beneficio…"/>{query&&<button onClick={()=>setQuery('')}><X/></button>}</label><div className="neo-diffusion-company-list">{visible.map(company=><button key={company.key} className={selectedCompany===company.key?'active':''} onClick={()=>setSelectedCompany(company.key)}><Building2/><span><strong>{company.name}</strong><small>{company.benefits.length} beneficio{company.benefits.length===1?'':'s'}{company.testMode?' · PILOTO':''}</small></span><ChevronRight/></button>)}</div></div><div className="neo-diffusion-preview">{selected?<><div className="neo-diffusion-preview-head"><span>{selected.testMode?'EMPRESA PILOTO HABILITADA':'VISTA PREVIA DEL FUTURO PANEL'}</span><h2>{selected.name}</h2><p>{selected.testMode?`${selected.contactName} · ${selected.role} · ${selected.email}`:'Una sola cuenta de empresa administrará todos sus beneficios; el cupo será independiente por beneficio.'}</p></div>{selected.benefits.map(item=><article key={item.slug}><div><span>{item.category}</span><h3>{item.title}</h3><p>{item.summary}</p></div><div className="neo-diffusion-benefit-state"><strong>{selected.testMode?'🟢 Piloto habilitado':'🔒 Acceso aún cerrado'}</strong><small>{selected.testMode?'Prueba → validación UIC → envío final. El correo de prueba no consume cupo.':'Se habilitará cuando finalice la etapa piloto.'}</small><button disabled={!selected.testMode} onClick={()=>selected.testMode&&setEditing({company:selected,benefit:item})}>{selected.testMode?'Preparar difusión':'Preparar difusión · Próxima etapa'}</button></div></article>)}</>:<div className="neo-diffusion-placeholder"><Mail/><h2>Elegí una empresa</h2><p>Podés revisar sus beneficios y el estado de habilitación.</p></div>}</div></section></>}
+    <div className="neo-diffusion-bottom"><button onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div></div></main><Footer/></>
 }
 
 function Footer() { return <footer className="neo-footer"><div className="neo-shell"><Brand/><p>Unión Industrial de Campana · Beneficios que fortalecen a nuestra comunidad productiva.</p><a href="https://uic-campana.com.ar/" target="_blank" rel="noreferrer">uic-campana.com.ar</a></div></footer> }

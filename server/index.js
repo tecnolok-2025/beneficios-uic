@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit'
 import fs from 'node:fs/promises'
 import helmet from 'helmet'
 import multer from 'multer'
+import nodemailer from 'nodemailer'
 import path from 'node:path'
 import pg from 'pg'
 import { fileURLToPath } from 'node:url'
@@ -12,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_390'
+const GENERATION = 'BENEFICIOS_UIC_391'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -47,6 +48,15 @@ async function readLocalCatalog() {
 }
 
 const localCatalog = await readLocalCatalog()
+
+async function readJsonData(filename, fallback) {
+  try { return JSON.parse(await fs.readFile(path.join(root, 'data', filename), 'utf8')) }
+  catch (error) { console.warn(`${filename} no disponible (${error.code || error.message})`); return fallback }
+}
+const diffusionRecipientSeed = await readJsonData('diffusion-recipients.json', [])
+const diffusionConfig = await readJsonData('diffusion-config.json', { approvalEmail: 'uic@uic-campana.com.ar', maintenanceContact: { name: 'María José Godoy (Majo)', phone: '3489 65 0104', email: 'uic@uic-campana.com.ar' }, companyOverrides: {}, testCompanies: [] })
+const PILOT_COMPANY_KEY = 'tecno-logisti-k-sa'
+
 
 function dateOnly(value) {
   if (!value) return null
@@ -137,6 +147,24 @@ async function initializeDatabase() {
       ])
   }
 
+  for (const recipient of diffusionRecipientSeed) {
+    await pool.query(`INSERT INTO diffusion_recipients
+      (source_key,source_type,member_number,company_name,contact_name,cuit,email,phone,active_code,enabled,email_valid,notes)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      ON CONFLICT (source_key) DO NOTHING`, [
+        recipient.sourceKey, recipient.sourceType, recipient.memberNumber || '', recipient.companyName || '', recipient.contactName || '',
+        recipient.cuit || '', recipient.email || '', recipient.phone || '', recipient.activeCode || '', recipient.enabled !== false,
+        recipient.emailValid !== false, recipient.notes || ''
+      ])
+  }
+
+  // v3.9.1 · correcciones puntuales del padrón confirmadas por UIC el 24/10/2026.
+  // Se aplican sólo sobre los valores originales/incompletos para no pisar futuras ediciones manuales del administrador.
+  await pool.query(`UPDATE diffusion_recipients SET email='info@tecnodealer.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:44' AND COALESCE(email,'')=''`)
+  await pool.query(`UPDATE diffusion_recipients SET email='info@montajesinteracero.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:67' AND email='ficinatecnica@montajesinteracero.com.a'`)
+  await pool.query(`UPDATE diffusion_recipients SET email='martin@eraina.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:92' AND email='dministracion@hotelplazacampana.com.a'`)
+  await pool.query(`UPDATE diffusion_recipients SET company_name='SWA/NEUCO', email='', enabled=FALSE, email_valid=FALSE, notes='Nombre actualizado por UIC. Correo pendiente de confirmación; permanece destildado.', updated_at=NOW() WHERE source_key='socio:210' AND company_name='SWA' AND email='contacto@swa-trabajosustentable.com.a'`)
+
   const verification = await pool.query(`SELECT slug, company_contacts, agreement_url, agreement_links, external_image_url
     FROM benefits WHERE slug = ANY($1::text[])`, [localCatalog.map(item => item.slug)])
   const incomplete = verification.rows.filter(row =>
@@ -192,6 +220,71 @@ function isAdmin(req) {
   return expected.length === actual.length && crypto.timingSafeEqual(expected, actual)
 }
 function requireAdmin(req, res, next) { return isAdmin(req) ? next() : res.status(401).json({ error: 'Acceso administrativo requerido' }) }
+
+function maintenanceResponse(res) {
+  return res.status(503).json({ maintenance: true, error: 'El Portal de Beneficios se encuentra temporalmente en mantenimiento. Por favor intentá nuevamente más tarde o comunicate con Administración UIC.', contact: diffusionConfig.maintenanceContact })
+}
+function requireDiffusionDatabase(_req, res, next) { return pool && databaseAvailable ? next() : maintenanceResponse(res) }
+function validEmail(value) { return /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[A-Za-z]{2,}$/u.test(String(value || '').trim()) }
+function normalizeEmail(value) { return String(value || '').trim().toLowerCase() }
+function addCalendarMonth(date = new Date()) {
+  const source = new Date(date)
+  const year = source.getUTCFullYear(); const month = source.getUTCMonth(); const day = source.getUTCDate()
+  const firstNext = new Date(Date.UTC(year, month + 1, 1, source.getUTCHours(), source.getUTCMinutes(), source.getUTCSeconds()))
+  const lastDay = new Date(Date.UTC(firstNext.getUTCFullYear(), firstNext.getUTCMonth() + 1, 0)).getUTCDate()
+  firstNext.setUTCDate(Math.min(day, lastDay))
+  return firstNext
+}
+function plainMarkup(value) { return safeText(value, 12000).replace(/[<>]/g, '') }
+function markupToHtml(value) {
+  let text = String(value || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+)__/g, '<u>$1</u>')
+    .replace(/_([^_\n]+)_/g, '<em>$1</em>')
+  return text.split(/\n{2,}/).map(block => `<p>${block.replace(/\n/g, '<br>')}</p>`).join('')
+}
+function assessCampaign(subject, body, files = []) {
+  const combined = `${subject || ''}\n${body || ''}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const blocked = [/[<>]\s*script/i, /javascript\s*:/i, /\b(?:hijo de puta|pelotudo|forro|mierda|puta)\b/i, /\b(?:nazi|genocidio)\b.*\b(?:apoyo|celebro|promuevo)\b/i]
+  if (blocked.some(pattern => pattern.test(combined))) return { status: 'blocked', notes: 'El contenido requiere corrección antes de continuar.' }
+  const suspicious = [/contrase(?:n|ñ)a/i, /clave bancaria/i, /transfer[ií].*urgente/i, /bitcoin|cripto.*urgente/i]
+  const needsReview = suspicious.some(pattern => pattern.test(combined)) || files.length > 0
+  return { status: needsReview ? 'review' : 'ok', notes: needsReview ? 'Revisión administrativa obligatoria antes del envío final.' : 'Control automático inicial superado.' }
+}
+function fileSignatureMatches(file) {
+  const b = file.buffer || Buffer.alloc(0)
+  if (file.mimetype === 'image/jpeg') return b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff
+  if (file.mimetype === 'image/png') return b.length > 8 && b.slice(0,8).equals(Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]))
+  if (file.mimetype === 'application/pdf') return b.slice(0,5).toString() === '%PDF-'
+  return false
+}
+function diffusionMailReady() {
+  return String(process.env.DIFFUSION_SEND_ENABLED || '').toLowerCase() === 'true' && Boolean(process.env.SMTP_USER && process.env.SMTP_PASS)
+}
+function createMailer() {
+  if (!diffusionMailReady()) return null
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: String(process.env.SMTP_SECURE || 'true').toLowerCase() !== 'false',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  })
+}
+function campaignEmailHtml(campaign) {
+  const family = ['Arial','Verdana','Tahoma','Georgia'].includes(campaign.font_family) ? campaign.font_family : 'Arial'
+  const size = campaign.font_size === 'large' ? 18 : campaign.font_size === 'small' ? 13 : 15
+  return `<div style="font-family:${family},sans-serif;font-size:${size}px;line-height:1.55;color:#15324a;max-width:760px;margin:auto"><div style="border-bottom:4px solid #159bc7;padding:0 0 16px"><strong style="font-size:22px">UNIÓN INDUSTRIAL DE CAMPANA</strong><br><span style="color:#527286">BENEFICIOS PARA SOCIOS</span></div><h2>${safeText(campaign.subject,300)}</h2><p><strong>Empresa:</strong> ${safeText(campaign.company_name,250)}<br><strong>Beneficio:</strong> ${safeText(campaign.benefit_title,300)}</p>${markupToHtml(campaign.body_markup)}<hr><p style="font-size:12px;color:#60798b">Comunicación emitida a través del Portal de Beneficios de la Unión Industrial de Campana. Las condiciones particulares deberán confirmarse con la empresa prestadora.</p></div>`
+}
+async function campaignAttachments(campaignId) {
+  const result = await pool.query('SELECT filename,mime_type,file_data FROM diffusion_campaign_files WHERE campaign_id=$1 ORDER BY id', [campaignId])
+  return result.rows.map(row => ({ filename: row.filename, content: row.file_data, contentType: row.mime_type }))
+}
+async function sendDiffusionMail({ to, bcc, subject, html, attachments = [] }) {
+  const transporter = createMailer()
+  if (!transporter) { const error = new Error('El envío real está deshabilitado hasta configurar la casilla emisora y activar DIFFUSION_SEND_ENABLED.'); error.status = 503; throw error }
+  return transporter.sendMail({ from: process.env.DIFFUSION_FROM_EMAIL || process.env.SMTP_USER || 'beneficios_campana@gmail.com', to, ...(bcc?.length ? { bcc } : {}), subject, html, attachments })
+}
 
 app.set('trust proxy', 1)
 app.disable('etag')
@@ -252,6 +345,132 @@ app.post('/api/admin/login', loginLimit, (req, res) => {
 app.post('/api/admin/logout', (_req, res) => res.clearCookie(COOKIE, { path: '/' }).json({ authenticated: false }))
 app.get('/api/admin/me', (req, res) => res.json({ authenticated: isAdmin(req) }))
 app.get('/api/admin/beneficios', requireAdmin, async (_req, res, next) => { try { res.json(await listBenefits(true)) } catch (error) { next(error) } })
+
+async function buildDiffusionCompanies() {
+  const items = await listBenefits(true)
+  const grouped = new Map()
+  for (const item of items) {
+    const name = String(diffusionConfig.companyOverrides?.[item.slug] || item.partner || item.title || 'Empresa sin identificar').trim()
+    const key = slugify(name) || item.slug
+    if (!grouped.has(key)) grouped.set(key, { key, name, contactName: item.companyContacts?.[0]?.name || '', email: item.companyContacts?.[0]?.email || '', phone: item.companyContacts?.[0]?.phone || '', testMode: false, benefits: [] })
+    grouped.get(key).benefits.push({ id: item.id, slug: item.slug, title: item.title, category: item.category, summary: item.summary })
+  }
+  for (const company of diffusionConfig.testCompanies || []) grouped.set(company.key, company)
+  return [...grouped.values()].sort((a,b) => a.name.localeCompare(b.name, 'es'))
+}
+
+app.get('/api/admin/difusion/settings', requireAdmin, (req, res) => res.json({
+  databaseAvailable: Boolean(pool && databaseAvailable), sendEnabled: String(process.env.DIFFUSION_SEND_ENABLED || '').toLowerCase() === 'true',
+  mailConfigured: Boolean(process.env.SMTP_USER && process.env.SMTP_PASS), approvalEmail: process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'uic@uic-campana.com.ar',
+  pilotCompanyKey: PILOT_COMPANY_KEY, maintenanceContact: diffusionConfig.maintenanceContact
+}))
+app.get('/api/admin/difusion/companies', requireAdmin, async (_req, res, next) => { try { res.json(await buildDiffusionCompanies()) } catch (error) { next(error) } })
+
+app.get('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
+  try { const result = await pool.query(`SELECT * FROM diffusion_recipients ORDER BY CASE source_type WHEN 'socio' THEN 0 WHEN 'convenio' THEN 1 ELSE 2 END, company_name, contact_name`); res.json(result.rows) } catch (error) { next(error) }
+})
+app.put('/api/admin/difusion/recipient-companies/toggle', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
+  try {
+    const sourceType=safeText(req.body.sourceType,30); const companyName=safeText(req.body.companyName,250); const enabled=Boolean(req.body.enabled)
+    if (!['socio','convenio','manual'].includes(sourceType) || !companyName) return res.status(400).json({ error: 'Empresa inválida' })
+    const result=await pool.query(`UPDATE diffusion_recipients SET enabled=CASE WHEN $1::boolean=TRUE THEN email_valid ELSE FALSE END, updated_at=NOW() WHERE source_type=$2 AND company_name=$3 RETURNING *`,[enabled,sourceType,companyName])
+    if (!result.rows.length) return res.status(404).json({ error: 'Empresa no encontrada' })
+    res.json(result.rows)
+  } catch (error) { next(error) }
+})
+app.post('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
+  try {
+    const company = safeText(req.body.companyName,250); const contact = safeText(req.body.contactName,200); const email = safeText(req.body.email,250); const phone = safeText(req.body.phone,100)
+    const requestedType=safeText(req.body.sourceType,30); const sourceType=['socio','convenio','manual'].includes(requestedType)?requestedType:'manual'
+    if (!company) return res.status(400).json({ error: 'La empresa es obligatoria' })
+    const emailValid = validEmail(email); const enabled = Boolean(req.body.enabled) && emailValid
+    const sourceKey = `${sourceType}:manual:${crypto.randomUUID()}`
+    const result = await pool.query(`INSERT INTO diffusion_recipients (source_key,source_type,company_name,contact_name,email,phone,enabled,email_valid,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`, [sourceKey,sourceType,company,contact,email,phone,enabled,emailValid,safeText(req.body.notes,500)])
+    res.status(201).json(result.rows[0])
+  } catch (error) { next(error) }
+})
+app.put('/api/admin/difusion/recipients/:id', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
+  try {
+    const id=safeId(req.params.id); if (!id) return res.status(400).json({ error: 'Destinatario inválido' })
+    const company=safeText(req.body.companyName,250); const contact=safeText(req.body.contactName,200); const email=safeText(req.body.email,250); const phone=safeText(req.body.phone,100); const notes=safeText(req.body.notes,500)
+    if (!company) return res.status(400).json({ error: 'La empresa es obligatoria' })
+    const emailValid=validEmail(email); const enabled=Boolean(req.body.enabled) && emailValid
+    const result=await pool.query(`UPDATE diffusion_recipients SET company_name=$1,contact_name=$2,email=$3,phone=$4,enabled=$5,email_valid=$6,notes=$7,updated_at=NOW() WHERE id=$8 RETURNING *`,[company,contact,email,phone,enabled,emailValid,notes,id])
+    if (!result.rows[0]) return res.status(404).json({ error: 'Destinatario no encontrado' })
+    res.json(result.rows[0])
+  } catch (error) { next(error) }
+})
+
+const campaignUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 3 } })
+app.post('/api/admin/difusion/campaigns', requireAdmin, requireDiffusionDatabase, campaignUpload.array('files',3), async (req, res, next) => {
+  try {
+    const companyKey=safeText(req.body.companyKey,160); if (companyKey !== PILOT_COMPANY_KEY) return res.status(403).json({ error: 'En v3.9.1 sólo Tecno Logisti-K SA está habilitada como empresa de prueba.' })
+    const companyName=safeText(req.body.companyName,250); const benefitSlug=safeText(req.body.benefitSlug,180); const benefitTitle=safeText(req.body.benefitTitle,300)
+    const originatorName=safeText(req.body.originatorName,200); const originatorEmail=safeText(req.body.originatorEmail,250)
+    const subject=safeText(req.body.subject,300); const bodyMarkup=plainMarkup(req.body.bodyMarkup); const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily) ? req.body.fontFamily : 'Arial'; const fontSize=['small','normal','large'].includes(req.body.fontSize) ? req.body.fontSize : 'normal'
+    if (!companyName || !benefitSlug || !benefitTitle || !subject || !bodyMarkup || !validEmail(originatorEmail)) return res.status(400).json({ error: 'Completá empresa, beneficio, asunto, contenido y un correo de origen válido.' })
+    const allowed=new Set(['image/jpeg','image/png','application/pdf']); const files=req.files || []
+    if (files.some(file => !allowed.has(file.mimetype) || !fileSignatureMatches(file))) return res.status(400).json({ error: 'Sólo se aceptan JPG, PNG y PDF válidos. El tipo real del archivo debe coincidir con su formato.' })
+    const safety=assessCampaign(subject,bodyMarkup,files)
+    await pool.query(`DELETE FROM diffusion_campaigns WHERE company_key=$1 AND benefit_slug=$2 AND status IN ('draft','pending','rejected','blocked')`,[companyKey,benefitSlug])
+    const result=await pool.query(`INSERT INTO diffusion_campaigns (company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,subject,body_markup,font_family,font_size,status,safety_status,safety_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,[companyKey,companyName,benefitSlug,benefitTitle,originatorName,originatorEmail,subject,bodyMarkup,fontFamily,fontSize,safety.status==='blocked'?'blocked':'draft',safety.status,safety.notes])
+    for (const file of files) await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data) VALUES ($1,$2,$3,$4,$5)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer])
+    res.status(201).json({ ...result.rows[0], files: files.map(file => ({ filename:file.originalname,mimeType:file.mimetype,sizeBytes:file.size })) })
+  } catch (error) { next(error) }
+})
+
+async function getCampaign(id) {
+  const result=await pool.query('SELECT * FROM diffusion_campaigns WHERE id=$1',[id]); return result.rows[0] || null
+}
+async function cooldownFor(companyKey, benefitSlug) {
+  const result=await pool.query(`SELECT next_allowed_at FROM diffusion_campaigns WHERE company_key=$1 AND benefit_slug=$2 AND status='sent' AND next_allowed_at IS NOT NULL ORDER BY sent_at DESC LIMIT 1`,[companyKey,benefitSlug])
+  return result.rows[0]?.next_allowed_at || null
+}
+app.get('/api/admin/difusion/campaigns', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
+  try { const status=safeText(req.query.status,30); const result=await pool.query(`SELECT c.*, COALESCE((SELECT json_agg(json_build_object('filename',f.filename,'mimeType',f.mime_type,'sizeBytes',f.size_bytes) ORDER BY f.id) FROM diffusion_campaign_files f WHERE f.campaign_id=c.id),'[]'::json) AS files FROM diffusion_campaigns c ${status ? 'WHERE c.status=$1' : ''} ORDER BY c.created_at DESC LIMIT 100`, status ? [status] : []); res.json(result.rows) } catch(error){ next(error) }
+})
+app.post('/api/admin/difusion/campaigns/:id/test', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
+  try {
+    const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign) return res.status(404).json({error:'Comunicación no encontrada'})
+    if(campaign.safety_status==='blocked') return res.status(400).json({error:'El contenido fue bloqueado por el control automático y debe corregirse.'})
+    const attachments=await campaignAttachments(id); await sendDiffusionMail({to:campaign.originator_email,subject:`[PRUEBA · NO ENVIADO A SOCIOS] ${campaign.subject}`,html:`<div style="background:#fff5cc;padding:12px;border:1px solid #e8c44a"><strong>PRUEBA DE DIFUSIÓN UIC</strong><br>Este envío es sólo para verificar cómo se verá la comunicación. No consume el cupo mensual y no fue enviado a socios.</div>${campaignEmailHtml(campaign)}`,attachments})
+    const result=await pool.query(`UPDATE diffusion_campaigns SET test_sent_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id]); res.json(result.rows[0])
+  } catch(error){ next(error) }
+})
+app.post('/api/admin/difusion/campaigns/:id/request-approval', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
+  try {
+    const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign) return res.status(404).json({error:'Comunicación no encontrada'})
+    if(campaign.safety_status==='blocked') return res.status(400).json({error:'El contenido fue bloqueado por seguridad.'})
+    if(!campaign.test_sent_at) return res.status(400).json({error:'Primero enviá el correo de prueba al responsable de la empresa.'})
+    const nextAllowed=await cooldownFor(campaign.company_key,campaign.benefit_slug); if(nextAllowed && new Date(nextAllowed)>new Date()) return res.status(409).json({error:`Este beneficio podrá volver a solicitar envío a partir del ${new Date(nextAllowed).toLocaleDateString('es-AR')}.`,nextAllowed})
+    const approvalEmail=process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'uic@uic-campana.com.ar'; const attachments=await campaignAttachments(id)
+    await sendDiffusionMail({to:approvalEmail,subject:`[VALIDACIÓN PENDIENTE] ${campaign.company_name} · ${campaign.subject}`,html:`<div style="background:#e9f5fb;padding:12px;border:1px solid #52a8cf"><strong>VALIDACIÓN REQUERIDA</strong><br>La empresa ya recibió su prueba. Esta comunicación NO fue enviada a socios. Ingresá al Portal de Beneficios → Difusión de Beneficios → Validaciones para aprobar o rechazar.</div>${campaignEmailHtml(campaign)}`,attachments})
+    const result=await pool.query(`UPDATE diffusion_campaigns SET status='pending',approval_requested_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id]); res.json(result.rows[0])
+  } catch(error){ next(error) }
+})
+app.post('/api/admin/difusion/campaigns/:id/reject', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
+  try { const id=safeId(req.params.id); if(!id) return res.status(400).json({error:'Comunicación inválida'}); const result=await pool.query(`UPDATE diffusion_campaigns SET status='rejected',rejected_at=NOW(),safety_notes=$2,updated_at=NOW() WHERE id=$1 AND status='pending' RETURNING *`,[id,safeText(req.body.reason,500)||'Rechazada por validación administrativa.']); if(!result.rows[0]) return res.status(409).json({error:'La comunicación ya no está pendiente.'}); res.json(result.rows[0]) } catch(error){ next(error) }
+})
+app.post('/api/admin/difusion/campaigns/:id/approve', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
+  try {
+    if(String(req.body.confirm||'').trim().toUpperCase()!=='ENVIAR') return res.status(400).json({error:'Para evitar envíos accidentales escribí ENVIAR en la confirmación.'})
+    const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign || campaign.status!=='pending') return res.status(409).json({error:'La comunicación no está pendiente de validación.'})
+    if(campaign.safety_status==='blocked') return res.status(400).json({error:'El contenido está bloqueado por seguridad.'})
+    const nextAllowed=await cooldownFor(campaign.company_key,campaign.benefit_slug); if(nextAllowed && new Date(nextAllowed)>new Date()) return res.status(409).json({error:`Este beneficio podrá volver a enviar a partir del ${new Date(nextAllowed).toLocaleDateString('es-AR')}.`,nextAllowed})
+    const recipients=await pool.query(`SELECT email FROM diffusion_recipients WHERE enabled=TRUE AND email_valid=TRUE AND email<>'' ORDER BY company_name`)
+    const origin=normalizeEmail(campaign.originator_email); const approvalEmail=process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'uic@uic-campana.com.ar'
+    const unique=[...new Set(recipients.rows.map(x=>normalizeEmail(x.email)).filter(email=>validEmail(email)&&email!==origin&&email!==normalizeEmail(approvalEmail)))]
+    const attachments=await campaignAttachments(id); const html=campaignEmailHtml(campaign)
+    // Regla UIC: el primer correo final siempre llega al responsable que originó la comunicación.
+    await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html,attachments})
+    // Recién después del primer envío satisfactorio se distribuye al padrón activo, siempre en CCO.
+    await sendDiffusionMail({to:approvalEmail,bcc:unique,subject:campaign.subject,html,attachments})
+    const sentAt=new Date(); const nextAllowedAt=addCalendarMonth(sentAt)
+    const result=await pool.query(`UPDATE diffusion_campaigns SET status='sent',approved_at=NOW(),sent_at=$2,next_allowed_at=$3,recipient_count=$4,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,sentAt,nextAllowedAt,unique.length])
+    await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id])
+    res.json({...result.rows[0],sentToOriginator:true,bccRecipients:unique.length})
+  } catch(error){ next(error) }
+})
 
 function cleanAgreementLinks(value) {
   if (!Array.isArray(value)) return []

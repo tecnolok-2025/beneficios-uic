@@ -1,9 +1,23 @@
-> **Revisión actual: v3.9.0 · BENEFICIOS_UIC_390 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.1 · BENEFICIOS_UIC_391 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
+
+## Revisión v3.9.1 · 24/10/2026
+
+- Mantiene **Difusión de Beneficios** cerrada al público y accesible sólo con la misma sesión administrativa existente.
+- Incorpora **TECNO LOGISTI-K SA** como empresa piloto privada: Néstor Manucci, Director.
+- Agrega el padrón privado de difusión con **94 socios UIC** y **19 empresas con convenio no socias** (23 contactos en total para esas 19 empresas).
+- La habilitación se controla **por empresa**, con una única casilla `Recibe comunicaciones`; si una empresa tiene dos contactos, la casilla gobierna a sus contactos válidos.
+- Destildar una empresa no la elimina: sólo la excluye de los próximos envíos.
+- Corrige datos confirmados por UIC: TECMACO → `info@tecnodealer.com.ar`; Montajes Interacero → `info@montajesinteracero.com.ar`; Plaza Hotel → `martin@eraina.com.ar`; SWA pasa a **SWA/NEUCO** y queda destildada hasta disponer de correo válido.
+- TIBEST se identifica en el padrón societario como **BULLETBABA SRL - TIBEST**.
+- Implementa circuito protegido: borrador → correo de prueba al originador → solicitud de validación a `uic@uic-campana.com.ar` → aprobación administrativa → primer correo final al originador → distribución en CCO al padrón habilitado.
+- El correo de prueba **no consume** el plazo mensual. El plazo se inicia sólo después del envío final aprobado.
+- Agrega modo mantenimiento institucional para indisponibilidad de Neon en el módulo de difusión.
+- Declara `nodemailer` como dependencia del servidor para SMTP.
 
 ## Revisión v3.9.0 · 23/10/2026
 
@@ -57,8 +71,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.0`
-- **Generación:** `BENEFICIOS_UIC_390`
+- **Versión:** `3.9.1`
+- **Generación:** `BENEFICIOS_UIC_391`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -76,6 +90,9 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.1
+Agrega el padrón privado de destinatarios por empresa, empresa piloto Tecno Logisti-K SA y circuito prueba → validación → envío final.
 
 ### v3.9.0
 Agrega el acceso **Difusión de Beneficios** en modo de construcción protegido exclusivamente por la misma autenticación administrativa existente, con buscador y agrupación de empresas y retorno explícito al Portal.

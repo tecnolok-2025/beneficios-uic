@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.0 son coherentes', async () => {
+test('10 · versión y generación 3.9.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.0')
-  assert.match(server, /BENEFICIOS_UIC_390/)
-  assert.match(html, /BENEFICIOS_UIC_390/)
+  assert.equal(pkg.version, '3.9.1')
+  assert.match(server, /BENEFICIOS_UIC_391/)
+  assert.match(html, /BENEFICIOS_UIC_391/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -438,9 +438,10 @@ test('43 · el módulo de difusión muestra buscador de empresas y agrupa benefi
   const app = await read('src/App.jsx')
   assert.match(app, /DIRECTORIO DE EMPRESAS/)
   assert.match(app, /Buscar empresa o beneficio/)
-  assert.match(app, /const grouped = new Map\(\)/)
+  const server = await read('server/index.js')
+  assert.match(server, /const grouped = new Map\(\)/)
   assert.match(app, /company\.benefits\.length/)
-  assert.match(app, /Futuro cupo individual/)
+  assert.match(app, /cupo será independiente por beneficio/)
 })
 
 test('44 · Difusión conserva retorno explícito al Portal de Beneficios', async () => {
@@ -449,9 +450,68 @@ test('44 · Difusión conserva retorno explícito al Portal de Beneficios', asyn
   assert.ok(matches.length >= 3)
 })
 
-test('45 · registro y envío de empresas continúan deliberadamente deshabilitados en esta etapa', async () => {
+test('45 · registro público sigue cerrado y envío real queda protegido en esta etapa', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /Registro, recuperación de contraseña y envío por empresa se habilitarán únicamente cuando el módulo quede validado/)
+  const env = await read('.env.example')
+  assert.match(app, /Acceso público deshabilitado/)
+  assert.match(app, /registro y recuperación de contraseña todavía no están expuestas/)
   assert.match(app, /Preparar difusión · Próxima etapa/)
-  assert.match(app, /<button disabled>/)
+  assert.match(env, /DIFFUSION_SEND_ENABLED=false/)
+})
+
+test('46 · v3.9.1 carga padrón de socios y convenios no socios con habilitación por empresa', async () => {
+  const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
+  assert.equal(recipients.filter(x => x.sourceType === 'socio').length, 94)
+  assert.equal(new Set(recipients.filter(x => x.sourceType === 'convenio').map(x => x.companyName)).size, 19)
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /PADRÓN ÚNICO DE ENVÍO/)
+  assert.match(app, /Recibe comunicaciones/)
+  assert.match(app, /recipient-companies\/toggle/)
+  assert.match(server, /recipient-companies\/toggle/)
+})
+
+test('47 · v3.9.1 aplica correcciones UIC del padrón del 24-10-2026', async () => {
+  const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
+  const byKey = Object.fromEntries(recipients.map(x => [x.sourceKey, x]))
+  assert.equal(byKey['socio:44'].email, 'info@tecnodealer.com.ar')
+  assert.equal(byKey['socio:44'].enabled, true)
+  assert.equal(byKey['socio:67'].email, 'info@montajesinteracero.com.ar')
+  assert.equal(byKey['socio:92'].email, 'martin@eraina.com.ar')
+  assert.equal(byKey['socio:210'].companyName, 'SWA/NEUCO')
+  assert.equal(byKey['socio:210'].email, '')
+  assert.equal(byKey['socio:210'].enabled, false)
+  assert.equal(byKey['socio:259'].companyName, 'BULLETBABA SRL - TIBEST')
+})
+
+test('48 · v3.9.1 mantiene Tecno Logisti-K SA como piloto y circuito prueba-validación-envío', async () => {
+  const config = JSON.parse(await read('data/diffusion-config.json'))
+  assert.equal(config.testCompanies[0].name, 'TECNO LOGISTI-K SA')
+  assert.equal(config.testCompanies[0].contactName, 'Néstor Manucci')
+  assert.equal(config.testCompanies[0].role, 'Director')
+  const server = await read('server/index.js')
+  assert.match(server, /PRUEBA · NO ENVIADO A SOCIOS/)
+  assert.match(server, /VALIDACIÓN PENDIENTE/)
+  assert.match(server, /el primer correo final siempre llega al responsable/)
+  assert.match(server, /DIFFUSION_SEND_ENABLED/)
+})
+
+test('49 · v3.9.1 identifica versión, generación y dependencia SMTP', async () => {
+  const pkg = JSON.parse(await read('package.json'))
+  const lock = JSON.parse(await read('package-lock.json'))
+  const index = await read('index.html')
+  const server = await read('server/index.js')
+  assert.equal(pkg.version, '3.9.1')
+  assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
+  assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
+  assert.match(index, /BENEFICIOS_UIC_391/)
+  assert.match(server, /BENEFICIOS_UIC_391/)
+})
+
+test('50 · administrador puede agregar nuevos socios o convenios en el padrón privado', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /<option value="socio">Socio UIC<\/option>/)
+  assert.match(app, /<option value="convenio">Convenio \/ no socio<\/option>/)
+  assert.match(server, /\['socio','convenio','manual'\]\.includes\(requestedType\)/)
 })
