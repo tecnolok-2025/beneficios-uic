@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.5 son coherentes', async () => {
+test('10 · versión y generación 3.9.6 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.5')
-  assert.match(server, /BENEFICIOS_UIC_395/)
-  assert.match(html, /BENEFICIOS_UIC_395/)
+  assert.equal(pkg.version, '3.9.6')
+  assert.match(server, /BENEFICIOS_UIC_396/)
+  assert.match(html, /BENEFICIOS_UIC_396/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -498,16 +498,16 @@ test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', 
   assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.5 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.6 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.5')
+  assert.equal(pkg.version, '3.9.6')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_395/)
-  assert.match(server, /BENEFICIOS_UIC_395/)
+  assert.match(index, /BENEFICIOS_UIC_396/)
+  assert.match(server, /BENEFICIOS_UIC_396/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -644,11 +644,11 @@ test('63 · envío final deduplica correos y permite baja por destinatario', asy
 })
 
 
-test('64 · v3.9.4 usa navegación interna propia y no depende de PopStateEvent manual', async () => {
+test('64 · navegación actual no depende de eventos SPA manuales', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /const NAV_EVENT = 'uic:navigate'/)
-  assert.match(app, /addEventListener\(NAV_EVENT, update\)/)
-  assert.match(app, /window\.dispatchEvent\(new Event\(NAV_EVENT\)\)/)
+  assert.match(app, /location\.assign\(target\)/)
+  assert.match(app, /location\.reload\(\)/)
+  assert.doesNotMatch(app, /const NAV_EVENT = 'uic:navigate'/)
   assert.doesNotMatch(app, /new PopStateEvent\('popstate'\)/)
 })
 
@@ -713,4 +713,43 @@ test('70 · cola calcula estimaciones y reanuda tras reinicio', async () => {
   assert.match(server, /DIFFUSION_SEND_INTERVAL_MS/)
   assert.match(server, /Reanudado después de reinicio del servicio/)
   assert.match(server, /no se reintenta automáticamente para evitar una copia duplicada/)
+})
+
+
+test('71 · v3.9.6 incorpora watchdog previo a React contra pantalla blanca', async () => {
+  const html = await read('index.html')
+  const recovery = await read('public/boot-recovery.js')
+  assert.match(html, /boot-recovery\.js/)
+  assert.match(recovery, /rootIsEmpty/)
+  assert.match(recovery, /recoverIfBlank/)
+  assert.match(recovery, /serviceWorker/)
+  assert.match(recovery, /caches\.keys/)
+  assert.match(recovery, /Recuperando la pantalla/)
+})
+
+test('72 · v3.9.6 evita bucles de recuperación y ofrece salida institucional', async () => {
+  const recovery = await read('public/boot-recovery.js')
+  assert.match(recovery, /sessionStorage\.getItem\(pathKey\)/)
+  assert.match(recovery, /60000/)
+  assert.match(recovery, /Reintentar/)
+  assert.match(recovery, /Volver al Portal de Beneficios/)
+})
+
+test('73 · v3.9.6 protege restauraciones BFCache', async () => {
+  const main = await read('src/main.jsx')
+  const app = await read('src/App.jsx')
+  assert.match(main, /pageshow/)
+  assert.match(main, /event\.persisted/)
+  assert.match(main, /window\.location\.reload\(\)/)
+  assert.match(app, /addEventListener\('pageshow', restore\)/)
+})
+
+test('74 · v3.9.6 tiene Error Boundary y conserva generación técnica', async () => {
+  const main = await read('src/main.jsx')
+  const server = await read('server/index.js')
+  const pkg = JSON.parse(await read('package.json'))
+  assert.equal(pkg.version, '3.9.6')
+  assert.match(main, /class PortalErrorBoundary/)
+  assert.match(main, /uic:portal-ready/)
+  assert.match(server, /BENEFICIOS_UIC_396/)
 })

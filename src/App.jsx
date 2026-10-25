@@ -22,22 +22,31 @@ async function request(url, options = {}) {
   return data
 }
 
-const NAV_EVENT = 'uic:navigate'
 function go(path) {
   const target = path || '/'
-  if (location.pathname !== target) history.pushState({}, '', target)
-  window.dispatchEvent(new Event(NAV_EVENT))
-  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }))
+  // Navegación robusta v3.9.6: los cambios entre pantallas principales realizan
+  // una carga completa del documento. Así no dependemos de un estado React
+  // anterior, del BFCache ni de un evento SPA para pintar la nueva vista.
+  if (location.pathname === target && !location.search && !location.hash) {
+    location.reload()
+    return
+  }
+  location.assign(target)
 }
 function useRoute() {
   const [route, setRoute] = useState(location.pathname)
   useEffect(() => {
     const update = () => setRoute(location.pathname)
+    const restore = event => {
+      // Si el navegador recupera una pantalla desde memoria, sincronizamos la
+      // ruta inmediatamente. main.jsx agrega una segunda protección para BFCache.
+      if (event?.persisted) setRoute(location.pathname)
+    }
     addEventListener('popstate', update)
-    addEventListener(NAV_EVENT, update)
+    addEventListener('pageshow', restore)
     return () => {
       removeEventListener('popstate', update)
-      removeEventListener(NAV_EVENT, update)
+      removeEventListener('pageshow', restore)
     }
   }, [])
   return route
@@ -78,7 +87,7 @@ function Header({ admin = false }) {
       <Brand />
       <div className="neo-uic"><img src="/logo-uic-oficial.jpeg" alt="Unión Industrial de Campana"/></div>
       <nav className="neo-actions">
-        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.9.5'}</strong></span>
+        <span className="neo-version"><small>NUEVO PORTAL</small><strong>v{health?.version || '3.9.6'}</strong></span>
         <button className="neo-update" type="button" onClick={updateVersion} disabled={updating} aria-live="polite"><RefreshCw className={updating ? 'neo-spin' : ''}/><span>{updating ? 'Actualizando…' : 'Actualizar versión'}</span></button>
         <button className="neo-admin-link neo-desktop" onClick={() => go(admin ? '/' : '/administracion')}>{admin ? <ArrowLeft/> : <Plus/>}{admin ? 'Volver al portal' : 'Agregar beneficio'}</button>
         <button className="neo-menu-button" onClick={() => setMenu(value => !value)} aria-label="Abrir menú">{menu ? <X/> : <Menu/>}</button>
@@ -394,7 +403,7 @@ function CompanySelectionPlaceholder() {
 
 function DiffusionRoleChoice({ onAdmin, onBeneficiary }) {
   return <><Header/><main className="neo-diffusion-page"><div className="neo-shell"><div className="neo-diffusion-top"><button type="button" onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div>
-    <section className="neo-diffusion-intro"><div><span>DIFUSIÓN DE BENEFICIOS · v3.9.5</span><h1>¿Cómo querés ingresar?</h1><p>Elegí el tipo de acceso. El modo administrador utiliza la clave privada del Portal; el modo beneficiario utiliza el registro propio de cada empresa.</p></div><div className="neo-diffusion-lock"><ShieldCheck/><strong>Dos accesos, permisos diferentes</strong><small>El beneficiario sólo administra su empresa. El administrador conserva las herramientas de control UIC.</small></div></section>
+    <section className="neo-diffusion-intro"><div><span>DIFUSIÓN DE BENEFICIOS · v3.9.6</span><h1>¿Cómo querés ingresar?</h1><p>Elegí el tipo de acceso. El modo administrador utiliza la clave privada del Portal; el modo beneficiario utiliza el registro propio de cada empresa.</p></div><div className="neo-diffusion-lock"><ShieldCheck/><strong>Dos accesos, permisos diferentes</strong><small>El beneficiario sólo administra su empresa. El administrador conserva las herramientas de control UIC.</small></div></section>
     <section className="neo-role-choice">
       <button type="button" className="neo-role-card" onClick={onAdmin}><span className="neo-role-icon"><LockKeyhole/></span><div><span>ACCESO PRIVADO UIC</span><h2>Como administrador</h2><p>Requiere la clave administrativa. Permite gestionar empresas, destinatarios, validaciones, correo emisor y ver cualquier empresa en modo de prueba.</p><strong>Ingresar como administrador <ArrowRight/></strong></div></button>
       <button type="button" className="neo-role-card beneficiary" onClick={onBeneficiary}><span className="neo-role-icon"><Building2/></span><div><span>EMPRESA CON BENEFICIO</span><h2>Como beneficiario</h2><p>No requiere la clave administrativa. Cada empresa se registra con su propio correo validado, crea su contraseña y trabaja solamente con sus beneficios.</p><strong>Ingresar como beneficiario <ArrowRight/></strong></div></button>
@@ -415,7 +424,7 @@ function CompanyAuthPortal({ onAuthenticated, onSwitchRole }) {
   const requestForgot=async e=>{e.preventDefault();setBusy(true);setMessage('');try{await request('/api/difusion/company/forgot/request',{method:'POST',body:JSON.stringify({companyKey:selected.key,email})});setPhase('code');setMessage('Enviamos un código temporal al correo registrado.')}catch(err){setMessage(err.message)}finally{setBusy(false)}}
   const resetPassword=async e=>{e.preventDefault();setBusy(true);setMessage('');try{await request('/api/difusion/company/forgot/reset',{method:'POST',body:JSON.stringify({companyKey:selected.key,email,code,password})});setMode('login');setPhase('form');setPassword('');setCode('');setMessage('Contraseña actualizada. Ya podés ingresar.')}catch(err){setMessage(err.message)}finally{setBusy(false)}}
   return <><Header/><main className="neo-diffusion-page"><div className="neo-shell"><div className="neo-diffusion-top"><button type="button" onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button><button type="button" className="neo-admin-entry" onClick={onSwitchRole}><RefreshCw/> Cambiar tipo de acceso</button></div>
-    <section className="neo-diffusion-intro"><div><span>BENEFICIARIOS · v3.9.5</span><h1>Elegí tu empresa</h1><p>Buscá la empresa que firmó el beneficio, revisá sus beneficios y utilizá el acceso propio de esa empresa.</p></div><div className="neo-diffusion-lock"><ShieldCheck/><strong>Identidad protegida por correo</strong><small>El listado de empresas es visible, pero el acceso sólo se habilita cuando el correo ingresado coincide con un correo previamente registrado para esa empresa.</small></div></section>
+    <section className="neo-diffusion-intro"><div><span>BENEFICIARIOS · v3.9.6</span><h1>Elegí tu empresa</h1><p>Buscá la empresa que firmó el beneficio, revisá sus beneficios y utilizá el acceso propio de esa empresa.</p></div><div className="neo-diffusion-lock"><ShieldCheck/><strong>Identidad protegida por correo</strong><small>El listado de empresas es visible, pero el acceso sólo se habilita cuando el correo ingresado coincide con un correo previamente registrado para esa empresa.</small></div></section>
     <DiffusionGuide/>
     <section className="neo-diffusion-workspace"><div className="neo-diffusion-directory"><label className="neo-search neo-diffusion-search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa o beneficio…"/>{query&&<button type="button" onClick={()=>setQuery('')}><X/></button>}</label><div className="neo-diffusion-company-list">{visible.map(c=><button type="button" key={c.key} className={selected?.key===c.key?'active':''} onClick={()=>choose(c)}><Building2/><span><strong>{c.name}</strong><small>{c.benefitCount} beneficio{c.benefitCount===1?'':'s'}</small></span><ChevronRight/></button>)}</div></div>
       <div className="neo-diffusion-preview">{!selected?<CompanySelectionPlaceholder/>:<div className="neo-company-access"><span>EMPRESA SELECCIONADA</span><h2>{selected.name}</h2><div className="neo-public-benefits">{(selected.benefits||[]).map(b=><div key={b.slug}><strong>{b.title}</strong><small>{b.category}</small></div>)}</div>
@@ -467,7 +476,7 @@ function AdminDiffusionPanel({ onSwitchRole }) {
   const switchTab=next=>{setTab(next);requestAnimationFrame(()=>document.querySelector('.neo-diffusion-tabs')?.scrollIntoView({block:'nearest'}))}
   if(previewCompany)return <CompanyDashboard company={previewCompany} settings={settings} adminPreview onBack={()=>setPreviewCompany(null)}/>
   return <><Header admin/><main className="neo-diffusion-page"><div className="neo-shell"><div className="neo-diffusion-top"><button type="button" onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button><div className="neo-diffusion-top-actions"><button type="button" className="neo-admin-entry" onClick={onSwitchRole}><RefreshCw/> Cambiar tipo de acceso</button><span><ShieldCheck/> ADMINISTRADOR · CONTROL TOTAL</span></div></div>
-    <section className="neo-diffusion-intro"><div><span>REVISIÓN v3.9.5</span><h1>Difusión de Beneficios</h1><p>Administración, validaciones, padrón, correo y vista de experiencia de cada empresa.</p></div><div className="neo-diffusion-lock"><LockKeyhole/><strong>Herramientas privadas</strong><small>Destinatarios, Validaciones y Correo emisor sólo existen en este modo administrador.</small></div></section>
+    <section className="neo-diffusion-intro"><div><span>REVISIÓN v3.9.6</span><h1>Difusión de Beneficios</h1><p>Administración, validaciones, padrón, correo y vista de experiencia de cada empresa.</p></div><div className="neo-diffusion-lock"><LockKeyhole/><strong>Herramientas privadas</strong><small>Destinatarios, Validaciones y Correo emisor sólo existen en este modo administrador.</small></div></section>
     <nav className="neo-diffusion-tabs"><button className={tab==='empresas'?'active':''} onClick={()=>switchTab('empresas')}><Building2/> Empresas</button><button className={tab==='destinatarios'?'active':''} onClick={()=>switchTab('destinatarios')}><Users/> Destinatarios</button><button className={tab==='validaciones'?'active':''} onClick={()=>switchTab('validaciones')}><ShieldCheck/> Validaciones</button><button className={tab==='correo'?'active':''} onClick={()=>switchTab('correo')}><Mail/> Correo emisor</button></nav>
     {maintenance?<MaintenancePanel contact={settings?.maintenanceContact}/>:<div className="neo-diffusion-tab-stack"><div hidden={tab!=='destinatarios'}><RecipientManager maintenanceContact={settings?.maintenanceContact}/></div><div hidden={tab!=='validaciones'}><ApprovalQueue settings={settings} onSettingsChanged={load}/></div><div hidden={tab!=='correo'}><MailSettings onSettingsChanged={load}/></div><div hidden={tab!=='empresas'}><section className="neo-diffusion-status"><div><strong>{companies.length}</strong><span>empresas / prestadores</span></div><div><strong>{companies.filter(c=>c.hasRegisteredEmail).length}</strong><span>con correo habilitado para registro</span></div><div><strong>{settings?.massSendEnabled?'MASIVO ON':'PILOTO TLK'}</strong><span>estado de distribución</span></div></section><section className="neo-diffusion-workspace"><div className="neo-diffusion-directory"><label className="neo-search neo-diffusion-search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa o beneficio…"/>{query&&<button onClick={()=>setQuery('')}><X/></button>}</label><div className="neo-diffusion-company-list">{visible.map(c=><button key={c.key} className={selectedCompany===c.key?'active':''} onClick={()=>setSelectedCompany(c.key)}><Building2/><span><strong>{c.name}</strong><small>{c.benefits.length} beneficio{c.benefits.length===1?'':'s'} · {c.hasRegisteredEmail?'correo disponible':'SIN CORREO'}</small></span><ChevronRight/></button>)}</div></div><div className="neo-diffusion-preview">{selected?<><div className="neo-diffusion-preview-head"><span>CONTROL ADMINISTRATIVO</span><h2>{selected.name}</h2><p>{selected.email||'Sin correo válido'}{selected.contactName?` · ${selected.contactName}`:''}</p><button type="button" className="neo-view-as-company" onClick={()=>setPreviewCompany(selected)}>Ver como empresa</button></div>{selected.benefits.map(b=><article key={b.slug}><div><span>{b.category}</span><h3>{b.title}</h3><p>{b.summary}</p></div></article>)}</>:<DiffusionGuide/>}</div></section></div></div>}
     <div className="neo-diffusion-bottom"><button type="button" onClick={()=>go('/')}><ArrowLeft/> Volver al Portal de Beneficios</button></div>

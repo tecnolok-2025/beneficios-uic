@@ -1,0 +1,6 @@
+BENEFICIOS UIC — PARCHE v3.9.5 → v3.9.6
+
+Copiar el contenido de este parche sobre la raíz de la versión v3.9.5, reemplazando los archivos existentes.
+No elimina ni reemplaza datos de Neon.
+No habilita el padrón masivo.
+Luego desplegar normalmente en Render.

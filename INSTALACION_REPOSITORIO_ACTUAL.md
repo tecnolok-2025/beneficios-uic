@@ -108,3 +108,14 @@ Con `DIFFUSION_MASS_SEND_ENABLED=false`, el padrón general continúa bloqueado 
 - `node --check server/index.js`: aprobado.
 - Parseo JSX con TypeScript (`jsx: preserve`, sin emisión): aprobado.
 - `npm run build`: no pudo completarse localmente porque `npm ci` volvió a interrumpirse por timeout antes de instalar Vite. Render continuará ejecutando su instalación y build normal durante el despliegue.
+
+## Revisión 3.9.6 — navegación
+
+Después del despliegue, verificar especialmente:
+1. abrir `/`;
+2. entrar a **Difusión de Beneficios**;
+3. elegir Administrador o Beneficiario;
+4. volver al Portal;
+5. repetir usando el botón Atrás del navegador.
+
+Ninguno de esos pasos debe requerir F5 ni Enter. Si un navegador conserva una interfaz anterior, la v3.9.6 ejecuta recuperación automática de caché/Service Worker.
