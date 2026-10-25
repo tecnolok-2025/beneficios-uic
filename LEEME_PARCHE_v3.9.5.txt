@@ -1,0 +1,17 @@
+PARCHE Portal Beneficios UIC v3.9.4 -> v3.9.5
+
+Copiar el contenido de este ZIP sobre la raíz exacta del repositorio v3.9.4, conservando DATABASE_URL y las variables de Render existentes.
+No crear otro servicio Render ni otra base Neon.
+
+Cambios principales:
+- Monitor durable de envíos por empresa.
+- Cola persistente con posición, progreso y estimaciones.
+- Cancelación de pendientes conservando lo ya enviado.
+- Ciclo mensual fijo por fecha de primera autorización, sin acumulación.
+- Recuperación segura de cola después de reinicios.
+
+Seguridad de piloto:
+DIFFUSION_MASS_SEND_ENABLED=false
+
+Opcional para fijar el ritmo usado también en las estimaciones:
+DIFFUSION_SEND_INTERVAL_MS=5000

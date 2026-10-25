@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_394'
+const GENERATION = 'BENEFICIOS_UIC_395'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -236,6 +236,35 @@ function addCalendarMonth(date = new Date()) {
   firstNext.setUTCDate(Math.min(day, lastDay))
   return firstNext
 }
+const DIFFUSION_SEND_INTERVAL_MS = Math.max(1000, Number(process.env.DIFFUSION_SEND_INTERVAL_MS || 5000))
+function argentinaDateString(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Argentina/Buenos_Aires', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date(date))
+  const map=Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value])); return `${map.year}-${map.month}-${map.day}`
+}
+function dateParts(value) { const [year,month,day]=String(value).slice(0,10).split('-').map(Number); return {year,month,day} }
+function anchoredDate(year, month, day) { const last=new Date(Date.UTC(year,month,0)).getUTCDate(); return `${year}-${String(month).padStart(2,'0')}-${String(Math.min(day,last)).padStart(2,'0')}` }
+function shiftMonth(year, month, delta) { const d=new Date(Date.UTC(year,month-1+delta,1)); return {year:d.getUTCFullYear(),month:d.getUTCMonth()+1} }
+function monthlyCycle(anchorDate, today = argentinaDateString()) {
+  const anchor=dateParts(anchorDate); const now=dateParts(today); const thisOccurrence=anchoredDate(now.year,now.month,anchor.day)
+  if(today>=thisOccurrence){const next=shiftMonth(now.year,now.month,1);return {start:thisOccurrence,end:anchoredDate(next.year,next.month,anchor.day),anchorDay:anchor.day}}
+  const prev=shiftMonth(now.year,now.month,-1);return {start:anchoredDate(prev.year,prev.month,anchor.day),end:thisOccurrence,anchorDay:anchor.day}
+}
+function argentinaMidnightUtc(dateString) { return new Date(`${dateString}T03:00:00.000Z`) }
+async function benefitSlotStatus(companyKey, benefitSlug) {
+  const result=await pool.query('SELECT * FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2',[companyKey,benefitSlug]); const schedule=result.rows[0]
+  if(!schedule)return {allowed:true,anchorDate:null,currentStart:null,nextAllowed:null,usedThisCycle:false}
+  const today=argentinaDateString(); const cycle=monthlyCycle(dateOnly(schedule.anchor_date),today); const last=schedule.last_authorized_at?argentinaDateString(schedule.last_authorized_at):null; const used=Boolean(last&&last>=cycle.start&&last<cycle.end)
+  return {allowed:!used,anchorDate:dateOnly(schedule.anchor_date),currentStart:cycle.start,nextAllowed:cycle.end,usedThisCycle:used}
+}
+async function authorizeBenefitSlot(client, campaign) {
+  const existing=(await client.query('SELECT * FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2 FOR UPDATE',[campaign.company_key,campaign.benefit_slug])).rows[0]
+  const today=argentinaDateString()
+  if(!existing){const next=monthlyCycle(today,today).end;await client.query(`INSERT INTO diffusion_benefit_schedules (company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at,updated_at) VALUES ($1,$2,$3,NOW(),$4,$5,NOW())`,[campaign.company_key,campaign.benefit_slug,today,campaign.id,next]);return {anchorDate:today,nextAllowed:next}}
+  const cycle=monthlyCycle(dateOnly(existing.anchor_date),today); const last=existing.last_authorized_at?argentinaDateString(existing.last_authorized_at):null
+  if(last&&last>=cycle.start&&last<cycle.end){const error=new Error(`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${cycle.end.split('-').reverse().join('/')}.`);error.status=409;error.nextAllowed=cycle.end;throw error}
+  await client.query(`UPDATE diffusion_benefit_schedules SET last_authorized_at=NOW(),last_campaign_id=$3,next_slot_at=$4,updated_at=NOW() WHERE company_key=$1 AND benefit_slug=$2`,[campaign.company_key,campaign.benefit_slug,campaign.id,cycle.end])
+  return {anchorDate:dateOnly(existing.anchor_date),nextAllowed:cycle.end}
+}
 function plainMarkup(value) { return safeText(value, 12000).replace(/[<>]/g, '') }
 function markupToHtml(value) {
   let text = String(value || '')
@@ -347,6 +376,69 @@ async function sendDiffusionMail({to, subject, html, attachments=[]}) {
   const mailer=await createMailer(); if(!mailer){const error=new Error('La casilla emisora todavía no está configurada o no pudo autenticarse.');error.status=503;throw error}
   const from=mailer.config.fromName?`"${mailer.config.fromName.replace(/["<>]/g,'')}" <${mailer.config.fromEmail}>`:mailer.config.fromEmail
   return mailer.transporter.sendMail({from,to,subject,html,attachments})
+}
+
+function backgroundBaseUrl() { return String(process.env.PUBLIC_BASE_URL || 'https://beneficios-uic.onrender.com').replace(/\/$/,'') }
+async function buildQueueRecipients(campaign, massEnabled) {
+  const pilot=diffusionConfig.testCompanies?.find(c=>c.key===PILOT_COMPANY_KEY); const pilotEmail=normalizeEmail(pilot?.email); const origin=normalizeEmail(campaign.originator_email); const approval=normalizeEmail(process.env.DIFFUSION_APPROVAL_EMAIL||diffusionConfig.approvalEmail||'tesoreria@uic-campana.com.ar')
+  const byEmail=new Map()
+  if(!massEnabled){
+    if(validEmail(pilotEmail)){
+      const pilotRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[pilotEmail])).rows[0]
+      byEmail.set(pilotEmail,pilotRow||{id:null,company_name:'TECNO LOGISTI-K SA',contact_name:pilot?.contactName||'',email:pilotEmail,phone:pilot?.phone||''})
+    }
+    return [...byEmail.values()]
+  }
+  const rows=(await pool.query(`SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE enabled=TRUE AND email_valid=TRUE AND email<>'' AND opted_out_at IS NULL ORDER BY company_name,id`)).rows
+  for(const row of rows){const email=normalizeEmail(row.email);if(validEmail(email)&&!byEmail.has(email))byEmail.set(email,row)}
+  if(validEmail(pilotEmail)&&!byEmail.has(pilotEmail)){const pilotRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[pilotEmail])).rows[0];byEmail.set(pilotEmail,pilotRow||{id:null,company_name:'TECNO LOGISTI-K SA',contact_name:pilot?.contactName||'',email:pilotEmail,phone:pilot?.phone||''})}
+  if(origin!==pilotEmail)byEmail.delete(origin)
+  byEmail.delete(approval)
+  return [...byEmail.values()]
+}
+async function queueCampaign(client, campaign, recipients, nextAllowed) {
+  await client.query('DELETE FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1',[campaign.id])
+  for(const recipient of recipients){const email=normalizeEmail(recipient.email);if(!validEmail(email))continue;await client.query(`INSERT INTO diffusion_campaign_queue_recipients (campaign_id,recipient_id,email,company_name,contact_name,status) VALUES ($1,$2,$3,$4,$5,'pending') ON CONFLICT (campaign_id,email) DO NOTHING`,[campaign.id,recipient.id||null,email,recipient.company_name||'',recipient.contact_name||''])}
+  const total=(await client.query(`SELECT COUNT(*)::int AS count FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1`,[campaign.id])).rows[0].count
+  const result=await client.query(`UPDATE diffusion_campaigns SET status='queued',approved_at=NOW(),next_allowed_at=$2,total_recipients=$3,sent_count=0,failed_count=0,recipient_count=0,queue_started_at=NULL,completed_at=NULL,cancel_requested_at=NULL,cancelled_at=NULL,last_progress_at=NOW(),queue_note='En cola de distribución',updated_at=NOW() WHERE id=$1 RETURNING *`,[campaign.id,argentinaMidnightUtc(nextAllowed),total])
+  return result.rows[0]
+}
+async function finishCancelledCampaign(id) {
+  await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='cancelled',updated_at=NOW() WHERE campaign_id=$1 AND status IN ('pending','sending')`,[id])
+  const result=await pool.query(`UPDATE diffusion_campaigns SET status='cancelled',cancelled_at=NOW(),completed_at=NOW(),recipient_count=sent_count,queue_note='Cancelado por el usuario. La oportunidad mensual ya fue consumida.',body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id])
+  await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id]); return result.rows[0]
+}
+let diffusionQueueBusy=false
+async function processDiffusionQueue() {
+  if(diffusionQueueBusy||!pool||!databaseAvailable)return
+  diffusionQueueBusy=true
+  try{
+    const campaign=(await pool.query(`SELECT * FROM diffusion_campaigns WHERE status IN ('sending','queued') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id LIMIT 1`)).rows[0]
+    if(!campaign)return
+    if(campaign.cancel_requested_at){await finishCancelledCampaign(campaign.id);return}
+    if(campaign.status==='queued')await pool.query(`UPDATE diffusion_campaigns SET status='sending',queue_started_at=COALESCE(queue_started_at,NOW()),queue_note='Enviando',last_progress_at=NOW(),updated_at=NOW() WHERE id=$1`,[campaign.id])
+    const fresh=await getCampaign(campaign.id);if(fresh.cancel_requested_at){await finishCancelledCampaign(campaign.id);return}
+    const recipient=(await pool.query(`SELECT * FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1 AND status='pending' ORDER BY id LIMIT 1`,[campaign.id])).rows[0]
+    if(!recipient){await pool.query(`UPDATE diffusion_campaigns SET status='sent',sent_at=NOW(),completed_at=NOW(),recipient_count=sent_count,queue_note=CASE WHEN failed_count>0 THEN 'Finalizado con algunos errores' ELSE 'Envío finalizado' END,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1`,[campaign.id]);await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[campaign.id]);return}
+    await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='sending',attempts=attempts+1,updated_at=NOW() WHERE id=$1`,[recipient.id])
+    try{
+      const latest=await getCampaign(campaign.id);if(latest.cancel_requested_at){await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='pending',updated_at=NOW() WHERE id=$1`,[recipient.id]);await finishCancelledCampaign(campaign.id);return}
+      const media=await campaignMedia(campaign.id);let unsubscribe='';if(recipient.recipient_id){const target={id:recipient.recipient_id,email:recipient.email};unsubscribe=`${backgroundBaseUrl()}/api/difusion/unsubscribe?id=${target.id}&token=${encodeURIComponent(unsubscribeToken(target))}`}
+      const pilotBanner=Number(latest.total_recipients||0)===1&&slugify(recipient.company_name)===PILOT_COMPANY_KEY?'<div style="background:#eef7fb;padding:12px;border:1px solid #7cb7d2"><strong>PILOTO DE DISTRIBUCIÓN</strong><br>El padrón general está deshabilitado. TECNO LOGISTI-K SA es el único destino de control masivo.</div>':''
+      await sendDiffusionMail({to:recipient.email,subject:latest.subject,html:`${pilotBanner}${campaignEmailHtml(latest,media.inlineFiles,unsubscribe)}`,attachments:media.all})
+      await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='sent',sent_at=NOW(),updated_at=NOW() WHERE id=$1`,[recipient.id]);await pool.query(`UPDATE diffusion_campaigns SET sent_count=sent_count+1,recipient_count=sent_count+1,last_progress_at=NOW(),queue_note='Enviando',updated_at=NOW() WHERE id=$1`,[campaign.id])
+    }catch(error){await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='failed',failed_at=NOW(),error_text=$2,updated_at=NOW() WHERE id=$1`,[recipient.id,safeText(error.message,500)]);await pool.query(`UPDATE diffusion_campaigns SET failed_count=failed_count+1,last_progress_at=NOW(),queue_note='Enviando · se registró un error individual',updated_at=NOW() WHERE id=$1`,[campaign.id])}
+  }finally{diffusionQueueBusy=false}
+}
+function queueEtaSeconds(remainingRecipients) { return Math.max(0,Number(remainingRecipients)||0) * Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000) }
+async function monitorPayload(companyKey) {
+  const active=(await pool.query(`SELECT id,company_key,company_name,benefit_slug,benefit_title,status,approved_at,queue_started_at,completed_at,cancel_requested_at,cancelled_at,sent_count,failed_count,total_recipients,next_allowed_at,queue_note FROM diffusion_campaigns WHERE status IN ('queued','sending') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id`)).rows
+  let ahead=0; const metrics=new Map(); let queueNumber=0
+  for(const row of active){const remaining=Math.max(0,Number(row.total_recipients||0)-Number(row.sent_count||0)-Number(row.failed_count||0));if(row.status==='sending'){metrics.set(String(row.id),{queuePosition:0,estimatedStartAt:new Date().toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(remaining)*1000).toISOString(),remaining})}else{queueNumber+=1;metrics.set(String(row.id),{queuePosition:queueNumber,estimatedStartAt:new Date(Date.now()+queueEtaSeconds(ahead)*1000).toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(ahead+remaining)*1000).toISOString(),remaining})}ahead+=remaining}
+  const campaigns=(await pool.query(`SELECT id,company_key,company_name,benefit_slug,benefit_title,status,approved_at,queue_started_at,completed_at,cancel_requested_at,cancelled_at,sent_count,failed_count,total_recipients,next_allowed_at,queue_note,created_at FROM diffusion_campaigns WHERE company_key=$1 AND status IN ('queued','sending','sent','cancelled') ORDER BY COALESCE(approved_at,created_at) DESC LIMIT 20`,[companyKey])).rows.map(row=>({...row,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
+  const today=argentinaDateString()
+  const schedules=(await pool.query(`SELECT company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at FROM diffusion_benefit_schedules WHERE company_key=$1 ORDER BY benefit_slug`,[companyKey])).rows.map(row=>{const anchor=dateOnly(row.anchor_date);const cycle=monthlyCycle(anchor,today);const last=row.last_authorized_at?argentinaDateString(row.last_authorized_at):null;const used=Boolean(last&&last>=cycle.start&&last<cycle.end);return {...row,anchor_date:anchor,next_slot_at:used?cycle.end:cycle.start,current_cycle_start:cycle.start,current_cycle_end:cycle.end,available_now:!used,next_available_at:used?cycle.end:today}})
+  return {campaigns,schedules,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}
 }
 const COMPANY_COOKIE='uic_diffusion_company'
 function createCompanySession(account) {
@@ -592,7 +684,7 @@ app.post('/api/admin/difusion/campaigns',requireDiffusionActor,requireDiffusionD
   }catch(error){next(error)}
 })
 async function getCampaign(id){const result=await pool.query('SELECT * FROM diffusion_campaigns WHERE id=$1',[id]);return result.rows[0]||null}
-async function cooldownFor(companyKey,benefitSlug){const result=await pool.query(`SELECT next_allowed_at FROM diffusion_campaigns WHERE company_key=$1 AND benefit_slug=$2 AND status='sent' AND next_allowed_at IS NOT NULL ORDER BY sent_at DESC LIMIT 1`,[companyKey,benefitSlug]);return result.rows[0]?.next_allowed_at||null}
+async function cooldownFor(companyKey,benefitSlug){const slot=await benefitSlotStatus(companyKey,benefitSlug);return slot.allowed?null:argentinaMidnightUtc(slot.nextAllowed)}
 app.get('/api/admin/difusion/campaigns',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const status=safeText(req.query.status,30);const result=await pool.query(`SELECT c.*,COALESCE((SELECT json_agg(json_build_object('filename',f.filename,'mimeType',f.mime_type,'sizeBytes',f.size_bytes,'placement',f.placement) ORDER BY f.position,f.id) FROM diffusion_campaign_files f WHERE f.campaign_id=c.id),'[]'::json) AS files FROM diffusion_campaigns c ${status?'WHERE c.status=$1':''} ORDER BY c.created_at DESC LIMIT 100`,status?[status]:[]);res.json(result.rows)}catch(error){next(error)}})
 app.post('/api/admin/difusion/campaigns/:id/test',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
   try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Comunicación no encontrada'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a esta comunicación.'});if(campaign.safety_status==='blocked')return res.status(400).json({error:'El contenido fue bloqueado por el control automático y debe corregirse.'});const code=sixDigitCode();const expires=new Date(Date.now()+30*60*1000);const media=await campaignMedia(id);const html=campaignEmailHtml(campaign,media.inlineFiles);await sendDiffusionMail({to:campaign.originator_email,subject:`[PRUEBA · NO ENVIADO A SOCIOS] ${campaign.subject}`,html:`<div style="background:#fff5cc;padding:14px;border:1px solid #e8c44a"><strong>PRUEBA DE DIFUSIÓN UIC</strong><br>Este envío es sólo para revisar la publicación. No consume el cupo mensual y no fue enviado a socios.<div style="margin-top:14px;font-size:13px">Para confirmar que este correo pertenece realmente a la empresa, copiá este código en el Portal:</div><div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:14px">${code}</div><small>Vence en 30 minutos y cambia en cada nueva prueba.</small></div>${html}`,attachments:media.all});const result=await pool.query(`UPDATE diffusion_campaigns SET test_sent_at=NOW(),test_code_hash=$2,test_code_expires_at=$3,test_verified_at=NULL,updated_at=NOW() WHERE id=$1 RETURNING *`,[id,codeHash(code,`campaign-test:${id}:${campaign.originator_email}`),expires]);res.json({...result.rows[0],testCodeRequired:true})}catch(error){next(error)}
@@ -606,13 +698,27 @@ app.post('/api/admin/difusion/campaigns/:id/request-approval',requireDiffusionAc
 app.post('/api/admin/difusion/campaigns/:id/reject',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const id=safeId(req.params.id);if(!id)return res.status(400).json({error:'Comunicación inválida'});const result=await pool.query(`UPDATE diffusion_campaigns SET status='rejected',rejected_at=NOW(),safety_notes=$2,updated_at=NOW() WHERE id=$1 AND status='pending' RETURNING *`,[id,safeText(req.body.reason,500)||'Rechazada por validación administrativa.']);if(!result.rows[0])return res.status(409).json({error:'La comunicación ya no está pendiente.'});res.json(result.rows[0])}catch(error){next(error)}})
 app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{
   try{
-    const massEnabled=await massDiffusionEnabled();const requiredWord=massEnabled?'ENVIAR':'VALIDAR';if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la confirmación.`});const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign||campaign.status!=='pending')return res.status(409).json({error:'La comunicación no está pendiente de validación.'});if(campaign.safety_status==='blocked'||!campaign.test_verified_at)return res.status(400).json({error:'La comunicación no superó todos los controles previos.'});const nextAllowed=await cooldownFor(campaign.company_key,campaign.benefit_slug);if(nextAllowed&&new Date(nextAllowed)>new Date())return res.status(409).json({error:`Este beneficio podrá volver a enviar a partir del ${new Date(nextAllowed).toLocaleDateString('es-AR')}.`,nextAllowed})
-    const media=await campaignMedia(id);const baseHtml=campaignEmailHtml(campaign,media.inlineFiles);await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>Esta copia confirma que la comunicación fue validada.</div>${baseHtml}`,attachments:media.all})
-    const pilot=diffusionConfig.testCompanies?.find(c=>c.key===PILOT_COMPANY_KEY);const pilotEmail=normalizeEmail(pilot?.email);const origin=normalizeEmail(campaign.originator_email)
-    if(!massEnabled){let pilotRecipients=0;if(validEmail(pilotEmail)&&pilotEmail!==origin){await sendDiffusionMail({to:pilotEmail,subject:`[PILOTO MASIVO] ${campaign.subject}`,html:`<div style="background:#eef7fb;padding:12px;border:1px solid #7cb7d2"><strong>PILOTO DE DISTRIBUCIÓN</strong><br>El padrón general está deshabilitado. Tecno Logisti-K SA es el único destino de control masivo.</div>${baseHtml}`,attachments:media.all});pilotRecipients=1}const result=await pool.query(`UPDATE diffusion_campaigns SET status='approved_pilot',approved_at=NOW(),recipient_count=$2,updated_at=NOW() WHERE id=$1 RETURNING *`,[id,pilotRecipients]);return res.json({...result.rows[0],sentToOriginator:true,pilotMassRecipients:pilotRecipients,massSent:false,pilot:true})}
-    const rows=(await pool.query(`SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE enabled=TRUE AND email_valid=TRUE AND email<>'' AND opted_out_at IS NULL ORDER BY company_name,id`)).rows;const byEmail=new Map();for(const r of rows){const e=normalizeEmail(r.email);if(validEmail(e)&&!byEmail.has(e))byEmail.set(e,r)};if(validEmail(pilotEmail)&&!byEmail.has(pilotEmail)){const pilotRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[pilotEmail])).rows[0];if(pilotRow)byEmail.set(pilotEmail,pilotRow)};byEmail.delete(origin);byEmail.delete(normalizeEmail(process.env.DIFFUSION_APPROVAL_EMAIL||diffusionConfig.approvalEmail||'tesoreria@uic-campana.com.ar'))
-    let sent=0;const base=publicBaseUrl(req);for(const [email,recipient] of byEmail){const token=unsubscribeToken(recipient);const unsubscribe=`${base}/api/difusion/unsubscribe?id=${recipient.id}&token=${encodeURIComponent(token)}`;await sendDiffusionMail({to:email,subject:campaign.subject,html:campaignEmailHtml(campaign,media.inlineFiles,unsubscribe),attachments:media.all});sent++}
-    const sentAt=new Date();const nextAllowedAt=addCalendarMonth(sentAt);const result=await pool.query(`UPDATE diffusion_campaigns SET status='sent',approved_at=NOW(),sent_at=$2,next_allowed_at=$3,recipient_count=$4,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,sentAt,nextAllowedAt,sent]);await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id]);res.json({...result.rows[0],sentToOriginator:true,recipients:sent,massSent:true,pilot:false})
+    const massEnabled=await massDiffusionEnabled(); const requiredWord=massEnabled?'ENVIAR':'VALIDAR'; if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la confirmación.`})
+    const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign||campaign.status!=='pending')return res.status(409).json({error:'La comunicación no está pendiente de validación.'}); if(campaign.safety_status==='blocked'||!campaign.test_verified_at)return res.status(400).json({error:'La comunicación no superó todos los controles previos.'})
+    const slot=await benefitSlotStatus(campaign.company_key,campaign.benefit_slug); if(!slot.allowed)return res.status(409).json({error:`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${slot.nextAllowed.split('-').reverse().join('/')}. Los meses no son acumulativos.`,nextAllowed:slot.nextAllowed})
+    const media=await campaignMedia(id); const baseHtml=campaignEmailHtml(campaign,media.inlineFiles)
+    await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.</div>${baseHtml}`,attachments:media.all})
+    const recipients=await buildQueueRecipients(campaign,massEnabled)
+    const client=await pool.connect()
+    try{
+      await client.query('BEGIN'); const schedule=await authorizeBenefitSlot(client,campaign); const queued=await queueCampaign(client,campaign,recipients,schedule.nextAllowed); await client.query('COMMIT')
+      const monitor=await monitorPayload(campaign.company_key); const mine=monitor.campaigns.find(item=>String(item.id)===String(id))
+      res.json({...queued,queued:true,massMode:massEnabled?'general':'pilot_tlk',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine})
+    }catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
+  }catch(error){next(error)}
+})
+
+app.get('/api/difusion/company/monitor',requireCompany,requireDiffusionDatabase,async(req,res,next)=>{try{res.json(await monitorPayload(req.companySession.companyKey))}catch(error){next(error)}})
+app.get('/api/admin/difusion/monitor',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const companyKey=safeText(req.query.companyKey,180);if(!companyKey)return res.status(400).json({error:'Indicá la empresa a consultar.'});res.json(await monitorPayload(companyKey))}catch(error){next(error)}})
+app.post('/api/admin/difusion/campaigns/:id/cancel',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Envío no encontrado.'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a este envío.'});if(!['queued','sending'].includes(campaign.status))return res.status(409).json({error:'Este envío ya no puede cancelarse.'});const nextAllowed=campaign.next_allowed_at?dateOnly(campaign.next_allowed_at):null
+    if(campaign.status==='queued'){const cancelled=await finishCancelledCampaign(id);return res.json({...cancelled,cancelled:true,nextAllowed})}
+    const result=await pool.query(`UPDATE diffusion_campaigns SET cancel_requested_at=NOW(),queue_note='Cancelación solicitada. Se detendrá antes del próximo correo pendiente.',updated_at=NOW() WHERE id=$1 RETURNING *`,[id]);res.json({...result.rows[0],cancelRequested:true,nextAllowed,note:'Los correos ya enviados no pueden retirarse. Si había un correo en transmisión al momento de cancelar, ese envío puede completarse; no se iniciarán nuevos destinatarios.'})
   }catch(error){next(error)}
 })
 
@@ -745,9 +851,15 @@ app.use((error, req, res, _next) => {
 try {
   await initializeDatabase()
   databaseAvailable = Boolean(pool)
+  if(pool&&databaseAvailable){
+    await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='failed',failed_at=NOW(),error_text='Envío interrumpido durante reinicio: no se reintenta automáticamente para evitar una copia duplicada.',updated_at=NOW() WHERE status='sending'`)
+    await pool.query(`UPDATE diffusion_campaigns c SET status='queued',queue_note='Reanudado después de reinicio del servicio',sent_count=(SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.status='sent'),failed_count=(SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.status='failed'),recipient_count=(SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.status='sent'),updated_at=NOW() WHERE c.status='sending' AND c.cancel_requested_at IS NULL`)
+    const cancelledOnRestart=(await pool.query(`SELECT id FROM diffusion_campaigns WHERE status='sending' AND cancel_requested_at IS NOT NULL`)).rows;for(const row of cancelledOnRestart)await finishCancelledCampaign(row.id)
+  }
 } catch (error) {
   databaseAvailable = false
   console.error(`Neon no pudo inicializarse; el portal continuará con catálogo local y reintentará en las consultas (${error.code || error.message})`)
 }
+const queueTimer=setInterval(()=>processDiffusionQueue().catch(error=>console.error(`Cola de difusión: ${error.code||error.message}`)),DIFFUSION_SEND_INTERVAL_MS);queueTimer.unref?.()
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`Beneficios UIC NUEVO v${VERSION} · ${GENERATION} · puerto ${PORT}`))
 process.on('SIGTERM', async () => { server.close(); await pool?.end(); process.exit(0) })

@@ -193,3 +193,44 @@ CREATE TABLE IF NOT EXISTS diffusion_company_accounts (
   UNIQUE(company_key,email)
 );
 CREATE INDEX IF NOT EXISTS diffusion_company_accounts_company_idx ON diffusion_company_accounts(company_key, active);
+
+-- v3.9.5 · cola durable, monitor, cancelación y calendario mensual fijo por beneficio
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS queue_started_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS cancel_requested_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS sent_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS failed_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS total_recipients INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS last_progress_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS queue_note TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS diffusion_campaign_queue_recipients (
+  id BIGSERIAL PRIMARY KEY,
+  campaign_id BIGINT NOT NULL REFERENCES diffusion_campaigns(id) ON DELETE CASCADE,
+  recipient_id BIGINT REFERENCES diffusion_recipients(id) ON DELETE SET NULL,
+  email TEXT NOT NULL,
+  company_name TEXT NOT NULL DEFAULT '',
+  contact_name TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  sent_at TIMESTAMPTZ,
+  failed_at TIMESTAMPTZ,
+  error_text TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(campaign_id,email)
+);
+CREATE INDEX IF NOT EXISTS diffusion_queue_recipient_campaign_idx ON diffusion_campaign_queue_recipients(campaign_id,status,id);
+
+CREATE TABLE IF NOT EXISTS diffusion_benefit_schedules (
+  company_key TEXT NOT NULL,
+  benefit_slug TEXT NOT NULL,
+  anchor_date DATE NOT NULL,
+  last_authorized_at TIMESTAMPTZ,
+  last_campaign_id BIGINT REFERENCES diffusion_campaigns(id) ON DELETE SET NULL,
+  next_slot_at DATE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY(company_key,benefit_slug)
+);
+CREATE INDEX IF NOT EXISTS diffusion_campaign_queue_idx ON diffusion_campaigns(status,approved_at,id);

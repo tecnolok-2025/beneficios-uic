@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.4 son coherentes', async () => {
+test('10 · versión y generación 3.9.5 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.4')
-  assert.match(server, /BENEFICIOS_UIC_394/)
-  assert.match(html, /BENEFICIOS_UIC_394/)
+  assert.equal(pkg.version, '3.9.5')
+  assert.match(server, /BENEFICIOS_UIC_395/)
+  assert.match(html, /BENEFICIOS_UIC_395/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -498,16 +498,16 @@ test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', 
   assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.4 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.5 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.4')
+  assert.equal(pkg.version, '3.9.5')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_394/)
-  assert.match(server, /BENEFICIOS_UIC_394/)
+  assert.match(index, /BENEFICIOS_UIC_395/)
+  assert.match(server, /BENEFICIOS_UIC_395/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -669,4 +669,48 @@ test('66 · pantalla beneficiario explica minuciosamente registro, recuperación
   assert.match(app, /Enviar código de recuperación/)
   assert.match(app, /Esta empresa no tiene correo registrado para el acceso/)
   assert.match(app, /el código vence a los 15 minutos/i)
+})
+
+
+test('67 · v3.9.5 incorpora cola durable y monitor de envíos por empresa', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  const app = await read('src/App.jsx')
+  assert.match(schema, /diffusion_campaign_queue_recipients/)
+  assert.match(schema, /diffusion_benefit_schedules/)
+  assert.match(server, /processDiffusionQueue/)
+  assert.match(server, /monitorPayload/)
+  assert.match(server, /\/api\/difusion\/company\/monitor/)
+  assert.match(app, /MONITOR DE ENVÍOS/)
+  assert.match(app, /posición en cola/)
+})
+
+test('68 · cancelación detiene pendientes y conserva enviados', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /cancel_requested_at/)
+  assert.match(server, /finishCancelledCampaign/)
+  assert.match(server, /status='cancelled'/)
+  assert.match(app, /Cancelar envío/)
+  assert.match(app, /Los correos ya enviados no pueden retirarse/)
+})
+
+test('69 · ciclo mensual queda anclado a la autorización y no acumula meses', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  const schema = await read('server/schema.sql')
+  assert.match(server, /monthlyCycle/)
+  assert.match(server, /authorizeBenefitSlot/)
+  assert.match(schema, /anchor_date DATE NOT NULL/)
+  assert.match(app, /Una oportunidad por mes, sin acumulación/)
+  assert.match(app, /la próxima fecha sigue siendo la fecha mensual original/)
+})
+
+test('70 · cola calcula estimaciones y reanuda tras reinicio', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /estimatedStartAt/)
+  assert.match(server, /estimatedFinishAt/)
+  assert.match(server, /DIFFUSION_SEND_INTERVAL_MS/)
+  assert.match(server, /Reanudado después de reinicio del servicio/)
+  assert.match(server, /no se reintenta automáticamente para evitar una copia duplicada/)
 })

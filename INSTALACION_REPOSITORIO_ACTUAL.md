@@ -1,13 +1,14 @@
-# Instalación v3.9.4 en el repositorio y Render actuales
+# Instalación v3.9.5 en el repositorio y Render actuales
 
-Esta entrega reemplaza v3.9.2 y conserva el servicio Render, la URL y la base PostgreSQL/Neon. La migración es **aditiva**: crea estructuras para cuentas de empresa, códigos temporales, baja de destinatarios, imágenes embebidas y control del modo masivo sin borrar el catálogo ni el padrón.
+Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base PostgreSQL/Neon actuales. La migración es **aditiva**: incorpora cola persistente, monitor de avance, cancelación y calendario mensual fijo por beneficio sin eliminar catálogo, padrón, cuentas ni campañas existentes.
 
 ## GitHub / Render
 
-1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.2**.
-2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables actuales.
+1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.4**.
+2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables de Difusión existentes.
 3. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-4. El arranque debe informar `Beneficios UIC NUEVO v3.9.4 · BENEFICIOS_UIC_394`.
+4. El arranque debe informar `Beneficios UIC NUEVO v3.9.5 · BENEFICIOS_UIC_395`.
+5. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
 
@@ -20,58 +21,90 @@ DIFFUSION_FROM_EMAIL=tesoreria@uic-campana.com.ar
 DIFFUSION_FROM_NAME=Unión Industrial de Campana · Beneficios
 DIFFUSION_APPROVAL_EMAIL=tesoreria@uic-campana.com.ar
 DIFFUSION_MAIL_SECRET=<secreto estable, largo y privado>
+DIFFUSION_SEND_INTERVAL_MS=5000
 ```
+
+`DIFFUSION_SEND_INTERVAL_MS` es opcional. `5000` significa que la cola intenta iniciar como máximo un nuevo destinatario aproximadamente cada 5 segundos. El tiempo real puede variar por la respuesta del servidor SMTP; el monitor muestra una **estimación orientativa**, no una promesa exacta.
 
 `DIFFUSION_MAIL_SECRET` cifra la clave SMTP almacenada desde **Difusión > Correo emisor**. No debe guardarse en GitHub y no debe cambiarse después de guardar la clave SMTP, salvo que se vuelva a cargar esa configuración.
 
-La dirección provisional de emisión y validación es `tesoreria@uic-campana.com.ar`. Cuando exista `beneficios@uic-campana.com.ar`, puede reemplazarse desde la configuración y la variable de aprobación. El correo institucional general UIC **no se usa para este circuito privado ni para identificar empresas**.
+La dirección provisional de emisión y validación es `tesoreria@uic-campana.com.ar`. Cuando exista `beneficios@uic-campana.com.ar`, puede reemplazarse desde la configuración y la variable de aprobación. El correo institucional general UIC no se utiliza para este circuito privado ni para identificar empresas.
 
-## Correo emisor
+## Flujo v3.9.5
 
-Desde **Difusión de Beneficios > Correo emisor** configurar SMTP, puerto, SSL/TLS, usuario, contraseña/clave de aplicación, remitente y dirección de prueba. Guardar y ejecutar primero **Enviar prueba técnica**.
+1. La empresa ingresa con su cuenta propia.
+2. Prepara el beneficio, guarda el borrador y envía la prueba obligatoria.
+3. Verifica el código de 6 dígitos recibido en su correo.
+4. Solicita validación UIC.
+5. El administrador aprueba en **Validaciones**.
+6. La empresa recibe primero la copia final que confirma la aprobación.
+7. En ese momento la oportunidad mensual queda **consumida** y el envío entra en la cola persistente.
+8. El beneficiario ve el trabajo en **Monitor de envíos**, con posición, avance y tiempos estimados.
+9. La cola envía los destinatarios uno por uno y registra cada correo como enviado o fallido.
+10. El beneficiario puede cancelar. Los ya enviados no se revierten y los pendientes se detienen.
 
-## Registro de empresas
+## Calendario mensual fijo
 
-- El directorio de empresas es visible, pero no publica sus correos.
-- Una empresa sólo puede registrarse con un correo ya asociado a ella en el padrón/convenio/contactos válidos.
-- Si la empresa no tiene correo, el alta queda bloqueada y se indica contactar a Administración UIC.
-- Si el correo no coincide, el sistema rechaza el alta sin revelar el correo correcto.
-- Registro y recuperación usan códigos aleatorios de 6 dígitos con vencimiento.
-- Las contraseñas se guardan únicamente como hash `scrypt`.
+La primera aprobación real de cada beneficio fija su **día de referencia**.
 
-## Flujo de una difusión
+Ejemplo: primera aprobación `05/10/2026`.
 
-1. Empresa ingresa con su propia cuenta.
-2. Selecciona uno de sus beneficios.
-3. Guarda el borrador.
-4. Envía obligatoriamente una prueba a su propio correo registrado.
-5. El correo de prueba contiene un código aleatorio de 6 dígitos.
-6. La empresa copia el código en el portal. Sin código verificado no puede solicitar validación.
-7. La solicitud llega al correo privado UIC de validación.
-8. El administrador aprueba o rechaza en **Validaciones**.
-9. Al aprobar, la empresa recibe primero la versión final como confirmación.
-10. Si el modo masivo está deshabilitado, sólo TECNO LOGISTI-K SA actúa como destino piloto/control; no se distribuye al padrón general.
-11. Si el administrador habilita masivos escribiendo `HABILITAR`, se distribuye al padrón activo, deduplicando correos.
+- Ciclo 1: 05/10/2026 → 05/11/2026.
+- Ciclo 2: 05/11/2026 → 05/12/2026.
+- Ciclo 3: 05/12/2026 → 05/01/2027.
 
-La prueba y las validaciones piloto no consumen el cupo mensual. El plazo se registra únicamente después de una distribución real al padrón.
+Si el correo aprobado el día 5 recién empieza a distribuirse el día 20 por estar en cola, la próxima oportunidad sigue siendo el día 5 del mes siguiente.
 
-## Destinatarios y bajas
+Si se cancela el envío el día 20 después de haber enviado parte del padrón, la próxima oportunidad también sigue siendo el día 5 del mes siguiente.
 
-Cada empresa del padrón conserva su casilla **Recibe comunicaciones**. Los correos repetidos se deduplican en el momento del envío. Cada correo final incluye un enlace de baja; al utilizarlo queda registrado **Deshabilitado por el destinatario**. La baja no se revierte por una importación automática; sólo el administrador puede rehabilitarla explícitamente. TECNO LOGISTI-K SA permanece habilitada como destino de control.
+Si una empresa no utiliza la oportunidad de noviembre, **no obtiene dos oportunidades en diciembre**. Los meses no se acumulan.
 
-## Imágenes y adjuntos
+Para referencias en días 29, 30 o 31, un mes más corto utiliza su último día válido y, cuando el calendario vuelve a permitirlo, recupera el día de referencia original.
 
-El cuerpo admite hasta 4 imágenes JPG/PNG embebidas, con recomendación de formato vertical. En forma separada se mantienen hasta 3 adjuntos JPG/PNG/PDF. El asunto es institucional y no puede ser modificado por la empresa.
+## Monitor y cancelación
 
-## Navegación y mantenimiento
+El monitor muestra por cada trabajo:
 
-Las pestañas administrativas permanecen montadas para evitar la demora de recarga observada en v3.9.1. Si Neon no está disponible pero Render sigue ejecutándose, el módulo muestra mantenimiento institucional. Para una caída total de Render sigue siendo necesario configurar posteriormente el fallback externo en Cloudflare usando la página estática incluida.
+- `EN COLA`, `ENVIANDO`, `FINALIZADO` o `CANCELADO`;
+- enviados / total;
+- pendientes;
+- correos con error;
+- posición en la cola global;
+- inicio estimado;
+- finalización estimada;
+- próxima oportunidad mensual.
 
+La pantalla se actualiza automáticamente mientras permanece abierta.
 
-### Prueba específica v3.9.4
-1. Abrir `Difusión de Beneficios`.
-2. Confirmar que aparezcan las opciones **Como administrador** y **Como beneficiario**.
-3. Elegir beneficiario y verificar que se muestre la guía completa y el directorio sin solicitar `ADMIN_PASSWORD`.
-4. Elegir TECNO LOGISTI-K SA y probar registro/ingreso con su correo autorizado.
-5. Volver a **Cambiar tipo de acceso**, elegir administrador y comprobar que solicita la clave si la sesión administrativa fue cerrada.
-6. Navegar Portal → Difusión → Portal varias veces y confirmar que ninguna pantalla requiera F5, Enter ni recarga manual.
+Al cancelar un trabajo en curso puede existir **como máximo un correo que ya se encuentre técnicamente en transmisión** y que alcance a completarse. Después de la solicitud de cancelación no se inicia ningún nuevo destinatario.
+
+## Persistencia y reinicios
+
+La cola vive en Neon. Si Render se reinicia durante una campaña:
+
+- el trabajo no se pierde;
+- un destinatario que hubiera quedado exactamente en estado `sending` se marca como fallido/indeterminado y **no se reenvía automáticamente**, para evitar una copia duplicada si el SMTP alcanzó a aceptarlo antes del reinicio;
+- la campaña retorna a cola y continúa con los destinatarios pendientes siguientes;
+- no se reinicia desde cero la lista completa.
+
+## Modo piloto
+
+Con `DIFFUSION_MASS_SEND_ENABLED=false`, el padrón general continúa bloqueado y **TECNO LOGISTI-K SA** es el único destino de control masivo. La cola, el monitor, la cancelación y el calendario mensual pueden probarse sin habilitar el padrón completo.
+
+## Prueba específica v3.9.5
+
+1. Entrar en **Difusión de Beneficios > Como beneficiario** con TECNO LOGISTI-K SA.
+2. Preparar una comunicación, enviar prueba y verificar código.
+3. Entrar como administrador y aprobarla.
+4. Volver como beneficiario y confirmar que aparece en **Monitor de envíos**.
+5. Verificar estado `EN COLA` o `ENVIANDO`, avance y próxima oportunidad.
+6. Para probar cancelación, utilizar un intervalo suficientemente amplio o un trabajo con varios destinatarios en un entorno controlado.
+7. Confirmar que cancelar no modifica la próxima fecha mensual.
+8. Confirmar que un mes no utilizado no genera un cupo adicional en el siguiente.
+
+## Validaciones realizadas antes de entregar
+
+- `npm test`: 70/70 pruebas aprobadas.
+- `node --check server/index.js`: aprobado.
+- Parseo JSX con TypeScript (`jsx: preserve`, sin emisión): aprobado.
+- `npm run build`: no pudo completarse localmente porque `npm ci` volvió a interrumpirse por timeout antes de instalar Vite. Render continuará ejecutando su instalación y build normal durante el despliegue.

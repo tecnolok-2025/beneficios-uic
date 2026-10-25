@@ -1,10 +1,24 @@
-> **Revisión actual: v3.9.4 · BENEFICIOS_UIC_394 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.5 · BENEFICIOS_UIC_395 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
+
+
+## Revisión v3.9.5 · 25/10/2026
+
+- Incorpora un **Monitor de envíos** visible para cada empresa y para el administrador en modo “Ver como empresa”.
+- Cada comunicación aprobada entra en una **cola persistente en Neon**. El monitor muestra estado, posición, enviados/total, pendientes, errores, inicio estimado y finalización estimada.
+- La cola procesa los destinatarios de a uno y registra cada resultado, lo que permite cancelar un trabajo en espera o en curso sin repetir correos ya enviados.
+- **Cancelar no devuelve el cupo mensual**: los correos enviados quedan enviados, los pendientes se detienen y la próxima oportunidad conserva la fecha mensual original.
+- El calendario deja de depender de la fecha real de finalización. La **primera aprobación fija el día de referencia** del beneficio. Ejemplo: si la primera autorización es el día 5, los ciclos siguientes comienzan siempre el día 5, aunque el envío se complete el 20.
+- Los meses **no son acumulativos**. Si una empresa no utiliza la oportunidad de un ciclo, la pierde; en el ciclo siguiente vuelve a tener una sola oportunidad.
+- Para días 29, 30 o 31, los meses más cortos utilizan su último día válido y luego recuperan el día original cuando el calendario vuelve a permitirlo.
+- La cola se recupera después de un reinicio del servicio: un destinatario que estaba “enviando” vuelve a pendiente y el trabajo continúa sin reiniciar toda la campaña.
+- El ritmo de cálculo del monitor usa `DIFFUSION_SEND_INTERVAL_MS` (por defecto `5000` ms por correo) para estimaciones orientativas.
+- El modo piloto sigue vigente: con masivos apagados, la cola se prueba únicamente contra **TECNO LOGISTI-K SA**.
 
 
 ## Revisión v3.9.4 · 25/10/2026
@@ -117,8 +131,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.4`
-- **Generación:** `BENEFICIOS_UIC_394`
+- **Versión:** `3.9.5`
+- **Generación:** `BENEFICIOS_UIC_395`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -136,6 +150,12 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.5
+- Cola persistente de envío y monitor por beneficiario.
+- Cancelación de trabajos pendientes/en curso preservando los ya enviados.
+- Calendario mensual fijo por beneficio, anclado a la primera autorización y sin acumulación de meses.
+- Estimaciones de inicio/finalización y recuperación de cola tras reinicios.
 
 ### v3.9.4
 - Selector de rol administrador / beneficiario al entrar a Difusión.
