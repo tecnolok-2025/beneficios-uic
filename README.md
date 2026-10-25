@@ -1,9 +1,24 @@
-> **Revisión actual: v3.9.1 · BENEFICIOS_UIC_391 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.2 · BENEFICIOS_UIC_392 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
+
+
+## Revisión v3.9.2 · 25/10/2026
+
+- Corrige la navegación de **Empresas / Destinatarios / Validaciones / Correo emisor**: las áreas quedan montadas y precargadas, evitando la reconsulta completa a Neon cada vez que se cambia de pestaña.
+- **Destinatarios, Validaciones y Correo emisor** quedan definidos como herramientas exclusivamente administrativas. La futura cuenta de empresa no tendrá acceso a ellas.
+- Mantiene **TECNO LOGISTI-K SA** como única empresa piloto habilitada para preparar comunicaciones durante la etapa de construcción.
+- Incorpora una pantalla administrativa **Correo emisor** para configurar SMTP, guardar la clave cifrada en Neon y realizar una prueba técnica sin utilizar el padrón.
+- La casilla provisoria prevista es `tesoreria@uic-campana.com.ar`; la pantalla permite reemplazarla posteriormente por `beneficios@uic-campana.com.ar`.
+- El asunto queda fijo y generado por servidor: **Nuevo beneficio exclusivo UIC · [empresa]**. La empresa sólo puede editar el cuerpo y adjuntos.
+- La prueba de correo es obligatoria: sin `test_sent_at` no puede solicitarse validación UIC.
+- En modo piloto, una validación envía la copia final únicamente al originador y **NO distribuye al padrón**. El envío masivo requiere `DIFFUSION_MASS_SEND_ENABLED=true`, que debe permanecer `false` hasta la habilitación definitiva.
+- La aprobación piloto no consume el cupo mensual, porque el padrón general todavía no recibió la comunicación.
+- La pantalla **Elegí tu empresa** incorpora una guía didáctica completa del circuito.
+- Se mejora el mensaje institucional de mantenimiento y se incluye `public/maintenance.html` como página estática de respaldo.
 
 ## Revisión v3.9.1 · 24/10/2026
 
@@ -71,8 +86,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.1`
-- **Generación:** `BENEFICIOS_UIC_391`
+- **Versión:** `3.9.2`
+- **Generación:** `BENEFICIOS_UIC_392`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8

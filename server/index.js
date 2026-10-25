@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_391'
+const GENERATION = 'BENEFICIOS_UIC_392'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -259,18 +259,66 @@ function fileSignatureMatches(file) {
   if (file.mimetype === 'application/pdf') return b.slice(0,5).toString() === '%PDF-'
   return false
 }
-function diffusionMailReady() {
-  return String(process.env.DIFFUSION_SEND_ENABLED || '').toLowerCase() === 'true' && Boolean(process.env.SMTP_USER && process.env.SMTP_PASS)
+function massDiffusionEnabled() {
+  return String(process.env.DIFFUSION_MASS_SEND_ENABLED || '').toLowerCase() === 'true'
 }
-function createMailer() {
-  if (!diffusionMailReady()) return null
-  return nodemailer.createTransport({
+function mailEncryptionKey() {
+  return crypto.createHash('sha256').update(String(process.env.DIFFUSION_MAIL_SECRET || process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || 'uic-difusion-desarrollo')).digest()
+}
+function encryptMailSecret(value) {
+  if (!value) return ''
+  const iv = crypto.randomBytes(12)
+  const cipher = crypto.createCipheriv('aes-256-gcm', mailEncryptionKey(), iv)
+  const encrypted = Buffer.concat([cipher.update(String(value), 'utf8'), cipher.final()])
+  const tag = cipher.getAuthTag()
+  return `v1.${iv.toString('base64url')}.${tag.toString('base64url')}.${encrypted.toString('base64url')}`
+}
+function decryptMailSecret(value) {
+  if (!value) return ''
+  try {
+    const [version, ivText, tagText, encryptedText] = String(value).split('.')
+    if (version !== 'v1' || !ivText || !tagText || !encryptedText) return ''
+    const decipher = crypto.createDecipheriv('aes-256-gcm', mailEncryptionKey(), Buffer.from(ivText, 'base64url'))
+    decipher.setAuthTag(Buffer.from(tagText, 'base64url'))
+    return Buffer.concat([decipher.update(Buffer.from(encryptedText, 'base64url')), decipher.final()]).toString('utf8')
+  } catch { return '' }
+}
+async function diffusionMailSettings() {
+  const fallback = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: Number(process.env.SMTP_PORT || 465),
     secure: String(process.env.SMTP_SECURE || 'true').toLowerCase() !== 'false',
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-  })
+    username: process.env.SMTP_USER || '',
+    password: process.env.SMTP_PASS || '',
+    fromEmail: process.env.DIFFUSION_FROM_EMAIL || process.env.SMTP_USER || 'tesoreria@uic-campana.com.ar',
+    fromName: process.env.DIFFUSION_FROM_NAME || 'Unión Industrial de Campana · Beneficios',
+    testRecipient: process.env.DIFFUSION_TEST_RECIPIENT || ''
+  }
+  if (!pool || !databaseAvailable) return fallback
+  try {
+    const result = await pool.query('SELECT * FROM diffusion_mail_settings WHERE id=1')
+    const row = result.rows[0]
+    if (!row) return fallback
+    const storedPassword = decryptMailSecret(row.smtp_password_encrypted)
+    return {
+      host: row.smtp_host || fallback.host,
+      port: Number(row.smtp_port || fallback.port),
+      secure: Boolean(row.smtp_secure),
+      username: row.smtp_user || fallback.username,
+      password: storedPassword || fallback.password,
+      fromEmail: row.from_email || fallback.fromEmail,
+      fromName: row.from_name || fallback.fromName,
+      testRecipient: row.test_recipient || fallback.testRecipient
+    }
+  } catch { return fallback }
 }
+async function createMailer({ mass = false } = {}) {
+  if (mass && !massDiffusionEnabled()) return null
+  const config = await diffusionMailSettings()
+  if (!config.username || !config.password || !config.host || !config.port) return null
+  return { transporter: nodemailer.createTransport({ host: config.host, port: Number(config.port), secure: Boolean(config.secure), auth: { user: config.username, pass: config.password } }), config }
+}
+function campaignSubject(companyName) { return `Nuevo beneficio exclusivo UIC · ${safeText(companyName, 180)}` }
 function campaignEmailHtml(campaign) {
   const family = ['Arial','Verdana','Tahoma','Georgia'].includes(campaign.font_family) ? campaign.font_family : 'Arial'
   const size = campaign.font_size === 'large' ? 18 : campaign.font_size === 'small' ? 13 : 15
@@ -280,10 +328,15 @@ async function campaignAttachments(campaignId) {
   const result = await pool.query('SELECT filename,mime_type,file_data FROM diffusion_campaign_files WHERE campaign_id=$1 ORDER BY id', [campaignId])
   return result.rows.map(row => ({ filename: row.filename, content: row.file_data, contentType: row.mime_type }))
 }
-async function sendDiffusionMail({ to, bcc, subject, html, attachments = [] }) {
-  const transporter = createMailer()
-  if (!transporter) { const error = new Error('El envío real está deshabilitado hasta configurar la casilla emisora y activar DIFFUSION_SEND_ENABLED.'); error.status = 503; throw error }
-  return transporter.sendMail({ from: process.env.DIFFUSION_FROM_EMAIL || process.env.SMTP_USER || 'beneficios_campana@gmail.com', to, ...(bcc?.length ? { bcc } : {}), subject, html, attachments })
+async function sendDiffusionMail({ to, bcc, subject, html, attachments = [], mass = false }) {
+  const mailer = await createMailer({ mass })
+  if (!mailer) {
+    const error = new Error(mass ? 'El envío masivo continúa protegido y no está habilitado.' : 'La casilla emisora todavía no está configurada o no pudo autenticarse.')
+    error.status = 503
+    throw error
+  }
+  const from = mailer.config.fromName ? `"${mailer.config.fromName.replace(/["<>]/g, '')}" <${mailer.config.fromEmail}>` : mailer.config.fromEmail
+  return mailer.transporter.sendMail({ from, to, ...(bcc?.length ? { bcc } : {}), subject, html, attachments })
 }
 
 app.set('trust proxy', 1)
@@ -359,11 +412,45 @@ async function buildDiffusionCompanies() {
   return [...grouped.values()].sort((a,b) => a.name.localeCompare(b.name, 'es'))
 }
 
-app.get('/api/admin/difusion/settings', requireAdmin, (req, res) => res.json({
-  databaseAvailable: Boolean(pool && databaseAvailable), sendEnabled: String(process.env.DIFFUSION_SEND_ENABLED || '').toLowerCase() === 'true',
-  mailConfigured: Boolean(process.env.SMTP_USER && process.env.SMTP_PASS), approvalEmail: process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'uic@uic-campana.com.ar',
-  pilotCompanyKey: PILOT_COMPANY_KEY, maintenanceContact: diffusionConfig.maintenanceContact
-}))
+app.get('/api/admin/difusion/settings', requireAdmin, async (req, res) => {
+  const mail = await diffusionMailSettings()
+  res.json({
+    databaseAvailable: Boolean(pool && databaseAvailable), massSendEnabled: massDiffusionEnabled(), sendEnabled: massDiffusionEnabled(),
+    testSendEnabled: Boolean(mail.username && mail.password), mailConfigured: Boolean(mail.username && mail.password),
+    fromEmail: mail.fromEmail, approvalEmail: process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'uic@uic-campana.com.ar',
+    pilotCompanyKey: PILOT_COMPANY_KEY, maintenanceContact: diffusionConfig.maintenanceContact, accessRole: 'admin'
+  })
+})
+
+app.get('/api/admin/difusion/mail-settings', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
+  try {
+    const mail = await diffusionMailSettings()
+    res.json({ host: mail.host, port: mail.port, secure: mail.secure, username: mail.username, fromEmail: mail.fromEmail, fromName: mail.fromName, testRecipient: mail.testRecipient, passwordConfigured: Boolean(mail.password), massSendEnabled: massDiffusionEnabled() })
+  } catch (error) { next(error) }
+})
+app.put('/api/admin/difusion/mail-settings', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
+  try {
+    const host=safeText(req.body.host,250); const port=Number(req.body.port); const secure=Boolean(req.body.secure)
+    const username=safeText(req.body.username,250); const password=String(req.body.password||''); const fromEmail=safeText(req.body.fromEmail,250); const fromName=safeText(req.body.fromName,180); const testRecipient=safeText(req.body.testRecipient,250)
+    if (!host || !Number.isInteger(port) || port < 1 || port > 65535) return res.status(400).json({error:'Completá un servidor SMTP y puerto válidos.'})
+    if (!validEmail(username) || !validEmail(fromEmail)) return res.status(400).json({error:'El usuario SMTP y el correo remitente deben ser direcciones válidas.'})
+    if (testRecipient && !validEmail(testRecipient)) return res.status(400).json({error:'El correo de prueba no es válido.'})
+    const current=await pool.query('SELECT smtp_password_encrypted FROM diffusion_mail_settings WHERE id=1')
+    const encrypted=password ? encryptMailSecret(password) : (current.rows[0]?.smtp_password_encrypted || '')
+    await pool.query(`INSERT INTO diffusion_mail_settings (id,smtp_host,smtp_port,smtp_secure,smtp_user,smtp_password_encrypted,from_email,from_name,test_recipient,updated_at)
+      VALUES (1,$1,$2,$3,$4,$5,$6,$7,$8,NOW()) ON CONFLICT (id) DO UPDATE SET smtp_host=EXCLUDED.smtp_host,smtp_port=EXCLUDED.smtp_port,smtp_secure=EXCLUDED.smtp_secure,smtp_user=EXCLUDED.smtp_user,smtp_password_encrypted=EXCLUDED.smtp_password_encrypted,from_email=EXCLUDED.from_email,from_name=EXCLUDED.from_name,test_recipient=EXCLUDED.test_recipient,updated_at=NOW()`,[host,port,secure,username,encrypted,fromEmail,fromName||'Unión Industrial de Campana · Beneficios',testRecipient])
+    const mail=await diffusionMailSettings()
+    res.json({saved:true,passwordConfigured:Boolean(mail.password),fromEmail:mail.fromEmail})
+  } catch(error){next(error)}
+})
+app.post('/api/admin/difusion/mail-settings/test', requireAdmin, requireDiffusionDatabase, async (req,res,next)=>{
+  try {
+    const mail=await diffusionMailSettings(); const recipient=safeText(req.body.recipient,250)||mail.testRecipient||mail.fromEmail
+    if(!validEmail(recipient)) return res.status(400).json({error:'Indicá un correo válido para recibir la prueba.'})
+    await sendDiffusionMail({to:recipient,subject:'[PRUEBA] Configuración de correo · Portal de Beneficios UIC',html:`<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#17384c"><h2>Prueba de correo · Difusión de Beneficios UIC</h2><p>La configuración SMTP funciona correctamente.</p><p><strong>Remitente configurado:</strong> ${safeText(mail.fromEmail,250)}</p><p>Este mensaje es una prueba técnica y no fue enviado al padrón de socios.</p></div>`})
+    res.json({sent:true,recipient})
+  } catch(error){next(error)}
+})
 app.get('/api/admin/difusion/companies', requireAdmin, async (_req, res, next) => { try { res.json(await buildDiffusionCompanies()) } catch (error) { next(error) } })
 
 app.get('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
@@ -404,10 +491,10 @@ app.put('/api/admin/difusion/recipients/:id', requireAdmin, requireDiffusionData
 const campaignUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 3 } })
 app.post('/api/admin/difusion/campaigns', requireAdmin, requireDiffusionDatabase, campaignUpload.array('files',3), async (req, res, next) => {
   try {
-    const companyKey=safeText(req.body.companyKey,160); if (companyKey !== PILOT_COMPANY_KEY) return res.status(403).json({ error: 'En v3.9.1 sólo Tecno Logisti-K SA está habilitada como empresa de prueba.' })
+    const companyKey=safeText(req.body.companyKey,160); if (companyKey !== PILOT_COMPANY_KEY) return res.status(403).json({ error: 'En v3.9.2 sólo Tecno Logisti-K SA está habilitada como empresa de prueba.' })
     const companyName=safeText(req.body.companyName,250); const benefitSlug=safeText(req.body.benefitSlug,180); const benefitTitle=safeText(req.body.benefitTitle,300)
     const originatorName=safeText(req.body.originatorName,200); const originatorEmail=safeText(req.body.originatorEmail,250)
-    const subject=safeText(req.body.subject,300); const bodyMarkup=plainMarkup(req.body.bodyMarkup); const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily) ? req.body.fontFamily : 'Arial'; const fontSize=['small','normal','large'].includes(req.body.fontSize) ? req.body.fontSize : 'normal'
+    const subject=campaignSubject(companyName); const bodyMarkup=plainMarkup(req.body.bodyMarkup); const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily) ? req.body.fontFamily : 'Arial'; const fontSize=['small','normal','large'].includes(req.body.fontSize) ? req.body.fontSize : 'normal'
     if (!companyName || !benefitSlug || !benefitTitle || !subject || !bodyMarkup || !validEmail(originatorEmail)) return res.status(400).json({ error: 'Completá empresa, beneficio, asunto, contenido y un correo de origen válido.' })
     const allowed=new Set(['image/jpeg','image/png','application/pdf']); const files=req.files || []
     if (files.some(file => !allowed.has(file.mimetype) || !fileSignatureMatches(file))) return res.status(400).json({ error: 'Sólo se aceptan JPG, PNG y PDF válidos. El tipo real del archivo debe coincidir con su formato.' })
@@ -453,7 +540,8 @@ app.post('/api/admin/difusion/campaigns/:id/reject', requireAdmin, requireDiffus
 })
 app.post('/api/admin/difusion/campaigns/:id/approve', requireAdmin, requireDiffusionDatabase, async (req,res,next) => {
   try {
-    if(String(req.body.confirm||'').trim().toUpperCase()!=='ENVIAR') return res.status(400).json({error:'Para evitar envíos accidentales escribí ENVIAR en la confirmación.'})
+    const requiredWord=massDiffusionEnabled()?'ENVIAR':'VALIDAR'
+    if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord) return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la confirmación.`})
     const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign || campaign.status!=='pending') return res.status(409).json({error:'La comunicación no está pendiente de validación.'})
     if(campaign.safety_status==='blocked') return res.status(400).json({error:'El contenido está bloqueado por seguridad.'})
     const nextAllowed=await cooldownFor(campaign.company_key,campaign.benefit_slug); if(nextAllowed && new Date(nextAllowed)>new Date()) return res.status(409).json({error:`Este beneficio podrá volver a enviar a partir del ${new Date(nextAllowed).toLocaleDateString('es-AR')}.`,nextAllowed})
@@ -462,13 +550,17 @@ app.post('/api/admin/difusion/campaigns/:id/approve', requireAdmin, requireDiffu
     const unique=[...new Set(recipients.rows.map(x=>normalizeEmail(x.email)).filter(email=>validEmail(email)&&email!==origin&&email!==normalizeEmail(approvalEmail)))]
     const attachments=await campaignAttachments(id); const html=campaignEmailHtml(campaign)
     // Regla UIC: el primer correo final siempre llega al responsable que originó la comunicación.
-    await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html,attachments})
-    // Recién después del primer envío satisfactorio se distribuye al padrón activo, siempre en CCO.
-    await sendDiffusionMail({to:approvalEmail,bcc:unique,subject:campaign.subject,html,attachments})
+    await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>Esta copia confirma que la comunicación fue validada. En la etapa piloto todavía no se distribuye al padrón general.</div>${html}`,attachments})
+    if (!massDiffusionEnabled()) {
+      const result=await pool.query(`UPDATE diffusion_campaigns SET status='approved_pilot',approved_at=NOW(),recipient_count=0,updated_at=NOW() WHERE id=$1 RETURNING *`,[id])
+      return res.json({...result.rows[0],sentToOriginator:true,bccRecipients:0,massSent:false,pilot:true})
+    }
+    // Sólo cuando el envío masivo se habilite expresamente en Render se distribuye al padrón activo, siempre en CCO.
+    await sendDiffusionMail({to:approvalEmail,bcc:unique,subject:campaign.subject,html,attachments,mass:true})
     const sentAt=new Date(); const nextAllowedAt=addCalendarMonth(sentAt)
     const result=await pool.query(`UPDATE diffusion_campaigns SET status='sent',approved_at=NOW(),sent_at=$2,next_allowed_at=$3,recipient_count=$4,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,sentAt,nextAllowedAt,unique.length])
     await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id])
-    res.json({...result.rows[0],sentToOriginator:true,bccRecipients:unique.length})
+    res.json({...result.rows[0],sentToOriginator:true,bccRecipients:unique.length,massSent:true,pilot:false})
   } catch(error){ next(error) }
 })
 

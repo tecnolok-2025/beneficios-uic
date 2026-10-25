@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.1 son coherentes', async () => {
+test('10 · versión y generación 3.9.2 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.1')
-  assert.match(server, /BENEFICIOS_UIC_391/)
-  assert.match(html, /BENEFICIOS_UIC_391/)
+  assert.equal(pkg.version, '3.9.2')
+  assert.match(server, /BENEFICIOS_UIC_392/)
+  assert.match(html, /BENEFICIOS_UIC_392/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -454,7 +454,7 @@ test('45 · registro público sigue cerrado y envío real queda protegido en est
   const app = await read('src/App.jsx')
   const env = await read('.env.example')
   assert.match(app, /Acceso público deshabilitado/)
-  assert.match(app, /registro y recuperación de contraseña todavía no están expuestas/)
+  assert.match(app, /Destinatarios, Validaciones y Correo emisor son herramientas exclusivas del administrador/)
   assert.match(app, /Preparar difusión · Próxima etapa/)
   assert.match(env, /DIFFUSION_SEND_ENABLED=false/)
 })
@@ -493,19 +493,19 @@ test('48 · v3.9.1 mantiene Tecno Logisti-K SA como piloto y circuito prueba-val
   assert.match(server, /PRUEBA · NO ENVIADO A SOCIOS/)
   assert.match(server, /VALIDACIÓN PENDIENTE/)
   assert.match(server, /el primer correo final siempre llega al responsable/)
-  assert.match(server, /DIFFUSION_SEND_ENABLED/)
+  assert.match(server, /DIFFUSION_MASS_SEND_ENABLED/)
 })
 
-test('49 · v3.9.1 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.2 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.1')
+  assert.equal(pkg.version, '3.9.2')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_391/)
-  assert.match(server, /BENEFICIOS_UIC_391/)
+  assert.match(index, /BENEFICIOS_UIC_392/)
+  assert.match(server, /BENEFICIOS_UIC_392/)
 })
 
 test('50 · administrador puede agregar nuevos socios o convenios en el padrón privado', async () => {
@@ -514,4 +514,80 @@ test('50 · administrador puede agregar nuevos socios o convenios en el padrón 
   assert.match(app, /<option value="socio">Socio UIC<\/option>/)
   assert.match(app, /<option value="convenio">Convenio \/ no socio<\/option>/)
   assert.match(server, /\['socio','convenio','manual'\]\.includes\(requestedType\)/)
+})
+
+
+test('51 · v3.9.2 mantiene pestañas montadas para navegación inmediata', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /neo-diffusion-tab-stack/)
+  assert.match(app, /hidden=\{tab!==\'destinatarios\'\}/)
+  assert.match(app, /hidden=\{tab!==\'validaciones\'\}/)
+  assert.match(app, /hidden=\{tab!==\'correo\'\}/)
+  const styles = await read('src/styles.css')
+  assert.match(styles, /neo-diffusion-tab-stack>\[hidden\]/)
+})
+
+test('52 · Correo emisor se configura desde pantalla administrativa y guarda clave cifrada', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(app, /Correo emisor/)
+  assert.match(app, /tesoreria@uic-campana\.com\.ar/)
+  assert.match(app, /beneficios@uic-campana\.com\.ar/)
+  assert.match(server, /diffusion_mail_settings/)
+  assert.match(server, /aes-256-gcm/)
+  assert.match(server, /mail-settings\/test/)
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS diffusion_mail_settings/)
+})
+
+test('53 · asunto de difusión es institucional, automático y no editable', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /Nuevo beneficio exclusivo UIC/)
+  assert.match(app, /readOnly className="neo-readonly"/)
+  assert.match(server, /function campaignSubject/)
+  assert.match(server, /const subject=campaignSubject\(companyName\)/)
+})
+
+test('54 · prueba exitosa es obligatoria antes de solicitar validación', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /!campaign\.test_sent_at/)
+  assert.match(app, /La prueba es obligatoria/)
+  assert.match(server, /if\(!campaign\.test_sent_at\)/)
+})
+
+test('55 · piloto permite prueba y validación pero bloquea padrón general', async () => {
+  const server = await read('server/index.js')
+  const env = await read('.env.example')
+  assert.match(server, /massDiffusionEnabled/)
+  assert.match(server, /status='approved_pilot'/)
+  assert.match(server, /mass:true/)
+  assert.match(env, /DIFFUSION_MASS_SEND_ENABLED=false/)
+})
+
+test('56 · pantalla inicial explica didácticamente todo el circuito', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /function DiffusionGuide/)
+  assert.match(app, /Elegí tu empresa/)
+  assert.match(app, /Hacé obligatoriamente el modo prueba/)
+  assert.match(app, /Solicitá validación UIC/)
+  assert.match(app, /Nunca se habilita un envío sin prueba previa/)
+})
+
+test('57 · mantenimiento institucional no expone errores técnicos y tiene página estática', async () => {
+  const app = await read('src/App.jsx')
+  const maintenance = await read('public/maintenance.html')
+  assert.match(app, /Pedimos disculpas por la interrupción/)
+  assert.match(maintenance, /Estamos realizando tareas de mantenimiento/)
+  assert.match(maintenance, /María José Godoy/)
+  assert.doesNotMatch(maintenance, /Neon|Render|database|error/i)
+})
+
+test('58 · herramientas sensibles quedan identificadas como exclusivas del administrador', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Destinatarios, Validaciones y Correo emisor son herramientas exclusivas del administrador/)
+  const server = await read('server/index.js')
+  assert.match(server, /app\.get\('\/api\/admin\/difusion\/recipients', requireAdmin/)
+  assert.match(server, /app\.get\('\/api\/admin\/difusion\/mail-settings', requireAdmin/)
 })

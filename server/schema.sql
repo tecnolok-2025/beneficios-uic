@@ -140,3 +140,21 @@ CREATE TABLE IF NOT EXISTS diffusion_campaign_files (
 CREATE INDEX IF NOT EXISTS diffusion_recipients_type_idx ON diffusion_recipients(source_type, company_name);
 CREATE INDEX IF NOT EXISTS diffusion_campaigns_status_idx ON diffusion_campaigns(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS diffusion_campaigns_benefit_idx ON diffusion_campaigns(company_key, benefit_slug, sent_at DESC);
+
+-- v3.9.2 · configuración segura del correo emisor de Difusión de Beneficios
+CREATE TABLE IF NOT EXISTS diffusion_mail_settings (
+  id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  smtp_host TEXT NOT NULL DEFAULT 'smtp.gmail.com',
+  smtp_port INTEGER NOT NULL DEFAULT 465,
+  smtp_secure BOOLEAN NOT NULL DEFAULT TRUE,
+  smtp_user TEXT NOT NULL DEFAULT '',
+  smtp_password_encrypted TEXT NOT NULL DEFAULT '',
+  from_email TEXT NOT NULL DEFAULT 'tesoreria@uic-campana.com.ar',
+  from_name TEXT NOT NULL DEFAULT 'Unión Industrial de Campana · Beneficios',
+  test_recipient TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO diffusion_mail_settings (id, from_email)
+VALUES (1, 'tesoreria@uic-campana.com.ar')
+ON CONFLICT (id) DO NOTHING;

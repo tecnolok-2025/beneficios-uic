@@ -1,67 +1,47 @@
-# Instalación v3.9.1 en el repositorio y Render actuales
+# Instalación v3.9.2 en el repositorio y Render actuales
 
-Esta entrega reemplaza el código del repositorio actual, pero conserva el servicio Render, su URL, las variables de entorno y la base Neon.
+Esta entrega reemplaza el código de v3.9.1 y conserva el servicio Render, la URL y la base Neon. La migración es aditiva.
 
-## GitHub
+## GitHub / Render
 
-1. Abrir el repositorio actual conectado a `beneficios-uic.onrender.com`.
-2. Reemplazar los archivos del repositorio por el contenido de esta entrega.
-3. Subir **el contenido descomprimido** directamente a la raíz. No subir el ZIP ni una carpeta exterior.
-4. Verificar que en la raíz estén `package.json`, `render.yaml`, `server`, `src`, `public` y `data`.
-5. Confirmar los cambios en la misma rama que utiliza Render, normalmente `main`.
+1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche sobre v3.9.1.
+2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET` y las variables actuales.
+3. Los comandos siguen siendo `npm ci --include=dev && npm run build` y `npm start`.
+4. El arranque debe informar `Beneficios UIC NUEVO v3.9.2 · BENEFICIOS_UIC_392`.
 
-## Render
+## Seguridad del correo
 
-No crear otro servicio y no cambiar la base Neon.
-
-Los comandos deben continuar siendo:
+Mantener expresamente:
 
 ```text
-npm ci --include=dev && npm run build
-npm start
-```
-
-El log de arranque debe incluir `Beneficios UIC NUEVO v3.9.1 · BENEFICIOS_UIC_391`.
-
-La ruta `/api/health` debe informar `"version":"3.9.1"`, `"generation":"BENEFICIOS_UIC_391"` y, en producción, `"catalogSource":"neon"`.
-
-## Verificación funcional
-
-- En la portada debe aparecer el botón **Difusión de Beneficios**.
-- Al ingresar a `/difusion`, un visitante sin sesión debe ver la pantalla de acceso temporal restringido.
-- La misma clave administrativa de `Agregar beneficio` debe permitir el ingreso.
-- Dentro de Difusión debe verse el directorio buscable de empresas y la agrupación de sus beneficios.
-- Registro público de empresas y recuperación de contraseña deben permanecer deshabilitados en esta revisión.
-- El administrador debe poder abrir **Destinatarios**, ver socios y convenios/no socios, editar datos y destildar/habilitar cada empresa.
-- Sólo **TECNO LOGISTI-K SA** debe poder abrir el editor de difusión en esta etapa.
-- El envío real debe permanecer bloqueado mientras `DIFFUSION_SEND_ENABLED=false`.
-- Debe existir **Volver al Portal de Beneficios** tanto en el login como dentro del módulo.
-
-- El portal debe mostrar **51 beneficios** y **16 categorías**.
-- CEOP debe figurar en **Acuerdos institucionales** con Hugo López y Sandra Rodríguez.
-- TIBEST debe figurar en **Broker de seguros**.
-- Praxis debe aparecer una sola vez, en **Gestión empresarial**, como Departamento de Finanzas Corporativas UIC – Praxis Finanzas.
-- DNV debe figurar en **Certificación y calidad**.
-- El buscador debe encontrar `CEOP`, `TIBEST`, `Praxis`, `DNV`, `ISO` y `certificación`.
-- El resto del catálogo, estados y beneficios UIPBA deben conservarse.
-
-## Base de datos
-
-No borrar Neon, `DATABASE_URL` ni las demás variables existentes. El arranque inserta los tres slugs nuevos y actualiza exclusivamente la ficha existente de Praxis. No elimina otros beneficios ni flyers cargados desde Administración.
-
-## Variables nuevas de Difusión v3.9.1
-
-Mantener inicialmente:
-
-```text
+DIFFUSION_MASS_SEND_ENABLED=false
 DIFFUSION_SEND_ENABLED=false
-DIFFUSION_FROM_EMAIL=beneficios_campana@gmail.com
 DIFFUSION_APPROVAL_EMAIL=uic@uic-campana.com.ar
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=
-SMTP_PASS=
+DIFFUSION_MAIL_SECRET=<secreto estable y largo>
 ```
 
-No colocar la contraseña real de Gmail en GitHub. `SMTP_PASS` debe cargarse como secreto en Render. El envío sólo debe activarse después de probar la casilla emisora y revisar el padrón.
+`DIFFUSION_MAIL_SECRET` se usa para cifrar la contraseña SMTP guardada desde la pantalla **Difusión > Correo emisor**. No guardar ese secreto en GitHub.
+
+La casilla provisoria a configurar desde el panel es `tesoreria@uic-campana.com.ar`. En el futuro puede sustituirse por `beneficios@uic-campana.com.ar` sin modificar código.
+
+La configuración SMTP puede ingresarse desde **Correo emisor**: servidor, puerto, SSL/TLS, usuario, contraseña/clave de aplicación, remitente y correo de prueba. Guardar primero y luego ejecutar **Enviar prueba técnica**.
+
+## Flujo piloto v3.9.2
+
+- Sólo el administrador puede entrar al módulo durante esta etapa.
+- Sólo TECNO LOGISTI-K SA tiene habilitado **Preparar difusión**.
+- El asunto no es editable: `Nuevo beneficio exclusivo UIC · TECNO LOGISTI-K SA`.
+- Guardar borrador → enviar prueba al originador → revisar → solicitar validación UIC.
+- Sin prueba exitosa no se habilita la solicitud de validación.
+- Al validar, el originador recibe la copia final como confirmación.
+- Mientras `DIFFUSION_MASS_SEND_ENABLED=false`, no se envía nada al padrón y no corre el plazo mensual.
+
+## Navegación
+
+Las pestañas **Empresas y beneficios**, **Destinatarios**, **Validaciones** y **Correo emisor** permanecen montadas en segundo plano. Esto evita volver a consultar Neon al cambiar de una a otra y corrige la demora observada en v3.9.1.
+
+## Mantenimiento
+
+Si Neon no está disponible pero Render continúa ejecutándose, Difusión muestra una pantalla institucional de mantenimiento sin exponer errores técnicos. Se incluye además `/maintenance.html`.
+
+Una caída completa de Render no puede ser resuelta por una página alojada en el mismo Render. Para cubrir ese caso al 100% se deberá configurar posteriormente un fallback externo (por ejemplo Cloudflare) apuntando a la página estática incluida en esta entrega.
