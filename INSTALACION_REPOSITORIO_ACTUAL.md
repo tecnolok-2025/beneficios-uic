@@ -1,4 +1,4 @@
-# Instalación v3.9.5 en el repositorio y Render actuales
+# Instalación v3.9.7 en el repositorio y Render actuales
 
 Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base PostgreSQL/Neon actuales. La migración es **aditiva**: incorpora cola persistente, monitor de avance, cancelación y calendario mensual fijo por beneficio sin eliminar catálogo, padrón, cuentas ni campañas existentes.
 
@@ -7,7 +7,7 @@ Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base Po
 1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.4**.
 2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables de Difusión existentes.
 3. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-4. El arranque debe informar `Beneficios UIC NUEVO v3.9.5 · BENEFICIOS_UIC_395`.
+4. El arranque debe informar `Beneficios UIC NUEVO v3.9.7 · BENEFICIOS_UIC_397`.
 5. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
@@ -119,3 +119,22 @@ Después del despliegue, verificar especialmente:
 5. repetir usando el botón Atrás del navegador.
 
 Ninguno de esos pasos debe requerir F5 ni Enter. Si un navegador conserva una interfaz anterior, la v3.9.6 ejecuta recuperación automática de caché/Service Worker.
+
+
+## Revisión 3.9.7 — Constructor Visual UIC
+
+No requiere variables nuevas de entorno. La migración Neon es aditiva y se aplica al iniciar el servidor.
+
+Después del deploy verificar:
+
+1. Entrar a `Difusión de Beneficios` como beneficiario o como administrador → `Ver como empresa`.
+2. Abrir `Preparar difusión`.
+3. Confirmar que aparecen 8 modelos visuales.
+4. Probar el pegado de un texto con negritas: debe pegarse limpio y permitir aplicar formato desde la barra.
+5. Cargar 1, 2, 3 y 4 imágenes y cambiar entre modelos.
+6. Revisar `Escritorio` y `Celular`.
+7. Guardar borrador y enviar correo de prueba.
+8. Confirmar que las imágenes llegan con tamaño contenido y que la franja UIC se conserva.
+9. Probar el mensaje en Outlook y en un teléfono antes de habilitar cualquier envío masivo.
+
+El padrón general continúa sujeto al interruptor de Validaciones y a `DIFFUSION_MASS_SEND_ENABLED`.

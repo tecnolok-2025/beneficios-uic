@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.6 son coherentes', async () => {
+test('10 · versión y generación 3.9.7 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.6')
-  assert.match(server, /BENEFICIOS_UIC_396/)
-  assert.match(html, /BENEFICIOS_UIC_396/)
+  assert.equal(pkg.version, '3.9.7')
+  assert.match(server, /BENEFICIOS_UIC_397/)
+  assert.match(html, /BENEFICIOS_UIC_397/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -498,16 +498,16 @@ test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', 
   assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.6 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.7 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.6')
+  assert.equal(pkg.version, '3.9.7')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_396/)
-  assert.match(server, /BENEFICIOS_UIC_396/)
+  assert.match(index, /BENEFICIOS_UIC_397/)
+  assert.match(server, /BENEFICIOS_UIC_397/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -624,8 +624,8 @@ test('62 · cuerpo del mail acepta cuatro imágenes embebidas y adjuntos separad
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
   const schema = await read('server/schema.sql')
-  assert.match(app, /Hasta 4 figuras/)
-  assert.match(app, /inlineImages/)
+  assert.match(app, /Máximo \{layout\.imageSlots\}/)
+  assert.match(app, /imageSlots/)
   assert.match(app, /attachments/)
   assert.match(server, /maxCount:4/)
   assert.match(server, /placement/)
@@ -744,12 +744,75 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.6 tiene Error Boundary y conserva generación técnica', async () => {
+test('74 · v3.9.7 tiene Error Boundary y conserva generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.6')
+  assert.equal(pkg.version, '3.9.7')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_396/)
+  assert.match(server, /BENEFICIOS_UIC_397/)
+})
+
+test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /CONSTRUCTOR VISUAL UIC/)
+  assert.match(app, /const EMAIL_LAYOUTS = \[/)
+  for (const id of ['institutional','gallery4','duo','imageLeft','imageRight','alternating','stacked','editorial']) assert.match(app, new RegExp(`id:'${id}'`))
+  assert.match(app, /8 estructuras profesionales/)
+})
+
+test('76 · editor visual permite escribir con formato visible y pega texto sin estilos ajenos', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /function RichTextBlock/)
+  assert.match(app, /contentEditable/)
+  assert.match(app, /getData\('text\/plain'\)/)
+  assert.match(app, /removeFormat/)
+  assert.match(app, /Lo que ves aquí es lo que se respetará en el correo/)
+})
+
+test('77 · constructor conserva máximo cuatro imágenes y vista previa escritorio-celular', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /imageSlots.*\[null,null,null,null\]/)
+  assert.match(app, /VISTA PREVIA REAL/)
+  assert.match(app, />Escritorio</)
+  assert.match(app, />Celular</)
+  assert.match(styles, /neo-email-preview-shell\.mobile/)
+  assert.match(styles, /neo-preview-gallery\.four/)
+})
+
+test('78 · servidor persiste plantilla y layout estructurado y sanea el HTML enriquecido', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(server, /EMAIL_TEMPLATE_IDS/)
+  assert.match(server, /sanitizeRichHtml/)
+  assert.match(server, /sanitizeLayout/)
+  assert.match(server, /template_id,layout_json/)
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS template_id/)
+  assert.match(schema, /ADD COLUMN IF NOT EXISTS layout_json JSONB/)
+})
+
+test('79 · correo final usa tablas compatibles con email y evita CSS grid en el render servidor', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /role="presentation"/)
+  assert.match(server, /function emailGallery/)
+  assert.match(server, /max-width:680px/)
+  const renderer = server.slice(server.indexOf('function campaignEmailHtml'), server.indexOf('async function campaignMedia'))
+  assert.doesNotMatch(renderer, /display:grid/)
+})
+
+test('80 · asistente de composición recomienda modelo según cantidad de imágenes', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Asistente de composición UIC/)
+  assert.match(app, /const recommended=imageCount>=3\?'gallery4':imageCount===2\?'duo'/)
+  assert.match(app, /Aplicar recomendación/)
+})
+
+test('81 · imágenes del constructor se reducen antes de enviarse al servidor', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /async function optimizeEmailImage/)
+  assert.match(app, /maxWidth=900,maxHeight=1200/)
+  assert.match(app, /canvas\.toBlob/)
+  assert.match(app, /reducción automática/)
 })

@@ -234,3 +234,7 @@ CREATE TABLE IF NOT EXISTS diffusion_benefit_schedules (
   PRIMARY KEY(company_key,benefit_slug)
 );
 CREATE INDEX IF NOT EXISTS diffusion_campaign_queue_idx ON diffusion_campaigns(status,approved_at,id);
+
+-- v3.9.7 · Constructor Visual UIC por plantillas
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT 'institutional';
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS layout_json JSONB NOT NULL DEFAULT '{}'::jsonb;

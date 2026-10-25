@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_396'
+const GENERATION = 'BENEFICIOS_UIC_397'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -359,16 +359,74 @@ async function createMailer() {
 function campaignSubject(companyName) { return `Nuevo beneficio exclusivo UIC · ${safeText(companyName, 180)}` }
 function unsubscribeToken(recipient) { return codeHash(`${recipient.id}:${normalizeEmail(recipient.email)}`, 'unsubscribe') }
 function publicBaseUrl(req) { return String(process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/,'') }
+const EMAIL_TEMPLATE_IDS = new Set(['institutional','gallery4','duo','imageLeft','imageRight','alternating','stacked','editorial'])
+const EMAIL_BLOCK_KEYS = ['headline','intro','body','body2','closing']
+function decodeBasicEntities(value='') {
+  return String(value).replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'")
+}
+function escapeHtml(value='') { return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
+function sanitizeRichHtml(value='') {
+  let source=String(value||'').replace(/<!--[\s\S]*?-->/g,'').replace(/<(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\/\1\s*>/gi,'')
+  const allowed=new Set(['p','br','strong','b','em','i','u','ul','ol','li','h2','h3','a','div'])
+  const out=[]; const tokens=source.match(/<[^>]*>|[^<]+/g)||[]
+  for(const token of tokens){
+    if(!token.startsWith('<')){out.push(escapeHtml(decodeBasicEntities(token)));continue}
+    const closing=/^<\s*\//.test(token); const match=token.match(/^<\s*\/?\s*([a-z0-9]+)/i); if(!match)continue
+    let tag=match[1].toLowerCase(); if(!allowed.has(tag))continue; if(tag==='b')tag='strong'; if(tag==='i')tag='em'; if(tag==='div')tag='p'
+    if(closing){if(tag!=='br')out.push(`</${tag}>`);continue}
+    if(tag==='br'){out.push('<br>');continue}
+    if(tag==='a'){
+      const hrefMatch=token.match(/href\s*=\s*["']([^"']+)["']/i); const href=hrefMatch?.[1]||''
+      if(/^https?:\/\//i.test(href)||/^mailto:/i.test(href)) out.push(`<a href="${escapeHtml(href)}" style="color:#087fad;text-decoration:underline">`); else out.push('<a>')
+      continue
+    }
+    out.push(`<${tag}>`)
+  }
+  return out.join('').replace(/<p>\s*<\/p>/g,'').slice(0,18000)
+}
+function richToPlain(value='') { return decodeBasicEntities(String(value||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>|<\/li>|<\/h[23]>/gi,'\n').replace(/<[^>]+>/g,' ')).replace(/[ \t]+/g,' ').replace(/\n\s+/g,'\n').trim() }
+function sanitizeLayout(templateId, raw={}) {
+  const id=EMAIL_TEMPLATE_IDS.has(templateId)?templateId:'institutional'; const blocks={}; const source=raw&&typeof raw==='object'&&raw.blocks&&typeof raw.blocks==='object'?raw.blocks:{}
+  for(const key of EMAIL_BLOCK_KEYS) blocks[key]=sanitizeRichHtml(source[key]||'')
+  return {version:1,templateId:id,blocks}
+}
+function layoutPlainText(layout={}) { return EMAIL_BLOCK_KEYS.map(key=>richToPlain(layout?.blocks?.[key]||'')).filter(Boolean).join('\n\n').slice(0,12000) }
+function fileAt(inlineFiles,position){return inlineFiles.find(f=>Number(f.position)===Number(position))||null}
+function emailImage(file,{maxWidth=620,maxHeight=320,label=''}={}){
+  if(!file)return ''
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:14px 0"><tr><td align="center"><img src="cid:${file.cid}" alt="${escapeHtml(label||file.filename||'Imagen del beneficio')}" width="${maxWidth}" style="display:block;width:100%;max-width:${maxWidth}px;max-height:${maxHeight}px;height:auto;object-fit:contain;border:0;border-radius:10px;margin:0 auto"></td></tr></table>`
+}
+function emailGallery(inlineFiles,positions,{columns=4,maxHeight=220}={}){
+  const files=positions.map(pos=>fileAt(inlineFiles,pos)).filter(Boolean); if(!files.length)return ''
+  const width=Math.floor(100/Math.max(columns,files.length)); const maxWidth=columns===4?145:columns===3?195:columns===2?295:620
+  return `<table role="presentation" class="uic-gallery uic-gallery-${columns}" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr>${files.map((file,i)=>`<td width="${width}%" valign="top" align="center" style="padding:4px"><img src="cid:${file.cid}" alt="Figura ${i+1}" width="${maxWidth}" style="display:block;width:100%;max-width:${maxWidth}px;max-height:${maxHeight}px;height:auto;object-fit:contain;border:0;border-radius:8px;margin:0 auto"></td>`).join('')}</tr></table>`
+}
+function richSection(html,{pad='0 0 14px',muted=false}={}) { return html?`<div style="padding:${pad};color:${muted?'#496a7e':'#17384c'}">${html}</div>`:'' }
+function splitSection(left,right){if(!left&&!right)return '';return `<table role="presentation" class="uic-stack" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0"><tr><td width="40%" valign="top" style="padding:6px 10px 6px 0">${left||''}</td><td width="60%" valign="top" style="padding:6px 0 6px 10px">${right||''}</td></tr></table>`}
+function campaignLayoutHtml(campaign,inlineFiles=[]){
+  const template=EMAIL_TEMPLATE_IDS.has(campaign.template_id)?campaign.template_id:'institutional'; const hasStructuredLayout=campaign.layout_json&&typeof campaign.layout_json==='object'&&campaign.layout_json.blocks&&typeof campaign.layout_json.blocks==='object'&&Object.values(campaign.layout_json.blocks).some(Boolean); const layout=hasStructuredLayout?campaign.layout_json:sanitizeLayout(template,{blocks:{headline:`<h2>${escapeHtml(campaign.benefit_title||campaign.subject)}</h2>`,body:markupToHtml(campaign.body_markup)}}); const b=layout.blocks||{}
+  const headline=b.headline?`<div style="font-size:28px;line-height:1.15;font-weight:800;color:#063e68;margin:6px 0 18px">${b.headline}</div>`:''
+  const intro=richSection(b.intro,{muted:true}); const body=richSection(b.body); const body2=richSection(b.body2); const closing=richSection(b.closing)
+  if(template==='gallery4')return `${headline}${intro}${emailGallery(inlineFiles,[0,1,2,3],{columns:4,maxHeight:210})}${body}${closing}`
+  if(template==='duo')return `${headline}${intro}${emailGallery(inlineFiles,[0,1],{columns:2,maxHeight:280})}${body}${closing}`
+  if(template==='imageLeft')return `${headline}${intro}${splitSection(emailImage(fileAt(inlineFiles,0),{maxWidth:245,maxHeight:280}),body)}${emailImage(fileAt(inlineFiles,1),{maxWidth:360,maxHeight:230})}${closing}`
+  if(template==='imageRight')return `${headline}${intro}${splitSection(body,emailImage(fileAt(inlineFiles,0),{maxWidth:245,maxHeight:280}))}${emailImage(fileAt(inlineFiles,1),{maxWidth:360,maxHeight:230})}${closing}`
+  if(template==='alternating')return `${headline}${intro}${emailImage(fileAt(inlineFiles,0),{maxWidth:360,maxHeight:240})}${body}${emailImage(fileAt(inlineFiles,1),{maxWidth:360,maxHeight:240})}${body2}${emailGallery(inlineFiles,[2,3],{columns:2,maxHeight:220})}${closing}`
+  if(template==='stacked')return `${headline}${intro}${[0,1,2,3].map(pos=>emailImage(fileAt(inlineFiles,pos),{maxWidth:360,maxHeight:300})).join('')}${body}${closing}`
+  if(template==='editorial')return `${headline}${intro}${emailImage(fileAt(inlineFiles,0),{maxWidth:520,maxHeight:300})}${body}${emailGallery(inlineFiles,[1,2,3],{columns:3,maxHeight:190})}${body2}${closing}`
+  return `${headline}${intro}${emailImage(fileAt(inlineFiles,0),{maxWidth:420,maxHeight:300})}${body}${closing}`
+}
 function campaignEmailHtml(campaign, inlineFiles = [], unsubscribeUrl = '') {
   const family=['Arial','Verdana','Tahoma','Georgia'].includes(campaign.font_family)?campaign.font_family:'Arial'; const size=campaign.font_size==='large'?18:campaign.font_size==='small'?13:15
-  const inlineHtml=inlineFiles.length?`<div style="margin:22px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${inlineFiles.map((f,i)=>`<div style="border:1px solid #d8e4eb;border-radius:10px;padding:8px;text-align:center"><img src="cid:${f.cid}" alt="Figura ${i+1}" style="display:block;max-width:100%;max-height:520px;margin:auto;object-fit:contain"><div style="font-size:11px;color:#6b7f8c;margin-top:6px">Figura ${i+1}</div></div>`).join('')}</div>`:''
-  const signature=`<div style="margin-top:24px;padding-top:16px;border-top:1px solid #d9e5eb"><strong>${safeText(campaign.originator_name||campaign.company_name,200)}</strong>${campaign.originator_role?`<br><span>${safeText(campaign.originator_role,160)}</span>`:''}${campaign.originator_email?`<br><a href="mailto:${safeText(campaign.originator_email,250)}">${safeText(campaign.originator_email,250)}</a>`:''}${campaign.originator_phone?`<br><span>${safeText(campaign.originator_phone,100)}</span>`:''}</div>`
-  const unsubscribe=unsubscribeUrl?`<p style="font-size:12px;color:#60798b;margin-top:18px">Si no desea seguir recibiendo estas comunicaciones, <a href="${unsubscribeUrl}">presione aquí para deshabilitar futuros envíos</a>.</p>`:''
-  return `<div style="font-family:${family},sans-serif;font-size:${size}px;line-height:1.55;color:#15324a;max-width:760px;margin:auto"><div style="border-bottom:4px solid #159bc7;padding:0 0 16px"><strong style="font-size:22px">UNIÓN INDUSTRIAL DE CAMPANA</strong><br><span style="color:#527286">BENEFICIOS PARA SOCIOS</span></div><h2>${safeText(campaign.subject,300)}</h2><p><strong>Empresa:</strong> ${safeText(campaign.company_name,250)}<br><strong>Beneficio:</strong> ${safeText(campaign.benefit_title,300)}</p>${markupToHtml(campaign.body_markup)}${inlineHtml}${signature}${unsubscribe}<hr><p style="font-size:12px;color:#60798b">Comunicación emitida a través del Portal de Beneficios de la Unión Industrial de Campana. Las condiciones particulares deberán confirmarse con la empresa prestadora.</p></div>`
+  const signature=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:1px solid #d9e5eb"><tr><td style="padding-top:16px"><strong>${safeText(campaign.originator_name||campaign.company_name,200)}</strong>${campaign.originator_role?`<br><span>${safeText(campaign.originator_role,160)}</span>`:''}${campaign.originator_email?`<br><a href="mailto:${safeText(campaign.originator_email,250)}" style="color:#087fad">${safeText(campaign.originator_email,250)}</a>`:''}${campaign.originator_phone?`<br><span>${safeText(campaign.originator_phone,100)}</span>`:''}</td></tr></table>`
+  const unsubscribe=unsubscribeUrl?`<p style="font-size:12px;color:#60798b;margin-top:18px">Si no desea seguir recibiendo estas comunicaciones, <a href="${unsubscribeUrl}" style="color:#087fad">presione aquí para deshabilitar futuros envíos</a>.</p>`:''
+  const content=campaignLayoutHtml(campaign,inlineFiles)
+  const responsive=`<style>@media only screen and (max-width:520px){.uic-stack td{display:block!important;width:100%!important;padding:6px 0!important}.uic-gallery-4 td{display:inline-block!important;width:50%!important;box-sizing:border-box}.uic-gallery-3 td{display:inline-block!important;width:33.333%!important;box-sizing:border-box}}</style>`
+  return `${responsive}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#eef4f7" style="background:#eef4f7;margin:0;padding:0"><tr><td align="center" style="padding:18px 8px"><table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:680px;background:#fff;border-radius:14px;overflow:hidden"><tr><td style="background:#063e68;color:#fff;padding:11px 22px;font-family:${family},sans-serif;font-size:12px;font-weight:700;letter-spacing:1.2px">BENEFICIOS EXCLUSIVOS PARA SOCIOS UIC</td></tr><tr><td style="padding:24px 26px 8px;font-family:${family},sans-serif;font-size:${size}px;line-height:1.55;color:#17384c"><strong style="font-size:21px;color:#063e68">UNIÓN INDUSTRIAL DE CAMPANA</strong><br><span style="font-size:12px;color:#6b8290">Beneficios que fortalecen vínculos</span><div style="height:3px;background:#f47a20;width:54px;margin:14px 0 18px"></div><div style="font-size:13px;font-weight:700;color:#087fad;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${safeText(campaign.company_name,250)}</div>${content}${signature}${unsubscribe}<p style="font-size:11px;color:#718895;margin:24px 0 6px;border-top:1px solid #e3ebef;padding-top:14px">Comunicación emitida a través del Portal de Beneficios de la Unión Industrial de Campana. Las condiciones particulares deberán confirmarse con la empresa prestadora.</p></td></tr></table></td></tr></table>`
 }
 async function campaignMedia(campaignId) {
   const result=await pool.query('SELECT id,filename,mime_type,file_data,placement,position FROM diffusion_campaign_files WHERE campaign_id=$1 ORDER BY placement DESC, position, id',[campaignId])
-  const inlineFiles=result.rows.filter(r=>r.placement==='inline').map((r,i)=>({filename:r.filename,content:r.file_data,contentType:r.mime_type,cid:`uic-inline-${campaignId}-${r.id}-${i}`,contentDisposition:'inline'}))
+  const inlineFiles=result.rows.filter(r=>r.placement==='inline').map((r,i)=>({filename:r.filename,content:r.file_data,contentType:r.mime_type,cid:`uic-inline-${campaignId}-${r.id}-${i}`,contentDisposition:'inline',position:Number(r.position||0)}))
   const attachments=result.rows.filter(r=>r.placement!=='inline').map(r=>({filename:r.filename,content:r.file_data,contentType:r.mime_type}))
   return {inlineFiles,attachments,all:[...inlineFiles,...attachments]}
 }
@@ -675,11 +733,11 @@ app.post('/api/admin/difusion/campaigns',requireDiffusionActor,requireDiffusionD
     const benefitSlug=safeText(req.body.benefitSlug,180);const benefit=company.benefits.find(b=>b.slug===benefitSlug);if(!benefit)return res.status(403).json({error:'El beneficio no corresponde a esta empresa.'})
     let originatorEmail=req.diffusionActor?.type==='company'?normalizeEmail(req.diffusionActor.email):normalizeEmail(req.body.originatorEmail);const allowedEmails=authorizedCompanyEmails(company);if(!validEmail(originatorEmail)||!allowedEmails.includes(originatorEmail))return res.status(403).json({error:'El correo de origen no coincide con un contacto registrado para esta empresa.'})
     const contact=company.contacts.find(c=>normalizeEmail(c.email)===originatorEmail)||{};const originatorName=safeText(contact.name||req.body.originatorName||company.contactName||company.name,200);const originatorPhone=safeText(contact.phone||company.phone||'',100);const originatorRole=safeText(contact.role||company.role||'',160)
-    const subject=campaignSubject(company.name);const bodyMarkup=plainMarkup(req.body.bodyMarkup);const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily)?req.body.fontFamily:'Arial';const fontSize=['small','normal','large'].includes(req.body.fontSize)?req.body.fontSize:'normal';if(!bodyMarkup)return res.status(400).json({error:'Escribí el cuerpo de la comunicación.'})
-    const attachments=req.files?.attachments||[];const inlineImages=req.files?.inlineImages||[];const allowedAttach=new Set(['image/jpeg','image/png','application/pdf']);const allowedInline=new Set(['image/jpeg','image/png']);if(attachments.some(f=>!allowedAttach.has(f.mimetype)||!fileSignatureMatches(f))||inlineImages.some(f=>!allowedInline.has(f.mimetype)||!fileSignatureMatches(f)))return res.status(400).json({error:'Los adjuntos admiten JPG, PNG o PDF; las imágenes del cuerpo admiten JPG o PNG.'})
+    const subject=campaignSubject(company.name);const templateId=EMAIL_TEMPLATE_IDS.has(String(req.body.templateId||''))?String(req.body.templateId):'institutional';let rawLayout={};try{rawLayout=JSON.parse(String(req.body.layoutJson||'{}'))}catch{return res.status(400).json({error:'El diseño del correo no pudo interpretarse. Volvé a seleccionar el modelo.'})}const layoutJson=sanitizeLayout(templateId,rawLayout);const bodyMarkup=plainMarkup(layoutPlainText(layoutJson));const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily)?req.body.fontFamily:'Arial';const fontSize=['small','normal','large'].includes(req.body.fontSize)?req.body.fontSize:'normal';if(!bodyMarkup)return res.status(400).json({error:'Completá al menos un bloque de texto de la comunicación.'})
+    const attachments=req.files?.attachments||[];const inlineImages=req.files?.inlineImages||[];const allowedAttach=new Set(['image/jpeg','image/png','application/pdf']);const allowedInline=new Set(['image/jpeg','image/png']);if(attachments.some(f=>!allowedAttach.has(f.mimetype)||!fileSignatureMatches(f))||inlineImages.some(f=>!allowedInline.has(f.mimetype)||!fileSignatureMatches(f)))return res.status(400).json({error:'Los adjuntos admiten JPG, PNG o PDF; las imágenes del cuerpo admiten JPG o PNG.'});let inlinePositions=[];try{inlinePositions=JSON.parse(String(req.body.inlineImagePositions||'[]'))}catch{};if(!Array.isArray(inlinePositions)||inlinePositions.length!==inlineImages.length)inlinePositions=inlineImages.map((_,i)=>i);inlinePositions=inlinePositions.map((value,i)=>{const n=Number(value);return Number.isInteger(n)&&n>=0&&n<=3?n:i})
     const safety=assessCampaign(subject,bodyMarkup,[...attachments,...inlineImages]);await pool.query(`DELETE FROM diffusion_campaigns WHERE company_key=$1 AND benefit_slug=$2 AND status IN ('draft','pending','rejected','blocked')`,[companyKey,benefitSlug])
-    const result=await pool.query(`INSERT INTO diffusion_campaigns (company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,originator_phone,originator_role,subject,body_markup,font_family,font_size,status,safety_status,safety_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,[companyKey,company.name,benefit.slug,benefit.title,originatorName,originatorEmail,originatorPhone,originatorRole,subject,bodyMarkup,fontFamily,fontSize,safety.status==='blocked'?'blocked':'draft',safety.status,safety.notes])
-    let pos=0;for(const file of inlineImages)await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'inline',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,pos++]);pos=0;for(const file of attachments)await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'attachment',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,pos++])
+    const result=await pool.query(`INSERT INTO diffusion_campaigns (company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,originator_phone,originator_role,subject,body_markup,font_family,font_size,template_id,layout_json,status,safety_status,safety_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16,$17) RETURNING *`,[companyKey,company.name,benefit.slug,benefit.title,originatorName,originatorEmail,originatorPhone,originatorRole,subject,bodyMarkup,fontFamily,fontSize,templateId,JSON.stringify(layoutJson),safety.status==='blocked'?'blocked':'draft',safety.status,safety.notes])
+    for(let i=0;i<inlineImages.length;i++){const file=inlineImages[i];await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'inline',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,inlinePositions[i]])}let pos=0;for(const file of attachments)await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'attachment',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,pos++])
     res.status(201).json({...result.rows[0],files:[...inlineImages.map(f=>({filename:f.originalname,mimeType:f.mimetype,sizeBytes:f.size,placement:'inline'})),...attachments.map(f=>({filename:f.originalname,mimeType:f.mimetype,sizeBytes:f.size,placement:'attachment'}))]})
   }catch(error){next(error)}
 })

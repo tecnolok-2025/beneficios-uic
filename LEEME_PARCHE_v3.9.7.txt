@@ -1,0 +1,5 @@
+PARCHE BENEFICIOS UIC v3.9.6 -> v3.9.7
+Copiar estos archivos sobre la raíz del repositorio v3.9.6.
+No borrar DATABASE_URL ni las variables existentes de Render.
+No se requieren variables nuevas para esta revisión.
+El envío masivo conserva su control actual.

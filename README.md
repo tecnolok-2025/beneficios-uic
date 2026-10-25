@@ -1,4 +1,4 @@
-> **Revisión actual: v3.9.6 · BENEFICIOS_UIC_396 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.7 · BENEFICIOS_UIC_397 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
@@ -6,6 +6,20 @@ Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
 
+
+
+## Revisión v3.9.7 · 25/10/2026
+
+- Reemplaza el editor lineal por el **Constructor Visual UIC** con 8 modelos predefinidos.
+- Permite editar texto por bloques con formato visible: negrita, cursiva, subrayado, listas, enlaces y limpieza de formato.
+- El pegado desde fuentes externas se sanea: conserva formato básico útil y elimina estilos heredados que puedan deformar el correo.
+- Incorpora vista previa **Escritorio / Celular** en tiempo real.
+- Las imágenes se gestionan por espacios del modelo, con máximo 4 y reducción automática antes de guardarse.
+- El correo final se renderiza con **tablas HTML y estilos inline** para mejorar compatibilidad con clientes de email.
+- Neon suma `template_id` y `layout_json` mediante migración aditiva; campañas históricas conservan fallback al cuerpo anterior.
+- Incluye **Asistente de composición UIC** para recomendar estructura y cargar un texto base desde la información del beneficio.
+- Mantiene intactos registro, prueba, código de 6 dígitos, validación, padrón, cola, monitor, cancelación y calendario mensual.
+- 81/81 pruebas automáticas aprobadas.
 
 ## Revisión v3.9.6 · 25/10/2026
 
@@ -127,8 +141,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.6`
-- **Generación:** `BENEFICIOS_UIC_396`
+- **Versión:** `3.9.7`
+- **Generación:** `BENEFICIOS_UIC_397`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -146,6 +160,9 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.7
+- Constructor Visual UIC con 8 plantillas, edición por bloques, vista previa escritorio/celular, reducción de imágenes y render compatible con email.
 
 ### v3.9.6
 - Navegación robusta con recarga completa en las rutas principales.
