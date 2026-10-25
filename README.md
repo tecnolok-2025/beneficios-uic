@@ -1,10 +1,29 @@
-> **Revisión actual: v3.9.2 · BENEFICIOS_UIC_392 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.3 · BENEFICIOS_UIC_393 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
+
+
+## Revisión v3.9.3 · 25/10/2026
+
+- Habilita el **lado empresa** del módulo Difusión de Beneficios: directorio público, registro, ingreso y recuperación de contraseña.
+- El alta y la recuperación sólo funcionan con un **correo previamente asociado a esa empresa**. El directorio nunca expone los correos autorizados. Si no hay correo o no coincide, se deriva a Administración UIC.
+- Las contraseñas se guardan con hash `scrypt`; los códigos de registro y recuperación son aleatorios, de 6 dígitos, de uso temporal y no se almacenan en texto.
+- El administrador incorpora **Ver como empresa** para auditar exactamente la experiencia de cualquier empresa sin conocer ni modificar su contraseña.
+- Las empresas no tienen acceso a **Destinatarios, Validaciones ni Correo emisor**. Esas áreas siguen siendo exclusivamente administrativas.
+- El flujo de publicación exige: guardar borrador → enviar prueba al correo de la empresa → recibir y validar un **código aleatorio de 6 dígitos** → solicitar validación UIC → aprobación administrativa.
+- El correo de validación y el emisor provisional se concentran en `tesoreria@uic-campana.com.ar`. Más adelante pueden migrarse a `beneficios@uic-campana.com.ar`. El correo institucional general UIC se excluye expresamente como llave de registro de empresas.
+- La prueba no consume cupo mensual. Si se genera una prueba nueva, el código anterior deja de ser válido.
+- El panel **Validaciones** incorpora `Habilitar envío de mails masivos`. Para activarlo hay que escribir `HABILITAR`.
+- Con masivos deshabilitados, **TECNO LOGISTI-K SA** permanece como único destino piloto/control y nunca puede ser deshabilitada desde el padrón.
+- Con masivos habilitados, el envío usa el padrón habilitado, elimina direcciones repetidas y manda **una sola copia por correo**.
+- Los correos finales incluyen firma automática del originador y enlace de baja. La baja deja el registro visible como **Deshabilitado por el destinatario** y sólo el administrador puede rehabilitarlo manualmente.
+- El cuerpo admite hasta **4 imágenes JPG/PNG insertadas dentro del correo**, con recomendación vertical, más hasta 3 adjuntos JPG/PNG/PDF independientes.
+- Padrón actual: 113 empresas, 117 contactos y 111 direcciones de correo únicas; 94 socios UIC y 19 empresas de convenio/no socias.
+- La navegación administrativa rápida de v3.9.2 se conserva: las pestañas quedan montadas y no vuelven a consultar toda la información al cambiar entre ellas.
 
 ## Revisión v3.9.2 · 25/10/2026
 
@@ -29,7 +48,7 @@ Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 - Destildar una empresa no la elimina: sólo la excluye de los próximos envíos.
 - Corrige datos confirmados por UIC: TECMACO → `info@tecnodealer.com.ar`; Montajes Interacero → `info@montajesinteracero.com.ar`; Plaza Hotel → `martin@eraina.com.ar`; SWA pasa a **SWA/NEUCO** y queda destildada hasta disponer de correo válido.
 - TIBEST se identifica en el padrón societario como **BULLETBABA SRL - TIBEST**.
-- Implementa circuito protegido: borrador → correo de prueba al originador → solicitud de validación a `uic@uic-campana.com.ar` → aprobación administrativa → primer correo final al originador → distribución en CCO al padrón habilitado.
+- Implementa circuito protegido: borrador → correo de prueba al originador → solicitud de validación al correo privado configurado por UIC → aprobación administrativa → primer correo final al originador → distribución en CCO al padrón habilitado.
 - El correo de prueba **no consume** el plazo mensual. El plazo se inicia sólo después del envío final aprobado.
 - Agrega modo mantenimiento institucional para indisponibilidad de Neon en el módulo de difusión.
 - Declara `nodemailer` como dependencia del servidor para SMTP.
@@ -86,8 +105,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.2`
-- **Generación:** `BENEFICIOS_UIC_392`
+- **Versión:** `3.9.3`
+- **Generación:** `BENEFICIOS_UIC_393`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -105,6 +124,9 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.3
+Agrega registro y recuperación autónomos por correo propio, código de 6 dígitos para acreditar la prueba, vista administrador como empresa, imágenes embebidas, deduplicación, baja del destinatario y control administrativo del envío masivo con piloto permanente TECNO LOGISTI-K SA.
 
 ### v3.9.1
 Agrega el padrón privado de destinatarios por empresa, empresa piloto Tecno Logisti-K SA y circuito prueba → validación → envío final.

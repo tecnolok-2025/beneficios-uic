@@ -158,3 +158,38 @@ CREATE TABLE IF NOT EXISTS diffusion_mail_settings (
 INSERT INTO diffusion_mail_settings (id, from_email)
 VALUES (1, 'tesoreria@uic-campana.com.ar')
 ON CONFLICT (id) DO NOTHING;
+
+
+-- v3.9.3 · identidad de empresa, verificación de prueba, bajas y medios embebidos
+ALTER TABLE diffusion_recipients ADD COLUMN IF NOT EXISTS opted_out_at TIMESTAMPTZ;
+ALTER TABLE diffusion_recipients ADD COLUMN IF NOT EXISTS opted_out_reason TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS originator_phone TEXT NOT NULL DEFAULT '';
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS originator_role TEXT NOT NULL DEFAULT '';
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_code_hash TEXT NOT NULL DEFAULT '';
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_code_expires_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_verified_at TIMESTAMPTZ;
+
+ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS placement TEXT NOT NULL DEFAULT 'attachment';
+ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS position INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE diffusion_mail_settings ADD COLUMN IF NOT EXISTS mass_send_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS diffusion_company_accounts (
+  id BIGSERIAL PRIMARY KEY,
+  company_key TEXT NOT NULL,
+  company_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  password_hash TEXT NOT NULL DEFAULT '',
+  active BOOLEAN NOT NULL DEFAULT FALSE,
+  verified_at TIMESTAMPTZ,
+  register_code_hash TEXT NOT NULL DEFAULT '',
+  register_code_expires_at TIMESTAMPTZ,
+  reset_code_hash TEXT NOT NULL DEFAULT '',
+  reset_code_expires_at TIMESTAMPTZ,
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(company_key,email)
+);
+CREATE INDEX IF NOT EXISTS diffusion_company_accounts_company_idx ON diffusion_company_accounts(company_key, active);

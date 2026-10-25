@@ -1,47 +1,68 @@
-# Instalación v3.9.2 en el repositorio y Render actuales
+# Instalación v3.9.3 en el repositorio y Render actuales
 
-Esta entrega reemplaza el código de v3.9.1 y conserva el servicio Render, la URL y la base Neon. La migración es aditiva.
+Esta entrega reemplaza v3.9.2 y conserva el servicio Render, la URL y la base PostgreSQL/Neon. La migración es **aditiva**: crea estructuras para cuentas de empresa, códigos temporales, baja de destinatarios, imágenes embebidas y control del modo masivo sin borrar el catálogo ni el padrón.
 
 ## GitHub / Render
 
-1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche sobre v3.9.1.
-2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET` y las variables actuales.
-3. Los comandos siguen siendo `npm ci --include=dev && npm run build` y `npm start`.
-4. El arranque debe informar `Beneficios UIC NUEVO v3.9.2 · BENEFICIOS_UIC_392`.
+1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.2**.
+2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables actuales.
+3. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
+4. El arranque debe informar `Beneficios UIC NUEVO v3.9.3 · BENEFICIOS_UIC_393`.
 
-## Seguridad del correo
+## Variables de Difusión
 
-Mantener expresamente:
+Mantener durante el piloto:
 
 ```text
 DIFFUSION_MASS_SEND_ENABLED=false
 DIFFUSION_SEND_ENABLED=false
-DIFFUSION_APPROVAL_EMAIL=uic@uic-campana.com.ar
-DIFFUSION_MAIL_SECRET=<secreto estable y largo>
+DIFFUSION_FROM_EMAIL=tesoreria@uic-campana.com.ar
+DIFFUSION_FROM_NAME=Unión Industrial de Campana · Beneficios
+DIFFUSION_APPROVAL_EMAIL=tesoreria@uic-campana.com.ar
+DIFFUSION_MAIL_SECRET=<secreto estable, largo y privado>
 ```
 
-`DIFFUSION_MAIL_SECRET` se usa para cifrar la contraseña SMTP guardada desde la pantalla **Difusión > Correo emisor**. No guardar ese secreto en GitHub.
+`DIFFUSION_MAIL_SECRET` cifra la clave SMTP almacenada desde **Difusión > Correo emisor**. No debe guardarse en GitHub y no debe cambiarse después de guardar la clave SMTP, salvo que se vuelva a cargar esa configuración.
 
-La casilla provisoria a configurar desde el panel es `tesoreria@uic-campana.com.ar`. En el futuro puede sustituirse por `beneficios@uic-campana.com.ar` sin modificar código.
+La dirección provisional de emisión y validación es `tesoreria@uic-campana.com.ar`. Cuando exista `beneficios@uic-campana.com.ar`, puede reemplazarse desde la configuración y la variable de aprobación. El correo institucional general UIC **no se usa para este circuito privado ni para identificar empresas**.
 
-La configuración SMTP puede ingresarse desde **Correo emisor**: servidor, puerto, SSL/TLS, usuario, contraseña/clave de aplicación, remitente y correo de prueba. Guardar primero y luego ejecutar **Enviar prueba técnica**.
+## Correo emisor
 
-## Flujo piloto v3.9.2
+Desde **Difusión de Beneficios > Correo emisor** configurar SMTP, puerto, SSL/TLS, usuario, contraseña/clave de aplicación, remitente y dirección de prueba. Guardar y ejecutar primero **Enviar prueba técnica**.
 
-- Sólo el administrador puede entrar al módulo durante esta etapa.
-- Sólo TECNO LOGISTI-K SA tiene habilitado **Preparar difusión**.
-- El asunto no es editable: `Nuevo beneficio exclusivo UIC · TECNO LOGISTI-K SA`.
-- Guardar borrador → enviar prueba al originador → revisar → solicitar validación UIC.
-- Sin prueba exitosa no se habilita la solicitud de validación.
-- Al validar, el originador recibe la copia final como confirmación.
-- Mientras `DIFFUSION_MASS_SEND_ENABLED=false`, no se envía nada al padrón y no corre el plazo mensual.
+## Registro de empresas
 
-## Navegación
+- El directorio de empresas es visible, pero no publica sus correos.
+- Una empresa sólo puede registrarse con un correo ya asociado a ella en el padrón/convenio/contactos válidos.
+- Si la empresa no tiene correo, el alta queda bloqueada y se indica contactar a Administración UIC.
+- Si el correo no coincide, el sistema rechaza el alta sin revelar el correo correcto.
+- Registro y recuperación usan códigos aleatorios de 6 dígitos con vencimiento.
+- Las contraseñas se guardan únicamente como hash `scrypt`.
 
-Las pestañas **Empresas y beneficios**, **Destinatarios**, **Validaciones** y **Correo emisor** permanecen montadas en segundo plano. Esto evita volver a consultar Neon al cambiar de una a otra y corrige la demora observada en v3.9.1.
+## Flujo de una difusión
 
-## Mantenimiento
+1. Empresa ingresa con su propia cuenta.
+2. Selecciona uno de sus beneficios.
+3. Guarda el borrador.
+4. Envía obligatoriamente una prueba a su propio correo registrado.
+5. El correo de prueba contiene un código aleatorio de 6 dígitos.
+6. La empresa copia el código en el portal. Sin código verificado no puede solicitar validación.
+7. La solicitud llega al correo privado UIC de validación.
+8. El administrador aprueba o rechaza en **Validaciones**.
+9. Al aprobar, la empresa recibe primero la versión final como confirmación.
+10. Si el modo masivo está deshabilitado, sólo TECNO LOGISTI-K SA actúa como destino piloto/control; no se distribuye al padrón general.
+11. Si el administrador habilita masivos escribiendo `HABILITAR`, se distribuye al padrón activo, deduplicando correos.
 
-Si Neon no está disponible pero Render continúa ejecutándose, Difusión muestra una pantalla institucional de mantenimiento sin exponer errores técnicos. Se incluye además `/maintenance.html`.
+La prueba y las validaciones piloto no consumen el cupo mensual. El plazo se registra únicamente después de una distribución real al padrón.
 
-Una caída completa de Render no puede ser resuelta por una página alojada en el mismo Render. Para cubrir ese caso al 100% se deberá configurar posteriormente un fallback externo (por ejemplo Cloudflare) apuntando a la página estática incluida en esta entrega.
+## Destinatarios y bajas
+
+Cada empresa del padrón conserva su casilla **Recibe comunicaciones**. Los correos repetidos se deduplican en el momento del envío. Cada correo final incluye un enlace de baja; al utilizarlo queda registrado **Deshabilitado por el destinatario**. La baja no se revierte por una importación automática; sólo el administrador puede rehabilitarla explícitamente. TECNO LOGISTI-K SA permanece habilitada como destino de control.
+
+## Imágenes y adjuntos
+
+El cuerpo admite hasta 4 imágenes JPG/PNG embebidas, con recomendación de formato vertical. En forma separada se mantienen hasta 3 adjuntos JPG/PNG/PDF. El asunto es institucional y no puede ser modificado por la empresa.
+
+## Navegación y mantenimiento
+
+Las pestañas administrativas permanecen montadas para evitar la demora de recarga observada en v3.9.1. Si Neon no está disponible pero Render sigue ejecutándose, el módulo muestra mantenimiento institucional. Para una caída total de Render sigue siendo necesario configurar posteriormente el fallback externo en Cloudflare usando la página estática incluida.

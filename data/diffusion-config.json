@@ -1,9 +1,9 @@
 {
-  "approvalEmail": "uic@uic-campana.com.ar",
+  "approvalEmail": "tesoreria@uic-campana.com.ar",
   "maintenanceContact": {
     "name": "María José Godoy (Majo)",
     "phone": "3489 65 0104",
-    "email": "uic@uic-campana.com.ar"
+    "email": "tesoreria@uic-campana.com.ar"
   },
   "companyOverrides": {
     "tibest-broker-seguros-uic": "BULLETBABA SRL - TIBEST",

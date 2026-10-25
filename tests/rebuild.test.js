@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.2 son coherentes', async () => {
+test('10 · versión y generación 3.9.3 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.2')
-  assert.match(server, /BENEFICIOS_UIC_392/)
-  assert.match(html, /BENEFICIOS_UIC_392/)
+  assert.equal(pkg.version, '3.9.3')
+  assert.match(server, /BENEFICIOS_UIC_393/)
+  assert.match(html, /BENEFICIOS_UIC_393/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -422,26 +422,28 @@ test('37 · v3.8.0 conserva migración robusta y fallback ante desconexión temp
 })
 
 
-test('42 · Difusión de Beneficios queda visible pero protegida por la misma sesión administrativa', async () => {
+test('42 · v3.9.3 habilita directorio público con registro por correo propio y conserva acceso administrador', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /Difusión de Beneficios/)
-  assert.match(app, /go\('\/difusion'\)/)
-  assert.match(app, /route === '\/difusion'/)
-  assert.match(app, /request\('\/api\/admin\/me'\)/)
-  assert.match(app, /request\('\/api\/admin\/login'/)
-  assert.match(app, /mode="diffusion"/)
-  assert.match(app, /ACCESO TEMPORAL RESTRINGIDO/)
-  assert.match(app, /Acceso público deshabilitado/)
+  const server = await read('server/index.js')
+  assert.match(app, /CompanyAuthPortal/)
+  assert.match(app, /Elegí tu empresa/)
+  assert.match(app, /Registrarme/)
+  assert.match(app, /Olvidé mi contraseña/)
+  assert.match(app, /Acceso administrador/)
+  assert.match(server, /\/api\/difusion\/company\/register\/request/)
+  assert.match(server, /\/api\/difusion\/company\/login/)
+  assert.match(server, /\/api\/difusion\/company\/forgot\/request/)
+  assert.match(server, /authorizedCompanyEmails/)
 })
 
-test('43 · el módulo de difusión muestra buscador de empresas y agrupa beneficios por prestador', async () => {
+test('43 · el directorio permite buscar empresas y el administrador puede ver la experiencia de cada empresa', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /DIRECTORIO DE EMPRESAS/)
-  assert.match(app, /Buscar empresa o beneficio/)
   const server = await read('server/index.js')
-  assert.match(server, /const grouped = new Map\(\)/)
-  assert.match(app, /company\.benefits\.length/)
-  assert.match(app, /cupo será independiente por beneficio/)
+  assert.match(app, /Buscar empresa o beneficio/)
+  assert.match(app, /Ver como empresa/)
+  assert.match(app, /VISTA ADMINISTRADOR · COMO EMPRESA/)
+  assert.match(server, /const grouped\s*=\s*new Map\(\)/)
+  assert.match(app, /company\.benefits\.map/)
 })
 
 test('44 · Difusión conserva retorno explícito al Portal de Beneficios', async () => {
@@ -450,13 +452,14 @@ test('44 · Difusión conserva retorno explícito al Portal de Beneficios', asyn
   assert.ok(matches.length >= 3)
 })
 
-test('45 · registro público sigue cerrado y envío real queda protegido en esta etapa', async () => {
+test('45 · herramientas sensibles siguen exclusivas del administrador aunque exista acceso de empresas', async () => {
   const app = await read('src/App.jsx')
-  const env = await read('.env.example')
-  assert.match(app, /Acceso público deshabilitado/)
-  assert.match(app, /Destinatarios, Validaciones y Correo emisor son herramientas exclusivas del administrador/)
-  assert.match(app, /Preparar difusión · Próxima etapa/)
-  assert.match(env, /DIFFUSION_SEND_ENABLED=false/)
+  const server = await read('server/index.js')
+  assert.match(app, /Desde este panel no existe acceso a Destinatarios, Validaciones ni Correo emisor/)
+  assert.match(app, /Herramientas privadas/)
+  assert.match(app, /Destinatarios, Validaciones y Correo emisor sólo existen en este modo administrador/)
+  assert.match(server, /requireDiffusionActor/)
+  assert.match(server, /requireAdmin/)
 })
 
 test('46 · v3.9.1 carga padrón de socios y convenios no socios con habilitación por empresa', async () => {
@@ -484,110 +487,156 @@ test('47 · v3.9.1 aplica correcciones UIC del padrón del 24-10-2026', async ()
   assert.equal(byKey['socio:259'].companyName, 'BULLETBABA SRL - TIBEST')
 })
 
-test('48 · v3.9.1 mantiene Tecno Logisti-K SA como piloto y circuito prueba-validación-envío', async () => {
+test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', async () => {
   const config = JSON.parse(await read('data/diffusion-config.json'))
   assert.equal(config.testCompanies[0].name, 'TECNO LOGISTI-K SA')
-  assert.equal(config.testCompanies[0].contactName, 'Néstor Manucci')
-  assert.equal(config.testCompanies[0].role, 'Director')
+  assert.equal(config.testCompanies[0].email, 'nestor.manucci@tecnolok.com.ar')
   const server = await read('server/index.js')
-  assert.match(server, /PRUEBA · NO ENVIADO A SOCIOS/)
-  assert.match(server, /VALIDACIÓN PENDIENTE/)
-  assert.match(server, /el primer correo final siempre llega al responsable/)
-  assert.match(server, /DIFFUSION_MASS_SEND_ENABLED/)
+  assert.match(server, /PILOTO DE DISTRIBUCIÓN/)
+  assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.2 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.3 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.2')
+  assert.equal(pkg.version, '3.9.3')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_392/)
-  assert.match(server, /BENEFICIOS_UIC_392/)
+  assert.match(index, /BENEFICIOS_UIC_393/)
+  assert.match(server, /BENEFICIOS_UIC_393/)
 })
 
-test('50 · administrador puede agregar nuevos socios o convenios en el padrón privado', async () => {
+test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
   assert.match(app, /<option value="socio">Socio UIC<\/option>/)
   assert.match(app, /<option value="convenio">Convenio \/ no socio<\/option>/)
-  assert.match(server, /\['socio','convenio','manual'\]\.includes\(requestedType\)/)
+  assert.match(app, /Recibe comunicaciones/)
+  assert.match(server, /recipient-companies\/toggle/)
 })
 
-
-test('51 · v3.9.2 mantiene pestañas montadas para navegación inmediata', async () => {
+test('51 · pestañas administrativas permanecen montadas para navegación inmediata', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /neo-diffusion-tab-stack/)
   assert.match(app, /hidden=\{tab!==\'destinatarios\'\}/)
   assert.match(app, /hidden=\{tab!==\'validaciones\'\}/)
   assert.match(app, /hidden=\{tab!==\'correo\'\}/)
-  const styles = await read('src/styles.css')
-  assert.match(styles, /neo-diffusion-tab-stack>\[hidden\]/)
 })
 
-test('52 · Correo emisor se configura desde pantalla administrativa y guarda clave cifrada', async () => {
+test('52 · correo emisor usa Tesorería para envío y validación provisional', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  const schema = await read('server/schema.sql')
-  assert.match(app, /Correo emisor/)
+  const config = JSON.parse(await read('data/diffusion-config.json'))
+  assert.equal(config.approvalEmail, 'tesoreria@uic-campana.com.ar')
   assert.match(app, /tesoreria@uic-campana\.com\.ar/)
   assert.match(app, /beneficios@uic-campana\.com\.ar/)
   assert.match(server, /diffusion_mail_settings/)
   assert.match(server, /aes-256-gcm/)
-  assert.match(server, /mail-settings\/test/)
-  assert.match(schema, /CREATE TABLE IF NOT EXISTS diffusion_mail_settings/)
 })
 
-test('53 · asunto de difusión es institucional, automático y no editable', async () => {
+test('53 · asunto es institucional, automático y no editable', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
   assert.match(app, /Nuevo beneficio exclusivo UIC/)
   assert.match(app, /readOnly className="neo-readonly"/)
   assert.match(server, /function campaignSubject/)
-  assert.match(server, /const subject=campaignSubject\(companyName\)/)
+  assert.match(server, /campaignSubject\(company\.name\)/)
 })
 
-test('54 · prueba exitosa es obligatoria antes de solicitar validación', async () => {
+test('54 · prueba genera código aleatorio de seis dígitos y exige verificación', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  assert.match(app, /!campaign\.test_sent_at/)
-  assert.match(app, /La prueba es obligatoria/)
-  assert.match(server, /if\(!campaign\.test_sent_at\)/)
+  const schema = await read('server/schema.sql')
+  assert.match(server, /sixDigitCode/)
+  assert.match(server, /campaign-test:/)
+  assert.match(server, /test_verified_at/)
+  assert.match(app, /Confirmá el código recibido/)
+  assert.match(app, /verify-test/)
+  assert.match(schema, /test_code_hash/)
 })
 
-test('55 · piloto permite prueba y validación pero bloquea padrón general', async () => {
+test('55 · masivos se controlan desde Validaciones y piloto TLK queda permanente', async () => {
+  const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  const env = await read('.env.example')
-  assert.match(server, /massDiffusionEnabled/)
-  assert.match(server, /status='approved_pilot'/)
-  assert.match(server, /mass:true/)
-  assert.match(env, /DIFFUSION_MASS_SEND_ENABLED=false/)
+  assert.match(app, /Habilitar envío de mails masivos/)
+  assert.match(app, /SÓLO PILOTO TLK/)
+  assert.match(server, /\/api\/admin\/difusion\/mass-send/)
+  assert.match(server, /mass_send_enabled/)
+  assert.match(server, /PILOT_COMPANY_KEY/)
 })
 
-test('56 · pantalla inicial explica didácticamente todo el circuito', async () => {
+test('56 · pantalla inicial explica registro, recuperación, prueba, código y validación', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /function DiffusionGuide/)
-  assert.match(app, /Elegí tu empresa/)
-  assert.match(app, /Hacé obligatoriamente el modo prueba/)
+  assert.match(app, /Registro y acceso/)
+  assert.match(app, /Olvidás la contraseña|olvidás la contraseña/i)
+  assert.match(app, /código de 6 dígitos/i)
   assert.match(app, /Solicitá validación UIC/)
-  assert.match(app, /Nunca se habilita un envío sin prueba previa/)
 })
 
-test('57 · mantenimiento institucional no expone errores técnicos y tiene página estática', async () => {
+test('57 · mantenimiento institucional no expone infraestructura técnica', async () => {
   const app = await read('src/App.jsx')
   const maintenance = await read('public/maintenance.html')
   assert.match(app, /Pedimos disculpas por la interrupción/)
   assert.match(maintenance, /Estamos realizando tareas de mantenimiento/)
-  assert.match(maintenance, /María José Godoy/)
   assert.doesNotMatch(maintenance, /Neon|Render|database|error/i)
 })
 
-test('58 · herramientas sensibles quedan identificadas como exclusivas del administrador', async () => {
+test('58 · herramientas sensibles quedan exclusivas del administrador', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /Destinatarios, Validaciones y Correo emisor son herramientas exclusivas del administrador/)
   const server = await read('server/index.js')
+  assert.match(app, /Las empresas nunca acceden a esta sección/)
+  assert.match(app, /no existe acceso a Destinatarios, Validaciones ni Correo emisor/)
   assert.match(server, /app\.get\('\/api\/admin\/difusion\/recipients', requireAdmin/)
   assert.match(server, /app\.get\('\/api\/admin\/difusion\/mail-settings', requireAdmin/)
+})
+
+test('59 · registro de empresa valida correo existente y excluye el correo general UIC', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(server, /authorizedCompanyEmails/)
+  assert.match(server, /uic@uic-campana\.com\.ar/)
+  assert.match(server, /EMAIL_MISMATCH/)
+  assert.match(server, /NO_EMAIL/)
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS diffusion_company_accounts/)
+})
+
+test('60 · recuperación de contraseña usa código temporal y hash scrypt', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /forgot\/request/)
+  assert.match(server, /forgot\/reset/)
+  assert.match(server, /crypto\.scryptSync/)
+  assert.match(server, /reset_code_hash/)
+})
+
+test('61 · administrador puede ver la experiencia de cualquier empresa', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Ver como empresa/)
+  assert.match(app, /VISTA ADMINISTRADOR · COMO EMPRESA/)
+  assert.match(app, /CompanyDashboard/)
+})
+
+test('62 · cuerpo del mail acepta cuatro imágenes embebidas y adjuntos separados', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(app, /Hasta 4 figuras/)
+  assert.match(app, /inlineImages/)
+  assert.match(app, /attachments/)
+  assert.match(server, /maxCount:4/)
+  assert.match(server, /placement/)
+  assert.match(schema, /diffusion_campaign_files ADD COLUMN IF NOT EXISTS placement/)
+})
+
+test('63 · envío final deduplica correos y permite baja por destinatario', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  const schema = await read('server/schema.sql')
+  assert.match(server, /const byEmail=new Map/)
+  assert.match(server, /unsubscribeToken/)
+  assert.match(server, /\/api\/difusion\/unsubscribe/)
+  assert.match(app, /DESHABILITADO POR EL DESTINATARIO/)
+  assert.match(schema, /opted_out_at/)
 })
