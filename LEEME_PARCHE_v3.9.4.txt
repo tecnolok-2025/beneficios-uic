@@ -1,0 +1,8 @@
+PARCHE BENEFICIOS UIC v3.9.3 -> v3.9.4
+
+Copiar el contenido de este ZIP sobre la raíz de la versión v3.9.3, conservando las carpetas.
+No modifica DATABASE_URL, el padrón ni el catálogo de beneficios.
+
+Cambios: selector Administrador/Beneficiario, acceso empresa habilitado, guía de registro ampliada y navegación sin refresco manual.
+
+Mantener DIFFUSION_MASS_SEND_ENABLED=false durante las pruebas: TECNO LOGISTI-K SA continúa como destino piloto.

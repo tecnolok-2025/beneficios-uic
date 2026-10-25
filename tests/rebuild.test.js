@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.3 son coherentes', async () => {
+test('10 · versión y generación 3.9.4 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.3')
-  assert.match(server, /BENEFICIOS_UIC_393/)
-  assert.match(html, /BENEFICIOS_UIC_393/)
+  assert.equal(pkg.version, '3.9.4')
+  assert.match(server, /BENEFICIOS_UIC_394/)
+  assert.match(html, /BENEFICIOS_UIC_394/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -422,14 +422,16 @@ test('37 · v3.8.0 conserva migración robusta y fallback ante desconexión temp
 })
 
 
-test('42 · v3.9.3 habilita directorio público con registro por correo propio y conserva acceso administrador', async () => {
+test('42 · v3.9.4 ofrece acceso separado administrador / beneficiario y conserva registro por correo propio', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
+  assert.match(app, /DiffusionRoleChoice/)
+  assert.match(app, /Como administrador/)
+  assert.match(app, /Como beneficiario/)
   assert.match(app, /CompanyAuthPortal/)
   assert.match(app, /Elegí tu empresa/)
   assert.match(app, /Registrarme/)
   assert.match(app, /Olvidé mi contraseña/)
-  assert.match(app, /Acceso administrador/)
   assert.match(server, /\/api\/difusion\/company\/register\/request/)
   assert.match(server, /\/api\/difusion\/company\/login/)
   assert.match(server, /\/api\/difusion\/company\/forgot\/request/)
@@ -496,16 +498,16 @@ test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', 
   assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.3 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.4 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.3')
+  assert.equal(pkg.version, '3.9.4')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_393/)
-  assert.match(server, /BENEFICIOS_UIC_393/)
+  assert.match(index, /BENEFICIOS_UIC_394/)
+  assert.match(server, /BENEFICIOS_UIC_394/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -570,8 +572,8 @@ test('55 · masivos se controlan desde Validaciones y piloto TLK queda permanent
 test('56 · pantalla inicial explica registro, recuperación, prueba, código y validación', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /function DiffusionGuide/)
-  assert.match(app, /Registro y acceso/)
-  assert.match(app, /Olvidás la contraseña|olvidás la contraseña/i)
+  assert.match(app, /Si es la primera vez que ingresás/)
+  assert.match(app, /perdiste la contraseña|la olvidaste/i)
   assert.match(app, /código de 6 dígitos/i)
   assert.match(app, /Solicitá validación UIC/)
 })
@@ -639,4 +641,32 @@ test('63 · envío final deduplica correos y permite baja por destinatario', asy
   assert.match(server, /\/api\/difusion\/unsubscribe/)
   assert.match(app, /DESHABILITADO POR EL DESTINATARIO/)
   assert.match(schema, /opted_out_at/)
+})
+
+
+test('64 · v3.9.4 usa navegación interna propia y no depende de PopStateEvent manual', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /const NAV_EVENT = 'uic:navigate'/)
+  assert.match(app, /addEventListener\(NAV_EVENT, update\)/)
+  assert.match(app, /window\.dispatchEvent\(new Event\(NAV_EVENT\)\)/)
+  assert.doesNotMatch(app, /new PopStateEvent\('popstate'\)/)
+})
+
+test('65 · al elegir beneficiario se abandona la sesión administrativa para probar permisos reales de empresa', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /nextRole==='admin'/)
+  assert.match(app, /nextRole==='beneficiary'|else\{/)
+  assert.match(app, /\/api\/admin\/logout/)
+  assert.match(app, /Cambiar tipo de acceso/)
+  assert.match(app, /Para probar TECNO LOGISTI-K SA como una empresa real/)
+})
+
+test('66 · pantalla beneficiario explica minuciosamente registro, recuperación y falta de correo', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Si es la primera vez que ingresás/)
+  assert.match(app, /Si ya estás registrado o perdiste la contraseña/)
+  assert.match(app, /Enviar código de registro/)
+  assert.match(app, /Enviar código de recuperación/)
+  assert.match(app, /Esta empresa no tiene correo registrado para el acceso/)
+  assert.match(app, /el código vence a los 15 minutos/i)
 })

@@ -1,10 +1,22 @@
-> **Revisión actual: v3.9.3 · BENEFICIOS_UIC_393 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.4 · BENEFICIOS_UIC_394 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
+
+
+## Revisión v3.9.4 · 25/10/2026
+
+- El acceso a **Difusión de Beneficios** comienza con un selector explícito: **Como administrador** o **Como beneficiario**.
+- El administrador conserva la misma clave de `ADMIN_PASSWORD`; el beneficiario nunca necesita esa clave y utiliza su registro propio de empresa.
+- Si se elige modo beneficiario mientras existe una sesión administrativa, el Portal cierra esa sesión para reproducir permisos reales de empresa y evitar que el backend trate la prueba como administrador.
+- TECNO LOGISTI-K SA puede probarse de ambos lados: como administrador mediante clave UIC o como beneficiario mediante su correo/contraseña de empresa.
+- La pantalla de beneficiario muestra una guía completa antes del directorio: alta inicial, correo registrado, código de 6 dígitos, creación de contraseña, recuperación de clave, ausencia de correo, confección, prueba y validación.
+- Se refuerza la navegación SPA con un evento interno `uic:navigate`; los cambios Portal ↔ Difusión ↔ Beneficios ↔ Administración ya no dependen de crear manualmente un `PopStateEvent`.
+- Se incorporan accesos **Cambiar tipo de acceso** en los paneles de Difusión para alternar entre la experiencia empresa y la administrativa de forma controlada.
+- El modo masivo general continúa protegido: con el padrón deshabilitado, TECNO LOGISTI-K SA sigue siendo el destino piloto permanente.
 
 
 ## Revisión v3.9.3 · 25/10/2026
@@ -105,8 +117,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.3`
-- **Generación:** `BENEFICIOS_UIC_393`
+- **Versión:** `3.9.4`
+- **Generación:** `BENEFICIOS_UIC_394`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -124,6 +136,12 @@ npm start
 ```
 
 ## Historial reciente
+
+### v3.9.4
+- Selector de rol administrador / beneficiario al entrar a Difusión.
+- Acceso beneficiario público con registro propio y guía detallada.
+- Navegación interna reforzada para evitar pantallas que requieran refresco manual.
+- TECNO LOGISTI-K puede probarse con permisos reales de empresa y con permisos administrativos por separado.
 
 ### v3.9.3
 Agrega registro y recuperación autónomos por correo propio, código de 6 dígitos para acreditar la prueba, vista administrador como empresa, imágenes embebidas, deduplicación, baja del destinatario y control administrativo del envío masivo con piloto permanente TECNO LOGISTI-K SA.
