@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.8.5 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.6 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.8.5')
-  assert.match(server, /BENEFICIOS_UIC_3985/)
-  assert.match(html, /BENEFICIOS_UIC_3985/)
+  assert.equal(pkg.version, '3.9.8.6')
+  assert.match(server, /BENEFICIOS_UIC_3986/)
+  assert.match(html, /BENEFICIOS_UIC_3986/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.8.5 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.6 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.8.5')
+  assert.equal(pkg.version, '3.9.8.6')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3985/)
-  assert.match(server, /BENEFICIOS_UIC_3985/)
+  assert.match(index, /BENEFICIOS_UIC_3986/)
+  assert.match(server, /BENEFICIOS_UIC_3986/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -563,8 +563,8 @@ test('54 · prueba genera código aleatorio de seis dígitos y exige verificaci�
 test('55 · masivos se controlan desde Validaciones y Modo PRUEBA bloquea el padrón', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  assert.match(app, /Habilitar envío al padrón general/)
-  assert.match(app, /BLOQUEADO POR MODO PRUEBA/)
+  assert.match(app, /Habilitar padrón general/)
+  assert.match(app, /Padrón general BLOQUEADO/)
   assert.match(server, /\/api\/admin\/difusion\/mass-send/)
   assert.match(server, /mass_send_enabled/)
   assert.match(server, /PILOT_COMPANY_KEY/)
@@ -682,7 +682,7 @@ test('67 · v3.9.5 incorpora cola durable y monitor de envíos por empresa', asy
   assert.match(server, /processDiffusionQueue/)
   assert.match(server, /monitorPayload/)
   assert.match(server, /\/api\/difusion\/company\/monitor/)
-  assert.match(app, /MONITOR DE ENVÍOS/)
+  assert.match(app, /MONITOR Y TRAZABILIDAD/)
   assert.match(app, /posición en cola/)
 })
 
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.8.2 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.8.6 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.8.5')
+  assert.equal(pkg.version, '3.9.8.6')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3985/)
+  assert.match(server, /BENEFICIOS_UIC_3986/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -845,11 +845,11 @@ test('84 · baja queda visible en prueba y activa en el envío real con atribuci
   const server = await read('server/index.js')
   const app = await read('src/App.jsx')
   const schema = await read('server/schema.sql')
-  assert.match(server, /NO QUIERO RECIBIR MÁS ESTOS CORREOS/)
+  assert.match(server, /Preferencias de recepción \/ solicitar baja/)
   assert.match(server, /unsubscribePreview/)
   assert.match(server, /queueUnsubscribeToken/)
   assert.match(schema, /unsubscribed_at/)
-  assert.match(app, /NO QUIERO RECIBIR MÁS ESTOS CORREOS/)
+  assert.match(app, /Preferencias de recepción/)
 })
 
 test('85 · franja y nombre visible se autocompletan pero pueden editarse', async () => {
@@ -905,8 +905,8 @@ test('90 · envío general exige salir de prueba y mantiene doble llave administ
   assert.match(server, /SALIR DE PRUEBA/)
   assert.match(server, /Modo PRUEBA está activo\. Desactivá primero/)
   assert.match(app, /MODO PRUEBA ACTIVADO/)
-  assert.match(app, /BLOQUEADO POR MODO PRUEBA/)
-  assert.match(app, /PRUEBA · 3 DESTINOS/)
+  assert.match(app, /Padrón general BLOQUEADO/)
+  assert.match(app, /PRUEBA · BLOQUEO ACTIVO/)
 })
 
 test('91 · worker vuelve a validar la lista blanca inmediatamente antes del SMTP', async () => {
@@ -938,9 +938,9 @@ test('93 · botón Difusión de Beneficios queda jerarquizado en la portada', as
 test('94 · los borradores se guardan como archivo local .uicpub y no como archivo Neon', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /LOCAL_PUBLICATION_EXTENSION='\.uicpub'/)
-  assert.match(app, /Guardar archivo en mi PC/)
+  assert.match(app, /Elegir dónde guardar/)
   assert.match(app, /Abrir archivo de mi PC/)
-  assert.match(app, /no se almacenó en Neon ni en el servidor/)
+  assert.match(app, /No se almacenó en Neon ni en el servidor/)
   assert.doesNotMatch(app, /Mis publicaciones guardadas/)
   assert.doesNotMatch(app, />Duplicar</)
   assert.doesNotMatch(app, /function SavedCampaigns/)
@@ -1021,6 +1021,40 @@ test('101 · firma visible es editable y viaja dentro del layout sin alterar el 
 
 test('102 · la versión limpia borradores remotos heredados y evita acumulación por beneficio', async () => {
   const server = await read('server/index.js')
-  assert.match(server, /DELETE FROM diffusion_campaigns WHERE status IN \('draft','blocked'\) AND approval_requested_at IS NULL/)
+  assert.match(server, /DELETE FROM diffusion_campaigns WHERE status IN \('draft','blocked'\) AND approval_requested_at IS NULL AND test_sent_at IS NULL AND test_verified_at IS NULL/)
   assert.match(server, /DELETE FROM diffusion_campaigns WHERE company_key=\$1 AND benefit_slug=\$2 AND LOWER\(originator_email\)=LOWER\(\$3\)/)
+})
+
+
+test('103 · monitor acompaña el ciclo completo desde prueba hasta distribución', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /c\.status IN \('pending','rejected','queued','sending','sent','cancelled','blocked'\)/)
+  assert.match(server, /c\.status='draft' AND c\.test_sent_at IS NOT NULL/)
+  assert.match(app, /ESPERANDO VALIDACIÓN UIC/)
+  assert.match(app, /PRUEBA ENVIADA/)
+  assert.match(app, /PRUEBA VERIFICADA/)
+  assert.match(app, /AUTORIZADO · EN COLA/)
+  assert.match(app, /MONITOR Y TRAZABILIDAD/)
+})
+
+test('104 · monitor reduce consultas Neon cuando no hay actividad', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /activeRefreshMs=.*15000.*45000.*:0/s)
+  assert.match(app, /Sin consultas permanentes/)
+  assert.match(app, /Actualizar estado/)
+  assert.doesNotMatch(app, /setInterval\(.*5000/s)
+})
+
+test('105 · reinicio conserva instancias operativas con prueba ya enviada', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /status IN \('draft','blocked'\) AND approval_requested_at IS NULL AND test_sent_at IS NULL AND test_verified_at IS NULL/)
+})
+
+test('106 · monitor informa aperturas agregadas sin exponer detalle de destinatarios a beneficiarios', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /aperturas totales detectadas/)
+  assert.match(app, /Última apertura detectada/)
+  assert.match(app, /adminPreview&&sent>0/)
+  assert.match(app, /Ver trazabilidad por empresa y correo/)
 })

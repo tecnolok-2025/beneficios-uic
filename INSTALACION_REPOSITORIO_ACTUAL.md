@@ -1,14 +1,14 @@
-# Instalación v3.9.8.5 en el repositorio y Render actuales
+# Instalación v3.9.8.6 en el repositorio y Render actuales
 
-Esta entrega actualiza directamente la **v3.9.8.3** y ya incluye todo el parche de v3.9.8.4. Conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. No borra catálogo, padrón, cuentas, trazabilidad ni campañas autorizadas; al primer arranque sí elimina los antiguos borradores remotos `draft/blocked`, porque desde esta revisión los borradores pertenecen exclusivamente al disco local del usuario.
+Esta entrega actualiza directamente la **v3.9.8.3** e incluye de forma acumulativa v3.9.8.4 y v3.9.8.5. Conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. No borra catálogo, padrón, cuentas, trazabilidad ni campañas autorizadas. Los borradores de trabajo continúan siendo exclusivamente locales `.uicpub`; la limpieza automática sólo purga `draft/blocked` que no tengan prueba enviada ni verificada.
 
 ## GitHub / Render
 
-1. Si el repositorio desplegado está exactamente en **v3.9.8.3**, aplicar el parche `v3.9.8.3 → v3.9.8.5`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
+1. Si el repositorio desplegado está exactamente en **v3.9.8.3**, aplicar el parche `v3.9.8.3 → v3.9.8.6`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
 2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT`, `DIFFUSION_MAIL_SECRET` y las demás variables de Difusión existentes.
 3. No cambiar `DIFFUSION_MAIL_SECRET` si ya existe: protege la contraseña SMTP cifrada guardada en Neon.
 4. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.5 · BENEFICIOS_UIC_3985`.
+5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.6 · BENEFICIOS_UIC_3986`.
 6. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
@@ -29,7 +29,7 @@ DIFFUSION_SEND_INTERVAL_MS=45000
 
 ## Modo PRUEBA — protección principal
 
-La v3.9.8.5 conserva `test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE` en Neon. Por lo tanto, después del primer arranque de esta versión el **Modo PRUEBA queda activado por defecto**.
+La v3.9.8.6 conserva `test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE` en Neon. Por lo tanto, después del primer arranque de esta versión el **Modo PRUEBA queda activado por defecto**.
 
 Mientras está activo, la distribución autorizada puede dirigirse únicamente a estos tres correos de control:
 
@@ -72,12 +72,12 @@ El ojo no permite recuperar secretos previamente guardados. En particular, la co
 
 ## Difusión de Beneficios en portada
 
-El acceso **Difusión de Beneficios** conserva su ubicación. En v3.9.8.5 la pantalla pública de ingreso destaca además el acceso de beneficiarios por convenio sin exponer empresas internas de prueba.
+El acceso **Difusión de Beneficios** conserva su ubicación. En v3.9.8.6 la pantalla pública de ingreso destaca además el acceso de beneficiarios por convenio sin exponer empresas internas de prueba.
 
 
 ## Archivos de trabajo locales — sin consumo de Neon
 
-La v3.9.8.5 elimina **Mis publicaciones guardadas** del panel beneficiario. El constructor trabaja con archivos locales `.uicpub`:
+La v3.9.8.6 conserva eliminado **Mis publicaciones guardadas** del panel beneficiario. El constructor trabaja con archivos locales `.uicpub`:
 
 - **Guardar archivo en mi PC** descarga un archivo que contiene textos, diseño, imágenes, adjuntos y firma.
 - **Abrir archivo local** reconstruye el trabajo directamente desde el disco del usuario y no consulta Neon.
@@ -110,9 +110,21 @@ Se mantienen íntegros los componentes de v3.9.8.1:
 - resumen agregado para beneficiarios y detalle por empresa/correo para administración UIC;
 - cola persistente, monitor, cancelación y calendario mensual fijo no acumulativo.
 
+
+## Cambios operativos v3.9.8.6
+
+- Firma editable: nombre, cargo, correo, teléfono, **web y logo**.
+- En Chrome/Edge de PC, **Elegir dónde guardar `.uicpub`** permite seleccionar carpeta y nombre; otros navegadores usan Descargas.
+- En Validaciones, la salida de Modo PRUEBA y la habilitación del padrón son dos acciones separadas y explícitas.
+- La tarjeta pendiente muestra los datos del firmante y vínculos directos de contacto.
+- La baja de email exige abrir una pantalla y escribir `BAJA`; visitar el enlace no ejecuta ninguna modificación.
+- El HTML de los correos apila imágenes y columnas en pantallas móviles de hasta 600 px.
+- El monitor sigue también los estados anteriores a la autorización: prueba, código y espera de validación.
+- Para reducir consumo de Neon, el monitor actualiza cada 15 s sólo si hay cola/envío, cada 45 s si espera validación y no hace polling cuando sólo hay historial.
+
 ## Prueba recomendada después del deploy
 
-1. Abrir el Portal y confirmar `v3.9.8.5`.
+1. Abrir el Portal y confirmar `v3.9.8.6`.
 2. Verificar que **Difusión de Beneficios** esté destacado en la portada.
 3. Ingresar **Como administrador**.
 4. Confirmar visualmente **MODO PRUEBA ACTIVADO** y los tres destinatarios exactos.
@@ -124,7 +136,7 @@ Se mantienen íntegros los componentes de v3.9.8.1:
 
 ## Validaciones de entrega
 
-- `npm test`: **102/102 pruebas aprobadas**.
+- `npm test`: **106/106 pruebas aprobadas**.
 - `node --check server/index.js`: aprobado.
 - Parseo de `src/App.jsx` con TypeScript 5.8.3 (`jsx: preserve`, `noEmit`): aprobado.
 - El parche acumulativo debe compararse con el ZIP completo antes de publicar la entrega final.

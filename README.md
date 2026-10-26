@@ -1,9 +1,25 @@
-> **Revisión actual: v3.9.8.5 · BENEFICIOS_UIC_3985 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.6 · BENEFICIOS_UIC_3986 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
+
+## Revisión v3.9.8.6 · 26/10/2026
+
+- La firma incorpora **página web** y **logo de empresa** editable, con tamaño proporcionado y sin deformación.
+- **Elegir dónde guardar `.uicpub`** abre el selector de carpeta/nombre en Chrome/Edge de PC cuando el navegador lo permite; conserva fallback a Descargas.
+- **Solicitar validación UIC** se destaca visualmente cuando la prueba y el código ya están verificados.
+- La habilitación del padrón general se explica como una secuencia segura de **2 pasos**: salir de Modo PRUEBA y luego habilitar el padrón.
+- La pantalla de Validaciones muestra **datos completos del firmante** y accesos para llamar, WhatsApp, email y web.
+- La baja deja de ser de un solo toque: **Preferencias de recepción / solicitar baja** exige escribir `BAJA` en una pantalla de confirmación.
+- El correo final incorpora reglas responsive para apilar galerías y composiciones en celular, evitando imágenes superpuestas o fuera de ancho.
+- El **Monitor y trazabilidad** cubre todo el ciclo: prueba enviada, código verificado, validación UIC, cola, envío, finalización, devolución o cancelación.
+- Se agregan hitos con fecha/hora, aperturas totales detectadas y última apertura detectada. La trazabilidad individual continúa reservada al administrador.
+- El polling deja de ser permanente cada 5 segundos: 15 s sólo durante cola/envío, 45 s mientras espera validación y 0 s cuando sólo hay historial; en ese caso se usa **Actualizar estado**.
+- Los reinicios conservan instancias operativas que ya tengan prueba enviada/verificada.
+- Entrega acumulativa directa desde **v3.9.8.3**.
+- **106/106 pruebas automáticas aprobadas**, sintaxis del servidor y parseo JSX aprobados.
 
 ## Revisión v3.9.8.5 · 26/10/2026
 
