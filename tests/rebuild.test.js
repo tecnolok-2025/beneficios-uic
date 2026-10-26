@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.7 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.7')
-  assert.match(server, /BENEFICIOS_UIC_397/)
-  assert.match(html, /BENEFICIOS_UIC_397/)
+  assert.equal(pkg.version, '3.9.8.1')
+  assert.match(server, /BENEFICIOS_UIC_3981/)
+  assert.match(html, /BENEFICIOS_UIC_3981/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -498,16 +498,16 @@ test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', 
   assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
 })
 
-test('49 · v3.9.7 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.1 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.7')
+  assert.equal(pkg.version, '3.9.8.1')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_397/)
-  assert.match(server, /BENEFICIOS_UIC_397/)
+  assert.match(index, /BENEFICIOS_UIC_3981/)
+  assert.match(server, /BENEFICIOS_UIC_3981/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -744,14 +744,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.7 tiene Error Boundary y conserva generación técnica', async () => {
+test('74 · v3.9.8.1 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.7')
+  assert.equal(pkg.version, '3.9.8.1')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_397/)
+  assert.match(server, /BENEFICIOS_UIC_3981/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -815,4 +815,64 @@ test('81 · imágenes del constructor se reducen antes de enviarse al servidor',
   assert.match(app, /maxWidth=900,maxHeight=1200/)
   assert.match(app, /canvas\.toBlob/)
   assert.match(app, /reducción automática/)
+})
+
+
+test('82 · v3.9.8.1 agrega trazabilidad de aperturas por destinatario sin llamarla lectura garantizada', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  const app = await read('src/App.jsx')
+  assert.match(schema, /first_opened_at/)
+  assert.match(schema, /last_opened_at/)
+  assert.match(schema, /open_count INTEGER NOT NULL DEFAULT 0/)
+  assert.match(server, /\/api\/difusion\/open\.gif/)
+  assert.match(server, /opened_recipients/)
+  assert.match(app, /aperturas detectadas/i)
+  assert.match(app, /No detectada.*no significa necesariamente.*no leído/is)
+})
+
+test('83 · administrador puede auditar empresa, correo, apertura y baja de cada campaña', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /campaigns\/:id\/trace/)
+  assert.match(server, /company_name,contact_name,status,sent_at/)
+  assert.match(app, /Ver trazabilidad por empresa y correo/)
+  assert.match(app, /neo-trace-table/)
+})
+
+test('84 · baja queda visible en prueba y activa en el envío real con atribución de campaña', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  const schema = await read('server/schema.sql')
+  assert.match(server, /NO QUIERO RECIBIR MÁS ESTOS CORREOS/)
+  assert.match(server, /unsubscribePreview/)
+  assert.match(server, /queueUnsubscribeToken/)
+  assert.match(schema, /unsubscribed_at/)
+  assert.match(app, /NO QUIERO RECIBIR MÁS ESTOS CORREOS/)
+})
+
+test('85 · franja y nombre visible se autocompletan pero pueden editarse', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /bannerText/)
+  assert.match(server, /companyDisplayName/)
+  assert.match(app, /automática y editable/)
+  assert.match(app, /setBannerText/)
+  assert.match(app, /setCompanyDisplayName/)
+})
+
+test('86 · logo de Beneficios UIC se integra a la franja del correo y la vista previa', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  const logo = await fs.readFile(path.join(root, 'public/logo-beneficios-uic.png'))
+  assert.ok(logo.length > 1000)
+  assert.match(server, /cid:uic-benefits-brand/)
+  assert.match(app, /logo-beneficios-uic\.png/)
+})
+
+test('87 · cola impone como mínimo 45 segundos entre destinatarios', async () => {
+  const server = await read('server/index.js')
+  const env = await read('.env.example')
+  assert.match(server, /Math\.max\(45000, Number\(process\.env\.DIFFUSION_SEND_INTERVAL_MS \|\| 45000\)\)/)
+  assert.match(env, /DIFFUSION_SEND_INTERVAL_MS=45000/)
 })

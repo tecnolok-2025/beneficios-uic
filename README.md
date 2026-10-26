@@ -1,4 +1,4 @@
-> **Revisión actual: v3.9.7 · BENEFICIOS_UIC_397 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.1 · BENEFICIOS_UIC_3981 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
@@ -8,7 +8,7 @@ Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
 
-## Revisión v3.9.7 · 25/10/2026
+## Revisión v3.9.8.1 · 25/10/2026
 
 - Reemplaza el editor lineal por el **Constructor Visual UIC** con 8 modelos predefinidos.
 - Permite editar texto por bloques con formato visible: negrita, cursiva, subrayado, listas, enlaces y limpieza de formato.
@@ -141,8 +141,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.7`
-- **Generación:** `BENEFICIOS_UIC_397`
+- **Versión:** `3.9.8.1`
+- **Generación:** `BENEFICIOS_UIC_3981`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8
@@ -160,6 +160,14 @@ npm start
 ```
 
 ## Historial reciente
+
+
+### v3.9.8.1
+- edición de franja y nombre visible sin alterar el padrón;
+- logo de Beneficios UIC embebido en la cabecera;
+- trazabilidad de aperturas detectadas, porcentaje, bajas y detalle administrador por correo;
+- baja visible en prueba y activa en envío real;
+- intervalo mínimo de 45 segundos por destinatario.
 
 ### v3.9.7
 - Constructor Visual UIC con 8 plantillas, edición por bloques, vista previa escritorio/celular, reducción de imágenes y render compatible con email.

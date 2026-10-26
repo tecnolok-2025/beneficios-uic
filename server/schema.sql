@@ -238,3 +238,11 @@ CREATE INDEX IF NOT EXISTS diffusion_campaign_queue_idx ON diffusion_campaigns(s
 -- v3.9.7 · Constructor Visual UIC por plantillas
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT 'institutional';
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS layout_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+
+-- v3.9.8.1 · trazabilidad de aperturas y bajas por campaña
+ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS first_opened_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS last_opened_at TIMESTAMPTZ;
+ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS unsubscribed_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS diffusion_queue_recipient_open_idx ON diffusion_campaign_queue_recipients(campaign_id, first_opened_at);

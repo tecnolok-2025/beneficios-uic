@@ -1,4 +1,4 @@
-# Instalación v3.9.7 en el repositorio y Render actuales
+# Instalación v3.9.8.1 en el repositorio y Render actuales
 
 Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base PostgreSQL/Neon actuales. La migración es **aditiva**: incorpora cola persistente, monitor de avance, cancelación y calendario mensual fijo por beneficio sin eliminar catálogo, padrón, cuentas ni campañas existentes.
 
@@ -7,7 +7,7 @@ Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base Po
 1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.4**.
 2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables de Difusión existentes.
 3. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-4. El arranque debe informar `Beneficios UIC NUEVO v3.9.7 · BENEFICIOS_UIC_397`.
+4. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.1 · BENEFICIOS_UIC_3981`.
 5. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
@@ -138,3 +138,7 @@ Después del deploy verificar:
 9. Probar el mensaje en Outlook y en un teléfono antes de habilitar cualquier envío masivo.
 
 El padrón general continúa sujeto al interruptor de Validaciones y a `DIFFUSION_MASS_SEND_ENABLED`.
+
+
+## Revisión 3.9.8.1 — trazabilidad y terminación del mail
+No requiere un servicio Render nuevo ni una base Neon nueva. La migración es aditiva. El intervalo de cola tiene un mínimo de 45 segundos aun si la variable de entorno conserva un valor menor. Se recomienda dejar `DIFFUSION_SEND_INTERVAL_MS=45000` para que la configuración visible coincida con el comportamiento efectivo.
