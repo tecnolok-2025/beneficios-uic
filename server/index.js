@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_3981'
+const GENERATION = 'BENEFICIOS_UIC_3983'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -55,8 +55,9 @@ async function readJsonData(filename, fallback) {
   catch (error) { console.warn(`${filename} no disponible (${error.code || error.message})`); return fallback }
 }
 const diffusionRecipientSeed = await readJsonData('diffusion-recipients.json', [])
-const diffusionConfig = await readJsonData('diffusion-config.json', { approvalEmail: 'tesoreria@uic-campana.com.ar', maintenanceContact: { name: 'María José Godoy (Majo)', phone: '3489 65 0104', email: 'tesoreria@uic-campana.com.ar' }, companyOverrides: {}, testCompanies: [] })
+const diffusionConfig = await readJsonData('diffusion-config.json', { approvalEmail: 'tesoreria@uic-campana.com.ar', maintenanceContact: { name: 'María José Godoy (Majo)', phone: '3489 65 0104', email: 'tesoreria@uic-campana.com.ar' }, companyOverrides: {}, testCompanies: [], testRecipients: [] })
 const PILOT_COMPANY_KEY = 'tecno-logisti-k-sa'
+const TEST_RECIPIENTS = Array.isArray(diffusionConfig.testRecipients) ? diffusionConfig.testRecipients : []
 
 
 function dateOnly(value) {
@@ -290,6 +291,16 @@ function fileSignatureMatches(file) {
   if (file.mimetype === 'application/pdf') return b.slice(0,5).toString() === '%PDF-'
   return false
 }
+async function testModeEnabled() {
+  // Seguridad fail-closed: ante cualquier duda o error, el sistema queda en PRUEBA.
+  if (pool && databaseAvailable) {
+    try {
+      const result = await pool.query('SELECT test_mode_enabled FROM diffusion_mail_settings WHERE id=1')
+      if (result.rows[0]) return result.rows[0].test_mode_enabled !== false
+    } catch {}
+  }
+  return true
+}
 async function massDiffusionEnabled() {
   if (pool && databaseAvailable) {
     try {
@@ -298,6 +309,19 @@ async function massDiffusionEnabled() {
     } catch {}
   }
   return String(process.env.DIFFUSION_MASS_SEND_ENABLED || '').toLowerCase() === 'true'
+}
+function normalizedTestRecipients() {
+  const byEmail = new Map()
+  for (const item of TEST_RECIPIENTS) {
+    const email = normalizeEmail(item?.email)
+    if (!validEmail(email) || byEmail.has(email)) continue
+    byEmail.set(email, { id: null, company_name: safeText(item?.name, 220), contact_name: safeText(item?.contactName, 220), email, phone: safeText(item?.phone, 100), test_only: true })
+  }
+  return [...byEmail.values()]
+}
+function isAllowedTestRecipient(email) {
+  const normalized = normalizeEmail(email)
+  return normalizedTestRecipients().some(item => item.email === normalized)
 }
 function mailEncryptionKey() {
   return crypto.createHash('sha256').update(String(process.env.DIFFUSION_MAIL_SECRET || process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || 'uic-difusion-desarrollo')).digest()
@@ -342,7 +366,7 @@ async function diffusionMailSettings() {
     username: process.env.SMTP_USER || '', password: process.env.SMTP_PASS || '',
     fromEmail: process.env.DIFFUSION_FROM_EMAIL || process.env.SMTP_USER || 'tesoreria@uic-campana.com.ar',
     fromName: process.env.DIFFUSION_FROM_NAME || 'Unión Industrial de Campana · Beneficios',
-    testRecipient: process.env.DIFFUSION_TEST_RECIPIENT || '', massSendEnabled: String(process.env.DIFFUSION_MASS_SEND_ENABLED || '').toLowerCase()==='true'
+    testRecipient: process.env.DIFFUSION_TEST_RECIPIENT || '', massSendEnabled: String(process.env.DIFFUSION_MASS_SEND_ENABLED || '').toLowerCase()==='true', testModeEnabled: true
   }
   if (!pool || !databaseAvailable) return fallback
   try {
@@ -350,7 +374,7 @@ async function diffusionMailSettings() {
     const storedPassword=decryptMailSecret(row.smtp_password_encrypted)
     return { host:row.smtp_host||fallback.host, port:Number(row.smtp_port||fallback.port), secure:Boolean(row.smtp_secure), username:row.smtp_user||fallback.username,
       password:storedPassword||fallback.password, fromEmail:row.from_email||fallback.fromEmail, fromName:row.from_name||fallback.fromName,
-      testRecipient:row.test_recipient||fallback.testRecipient, massSendEnabled:Boolean(row.mass_send_enabled) }
+      testRecipient:row.test_recipient||fallback.testRecipient, massSendEnabled:Boolean(row.mass_send_enabled), testModeEnabled:row.test_mode_enabled !== false }
   } catch { return fallback }
 }
 async function createMailer() {
@@ -452,20 +476,22 @@ async function sendDiffusionMail({to, subject, html, attachments=[]}) {
 }
 
 function backgroundBaseUrl() { return String(process.env.PUBLIC_BASE_URL || 'https://beneficios-uic.onrender.com').replace(/\/$/,'') }
-async function buildQueueRecipients(campaign, massEnabled) {
-  const pilot=diffusionConfig.testCompanies?.find(c=>c.key===PILOT_COMPANY_KEY); const pilotEmail=normalizeEmail(pilot?.email); const origin=normalizeEmail(campaign.originator_email); const approval=normalizeEmail(process.env.DIFFUSION_APPROVAL_EMAIL||diffusionConfig.approvalEmail||'tesoreria@uic-campana.com.ar')
+async function buildQueueRecipients(campaign, massEnabled, testMode = true) {
+  const origin=normalizeEmail(campaign.originator_email); const approval=normalizeEmail(process.env.DIFFUSION_APPROVAL_EMAIL||diffusionConfig.approvalEmail||'tesoreria@uic-campana.com.ar')
   const byEmail=new Map()
-  if(!massEnabled){
-    if(validEmail(pilotEmail)){
-      const pilotRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[pilotEmail])).rows[0]
-      byEmail.set(pilotEmail,pilotRow||{id:null,company_name:'TECNO LOGISTI-K SA',contact_name:pilot?.contactName||'',email:pilotEmail,phone:pilot?.phone||''})
+  // Modo PRUEBA o masivo deshabilitado: lista blanca cerrada de exactamente los destinos de control.
+  if(testMode || !massEnabled){
+    for(const control of normalizedTestRecipients()){
+      const dbRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[control.email])).rows[0]
+      byEmail.set(control.email,dbRow||control)
     }
     return [...byEmail.values()]
   }
   const rows=(await pool.query(`SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE enabled=TRUE AND email_valid=TRUE AND email<>'' AND opted_out_at IS NULL ORDER BY company_name,id`)).rows
   for(const row of rows){const email=normalizeEmail(row.email);if(validEmail(email)&&!byEmail.has(email))byEmail.set(email,row)}
-  if(validEmail(pilotEmail)&&!byEmail.has(pilotEmail)){const pilotRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[pilotEmail])).rows[0];byEmail.set(pilotEmail,pilotRow||{id:null,company_name:'TECNO LOGISTI-K SA',contact_name:pilot?.contactName||'',email:pilotEmail,phone:pilot?.phone||''})}
-  if(origin!==pilotEmail)byEmail.delete(origin)
+  for(const control of normalizedTestRecipients()) if(!byEmail.has(control.email)) byEmail.set(control.email,control)
+  // En modo general evitamos duplicar el correo de origen y el correo de aprobación. En PRUEBA no se filtran: la lista blanca manda.
+  byEmail.delete(origin)
   byEmail.delete(approval)
   return [...byEmail.values()]
 }
@@ -493,13 +519,19 @@ async function processDiffusionQueue() {
     const fresh=await getCampaign(campaign.id);if(fresh.cancel_requested_at){await finishCancelledCampaign(campaign.id);return}
     const recipient=(await pool.query(`SELECT * FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1 AND status='pending' ORDER BY id LIMIT 1`,[campaign.id])).rows[0]
     if(!recipient){await pool.query(`UPDATE diffusion_campaigns SET status='sent',sent_at=NOW(),completed_at=NOW(),recipient_count=sent_count,queue_note=CASE WHEN failed_count>0 THEN 'Finalizado con algunos errores' ELSE 'Envío finalizado' END,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1`,[campaign.id]);await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[campaign.id]);return}
+    // Cinturón de seguridad final: aunque una campaña vieja hubiese quedado en cola, Modo PRUEBA bloquea cualquier correo fuera de la lista blanca antes del SMTP.
+    if(await testModeEnabled() && !isAllowedTestRecipient(recipient.email)){
+      await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='cancelled',error_text='Bloqueado por Modo PRUEBA de seguridad.',updated_at=NOW() WHERE id=$1`,[recipient.id])
+      await pool.query(`UPDATE diffusion_campaigns SET last_progress_at=NOW(),queue_note='Modo PRUEBA activo · destinatarios externos bloqueados',updated_at=NOW() WHERE id=$1`,[campaign.id])
+      return
+    }
     await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='sending',attempts=attempts+1,updated_at=NOW() WHERE id=$1`,[recipient.id])
     try{
       const latest=await getCampaign(campaign.id);if(latest.cancel_requested_at){await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='pending',updated_at=NOW() WHERE id=$1`,[recipient.id]);await finishCancelledCampaign(campaign.id);return}
       const media=await campaignMedia(campaign.id);let unsubscribe='';if(recipient.recipient_id){unsubscribe=`${backgroundBaseUrl()}/api/difusion/unsubscribe?c=${campaign.id}&q=${recipient.id}&id=${recipient.recipient_id}&token=${encodeURIComponent(queueUnsubscribeToken(recipient))}`}
       const tracking=`${backgroundBaseUrl()}/api/difusion/open.gif?c=${campaign.id}&q=${recipient.id}&token=${encodeURIComponent(queueTrackingToken(recipient))}`
-      const pilotBanner=Number(latest.total_recipients||0)===1&&slugify(recipient.company_name)===PILOT_COMPANY_KEY?'<div style="background:#eef7fb;padding:12px;border:1px solid #7cb7d2"><strong>PILOTO DE DISTRIBUCIÓN</strong><br>El padrón general está deshabilitado. TECNO LOGISTI-K SA es el único destino de control masivo.</div>':''
-      await sendDiffusionMail({to:recipient.email,subject:latest.subject,html:`${pilotBanner}${campaignEmailHtml(latest,media.inlineFiles,{unsubscribeUrl:unsubscribe,trackingUrl:tracking})}`,attachments:media.all})
+      const testBanner=await testModeEnabled()?'<div style="background:#fff5cc;padding:12px;border:1px solid #e3bd3f;color:#5c4a12"><strong>MODO PRUEBA · DISTRIBUCIÓN CONTROLADA</strong><br>Este correo fue autorizado dentro del circuito de prueba UIC. El padrón general de socios permanece bloqueado.</div>':''
+      await sendDiffusionMail({to:recipient.email,subject:latest.subject,html:`${testBanner}${campaignEmailHtml(latest,media.inlineFiles,{unsubscribeUrl:unsubscribe,trackingUrl:tracking})}`,attachments:media.all})
       await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='sent',sent_at=NOW(),updated_at=NOW() WHERE id=$1`,[recipient.id]);await pool.query(`UPDATE diffusion_campaigns SET sent_count=sent_count+1,recipient_count=sent_count+1,last_progress_at=NOW(),queue_note='Enviando',updated_at=NOW() WHERE id=$1`,[campaign.id])
     }catch(error){await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='failed',failed_at=NOW(),error_text=$2,updated_at=NOW() WHERE id=$1`,[recipient.id,safeText(error.message,500)]);await pool.query(`UPDATE diffusion_campaigns SET failed_count=failed_count+1,last_progress_at=NOW(),queue_note='Enviando · se registró un error individual',updated_at=NOW() WHERE id=$1`,[campaign.id])}
   }finally{diffusionQueueBusy=false}
@@ -663,9 +695,10 @@ app.get('/api/difusion/company/dashboard',requireCompany,requireDiffusionDatabas
 })
 
 app.get('/api/admin/difusion/settings', requireAdmin, async (req, res) => {
-  const mail = await diffusionMailSettings()
+  const mail = await diffusionMailSettings(); const testMode = await testModeEnabled(); const massEnabled = await massDiffusionEnabled()
   res.json({
-    databaseAvailable: Boolean(pool && databaseAvailable), massSendEnabled: await massDiffusionEnabled(), sendEnabled: await massDiffusionEnabled(),
+    databaseAvailable: Boolean(pool && databaseAvailable), massSendEnabled: massEnabled, sendEnabled: massEnabled && !testMode,
+    testModeEnabled: testMode, testRecipients: normalizedTestRecipients().map(({company_name,contact_name,email,phone})=>({name:company_name,contactName:contact_name,email,phone})),
     testSendEnabled: Boolean(mail.username && mail.password), mailConfigured: Boolean(mail.username && mail.password),
     fromEmail: mail.fromEmail, approvalEmail: process.env.DIFFUSION_APPROVAL_EMAIL || diffusionConfig.approvalEmail || 'tesoreria@uic-campana.com.ar',
     pilotCompanyKey: PILOT_COMPANY_KEY, maintenanceContact: diffusionConfig.maintenanceContact, accessRole: 'admin'
@@ -675,7 +708,7 @@ app.get('/api/admin/difusion/settings', requireAdmin, async (req, res) => {
 app.get('/api/admin/difusion/mail-settings', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
   try {
     const mail = await diffusionMailSettings()
-    res.json({ host: mail.host, port: mail.port, secure: mail.secure, username: mail.username, fromEmail: mail.fromEmail, fromName: mail.fromName, testRecipient: mail.testRecipient, passwordConfigured: Boolean(mail.password), massSendEnabled: await massDiffusionEnabled() })
+    res.json({ host: mail.host, port: mail.port, secure: mail.secure, username: mail.username, fromEmail: mail.fromEmail, fromName: mail.fromName, testRecipient: mail.testRecipient, passwordConfigured: Boolean(mail.password), massSendEnabled: await massDiffusionEnabled(), testModeEnabled: await testModeEnabled() })
   } catch (error) { next(error) }
 })
 app.put('/api/admin/difusion/mail-settings', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
@@ -694,11 +727,32 @@ app.put('/api/admin/difusion/mail-settings', requireAdmin, requireDiffusionDatab
   } catch(error){next(error)}
 })
 
+app.put('/api/admin/difusion/test-mode', requireAdmin, requireDiffusionDatabase, async (req,res,next)=>{
+  try{
+    const enabled=Boolean(req.body.enabled); const confirm=String(req.body.confirm||'').trim().toUpperCase()
+    if(!enabled && confirm!=='SALIR DE PRUEBA') return res.status(400).json({error:'Para desactivar Modo PRUEBA escribí SALIR DE PRUEBA.'})
+    if(enabled){
+      await pool.query('UPDATE diffusion_mail_settings SET test_mode_enabled=TRUE,mass_send_enabled=FALSE,updated_at=NOW() WHERE id=1')
+      // Protección adicional: cualquier destinatario pendiente que no esté en la lista blanca queda bloqueado antes del próximo ciclo del worker.
+      const allowed=normalizedTestRecipients().map(item=>item.email)
+      if(allowed.length) await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='cancelled',error_text='Bloqueado automáticamente al activar Modo PRUEBA.',updated_at=NOW() WHERE status='pending' AND lower(email) <> ALL($1::text[])`,[allowed])
+      return res.json({testModeEnabled:true,massSendEnabled:false})
+    }
+    await pool.query('UPDATE diffusion_mail_settings SET test_mode_enabled=FALSE,updated_at=NOW() WHERE id=1')
+    res.json({testModeEnabled:false,massSendEnabled:await massDiffusionEnabled()})
+  }catch(error){next(error)}
+})
 app.put('/api/admin/difusion/mass-send', requireAdmin, requireDiffusionDatabase, async (req,res,next)=>{
-  try{const enabled=Boolean(req.body.enabled);const confirm=String(req.body.confirm||'').trim().toUpperCase();if(enabled&&confirm!=='HABILITAR')return res.status(400).json({error:'Para habilitar el padrón general escribí HABILITAR.'});await pool.query('UPDATE diffusion_mail_settings SET mass_send_enabled=$1,updated_at=NOW() WHERE id=1',[enabled]);res.json({massSendEnabled:enabled})}catch(error){next(error)}
+  try{
+    const enabled=Boolean(req.body.enabled); const confirm=String(req.body.confirm||'').trim().toUpperCase()
+    if(enabled && await testModeEnabled()) return res.status(409).json({error:'Modo PRUEBA está activo. Desactivá primero el tilde de seguridad y confirmá SALIR DE PRUEBA.'})
+    if(enabled&&confirm!=='HABILITAR')return res.status(400).json({error:'Para habilitar el padrón general escribí HABILITAR.'})
+    await pool.query('UPDATE diffusion_mail_settings SET mass_send_enabled=$1,updated_at=NOW() WHERE id=1',[enabled]);res.json({massSendEnabled:enabled,testModeEnabled:await testModeEnabled()})
+  }catch(error){next(error)}
 })
 app.post('/api/admin/difusion/mail-settings/test', requireAdmin, requireDiffusionDatabase, async (req,res,next)=>{
   try {
+    if(req.body.confirmFirst!==true||String(req.body.confirm||'').trim().toUpperCase()!=='PROBAR')return res.status(400).json({error:'La prueba técnica requiere doble confirmación: aceptar el aviso y escribir PROBAR.'})
     const mail=await diffusionMailSettings(); const recipient=safeText(req.body.recipient,250)||mail.testRecipient||mail.fromEmail
     if(!validEmail(recipient)) return res.status(400).json({error:'Indicá un correo válido para recibir la prueba.'})
     await sendDiffusionMail({to:recipient,subject:'[PRUEBA] Configuración de correo · Portal de Beneficios UIC',html:`<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#17384c"><h2>Prueba de correo · Difusión de Beneficios UIC</h2><p>La configuración SMTP funciona correctamente.</p><p><strong>Remitente configurado:</strong> ${safeText(mail.fromEmail,250)}</p><p>Este mensaje es una prueba técnica y no fue enviado al padrón de socios.</p></div>`})
@@ -756,13 +810,47 @@ app.post('/api/admin/difusion/campaigns',requireDiffusionActor,requireDiffusionD
     const contact=company.contacts.find(c=>normalizeEmail(c.email)===originatorEmail)||{};const originatorName=safeText(contact.name||req.body.originatorName||company.contactName||company.name,200);const originatorPhone=safeText(contact.phone||company.phone||'',100);const originatorRole=safeText(contact.role||company.role||'',160)
     const subject=campaignSubject(company.name);const templateId=EMAIL_TEMPLATE_IDS.has(String(req.body.templateId||''))?String(req.body.templateId):'institutional';let rawLayout={};try{rawLayout=JSON.parse(String(req.body.layoutJson||'{}'))}catch{return res.status(400).json({error:'El diseño del correo no pudo interpretarse. Volvé a seleccionar el modelo.'})}const layoutJson=sanitizeLayout(templateId,rawLayout);const bodyMarkup=plainMarkup(layoutPlainText(layoutJson));const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily)?req.body.fontFamily:'Arial';const fontSize=['small','normal','large'].includes(req.body.fontSize)?req.body.fontSize:'normal';if(!bodyMarkup)return res.status(400).json({error:'Completá al menos un bloque de texto de la comunicación.'})
     const attachments=req.files?.attachments||[];const inlineImages=req.files?.inlineImages||[];const allowedAttach=new Set(['image/jpeg','image/png','application/pdf']);const allowedInline=new Set(['image/jpeg','image/png']);if(attachments.some(f=>!allowedAttach.has(f.mimetype)||!fileSignatureMatches(f))||inlineImages.some(f=>!allowedInline.has(f.mimetype)||!fileSignatureMatches(f)))return res.status(400).json({error:'Los adjuntos admiten JPG, PNG o PDF; las imágenes del cuerpo admiten JPG o PNG.'});let inlinePositions=[];try{inlinePositions=JSON.parse(String(req.body.inlineImagePositions||'[]'))}catch{};if(!Array.isArray(inlinePositions)||inlinePositions.length!==inlineImages.length)inlinePositions=inlineImages.map((_,i)=>i);inlinePositions=inlinePositions.map((value,i)=>{const n=Number(value);return Number.isInteger(n)&&n>=0&&n<=3?n:i})
-    const safety=assessCampaign(subject,bodyMarkup,[...attachments,...inlineImages]);await pool.query(`DELETE FROM diffusion_campaigns WHERE company_key=$1 AND benefit_slug=$2 AND status IN ('draft','pending','rejected','blocked')`,[companyKey,benefitSlug])
+    const safety=assessCampaign(subject,bodyMarkup,[...attachments,...inlineImages]);
     const result=await pool.query(`INSERT INTO diffusion_campaigns (company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,originator_phone,originator_role,subject,body_markup,font_family,font_size,template_id,layout_json,status,safety_status,safety_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16,$17) RETURNING *`,[companyKey,company.name,benefit.slug,benefit.title,originatorName,originatorEmail,originatorPhone,originatorRole,subject,bodyMarkup,fontFamily,fontSize,templateId,JSON.stringify(layoutJson),safety.status==='blocked'?'blocked':'draft',safety.status,safety.notes])
     for(let i=0;i<inlineImages.length;i++){const file=inlineImages[i];await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'inline',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,inlinePositions[i]])}let pos=0;for(const file of attachments)await pool.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'attachment',$6)`,[result.rows[0].id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,pos++])
     res.status(201).json({...result.rows[0],files:[...inlineImages.map(f=>({filename:f.originalname,mimeType:f.mimetype,sizeBytes:f.size,placement:'inline'})),...attachments.map(f=>({filename:f.originalname,mimeType:f.mimetype,sizeBytes:f.size,placement:'attachment'}))]})
   }catch(error){next(error)}
 })
 async function getCampaign(id){const result=await pool.query('SELECT * FROM diffusion_campaigns WHERE id=$1',[id]);return result.rows[0]||null}
+async function campaignFilesMeta(id){return (await pool.query(`SELECT id,filename,mime_type AS "mimeType",size_bytes AS "sizeBytes",placement,position FROM diffusion_campaign_files WHERE campaign_id=$1 ORDER BY CASE WHEN placement='inline' THEN 0 ELSE 1 END,position,id`,[id])).rows}
+function editableCampaignStatus(status){return ['draft','blocked','rejected'].includes(String(status||''))}
+app.get('/api/difusion/campaigns',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  try{
+    const companyKey=req.diffusionActor?.type==='admin'?safeText(req.query.companyKey,160):req.diffusionActor?.companyKey
+    if(!companyKey||!actorCanUseCompany(req,companyKey))return res.status(403).json({error:'No tenés acceso a estas publicaciones.'})
+    const params=[companyKey];let where='c.company_key=$1'
+    if(req.diffusionActor?.type==='company'){params.push(normalizeEmail(req.diffusionActor.email));where+=' AND LOWER(c.originator_email)=LOWER($2)'}
+    const rows=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.subject,c.template_id,c.status,c.safety_status,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.sent_at,c.cancelled_at,c.created_at,c.updated_at,c.content_deleted_at,COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_files f WHERE f.campaign_id=c.id),0) AS file_count FROM diffusion_campaigns c WHERE ${where} ORDER BY c.updated_at DESC,c.id DESC LIMIT 40`,params)).rows
+    res.json(rows.map(row=>({...row,editable:editableCampaignStatus(row.status)&&!row.content_deleted_at})))
+  }catch(error){next(error)}
+})
+app.get('/api/difusion/campaigns/:id',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Publicación no encontrada.'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a esta publicación.'});res.json({...campaign,editable:editableCampaignStatus(campaign.status)&&!campaign.content_deleted_at,files:await campaignFilesMeta(id)})}catch(error){next(error)}
+})
+app.get('/api/difusion/campaigns/:id/files/:fileId',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  try{const id=safeId(req.params.id);const fileId=safeId(req.params.fileId);const campaign=id?await getCampaign(id):null;if(!campaign||!fileId)return res.status(404).end();if(!campaignOwnedByActor(req,campaign))return res.status(403).end();const result=await pool.query('SELECT filename,mime_type,file_data FROM diffusion_campaign_files WHERE id=$1 AND campaign_id=$2',[fileId,id]);const file=result.rows[0];if(!file)return res.status(404).end();res.setHeader('Content-Type',file.mime_type||'application/octet-stream');res.setHeader('Content-Disposition',`inline; filename*=UTF-8''${encodeURIComponent(file.filename||'archivo')}`);res.setHeader('Cache-Control','private, no-store');res.send(file.file_data)}catch(error){next(error)}
+})
+app.put('/api/difusion/campaigns/:id',requireDiffusionActor,requireDiffusionDatabase,campaignUpload.fields([{name:'attachments',maxCount:3},{name:'inlineImages',maxCount:4}]),async(req,res,next)=>{
+  try{
+    const id=safeId(req.params.id);const current=id?await getCampaign(id):null;if(!current)return res.status(404).json({error:'Publicación no encontrada.'});if(!campaignOwnedByActor(req,current))return res.status(403).json({error:'No tenés acceso a esta publicación.'});if(!editableCampaignStatus(current.status)||current.content_deleted_at)return res.status(409).json({error:'Esta publicación ya ingresó al circuito de validación/envío y no puede editarse. Podés duplicarla para crear una nueva.'})
+    const company=await findDiffusionCompany(current.company_key);if(!company)return res.status(404).json({error:'Empresa no encontrada.'});const benefit=company.benefits.find(b=>b.slug===current.benefit_slug);if(!benefit)return res.status(403).json({error:'El beneficio ya no está habilitado para esta empresa.'})
+    const templateId=EMAIL_TEMPLATE_IDS.has(String(req.body.templateId||''))?String(req.body.templateId):'institutional';let rawLayout={};try{rawLayout=JSON.parse(String(req.body.layoutJson||'{}'))}catch{return res.status(400).json({error:'El diseño del correo no pudo interpretarse. Volvé a seleccionar el modelo.'})}const layoutJson=sanitizeLayout(templateId,rawLayout);const bodyMarkup=plainMarkup(layoutPlainText(layoutJson));if(!bodyMarkup)return res.status(400).json({error:'Completá al menos un bloque de texto de la comunicación.'})
+    const fontFamily=['Arial','Verdana','Tahoma','Georgia'].includes(req.body.fontFamily)?req.body.fontFamily:'Arial';const fontSize=['small','normal','large'].includes(req.body.fontSize)?req.body.fontSize:'normal';const attachments=req.files?.attachments||[];const inlineImages=req.files?.inlineImages||[];const allowedAttach=new Set(['image/jpeg','image/png','application/pdf']);const allowedInline=new Set(['image/jpeg','image/png']);if(attachments.some(f=>!allowedAttach.has(f.mimetype)||!fileSignatureMatches(f))||inlineImages.some(f=>!allowedInline.has(f.mimetype)||!fileSignatureMatches(f)))return res.status(400).json({error:'Los adjuntos admiten JPG, PNG o PDF; las imágenes del cuerpo admiten JPG o PNG.'})
+    let inlinePositions=[];try{inlinePositions=JSON.parse(String(req.body.inlineImagePositions||'[]'))}catch{};if(!Array.isArray(inlinePositions)||inlinePositions.length!==inlineImages.length)inlinePositions=inlineImages.map((_,i)=>i);inlinePositions=inlinePositions.map((value,i)=>{const n=Number(value);return Number.isInteger(n)&&n>=0&&n<=3?n:i})
+    const safety=assessCampaign(current.subject,bodyMarkup,[...attachments,...inlineImages]);const client=await pool.connect();try{await client.query('BEGIN');const updated=(await client.query(`UPDATE diffusion_campaigns SET body_markup=$2,font_family=$3,font_size=$4,template_id=$5,layout_json=$6::jsonb,status=$7,safety_status=$8,safety_notes=$9,test_sent_at=NULL,test_code_hash='',test_code_expires_at=NULL,test_verified_at=NULL,approval_requested_at=NULL,rejected_at=NULL,updated_at=NOW() WHERE id=$1 RETURNING *`,[id,bodyMarkup,fontFamily,fontSize,templateId,JSON.stringify(layoutJson),safety.status==='blocked'?'blocked':'draft',safety.status,safety.notes])).rows[0];await client.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id]);for(let i=0;i<inlineImages.length;i++){const file=inlineImages[i];await client.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'inline',$6)`,[id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,inlinePositions[i]])}let pos=0;for(const file of attachments)await client.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) VALUES ($1,$2,$3,$4,$5,'attachment',$6)`,[id,safeText(file.originalname,250),file.mimetype,file.size,file.buffer,pos++]);await client.query('COMMIT');res.json({...updated,files:await campaignFilesMeta(id)})}catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
+  }catch(error){next(error)}
+})
+app.post('/api/difusion/campaigns/:id/duplicate',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  const client=await pool.connect();try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Publicación no encontrada.'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a esta publicación.'});if(campaign.content_deleted_at||!campaign.body_markup)return res.status(409).json({error:'El contenido original ya no está disponible para duplicar.'});await client.query('BEGIN');const copy=(await client.query(`INSERT INTO diffusion_campaigns (company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,originator_phone,originator_role,subject,body_markup,font_family,font_size,template_id,layout_json,status,safety_status,safety_notes) SELECT company_key,company_name,benefit_slug,benefit_title,originator_name,originator_email,originator_phone,originator_role,subject,body_markup,font_family,font_size,template_id,layout_json,'draft',safety_status,safety_notes FROM diffusion_campaigns WHERE id=$1 RETURNING *`,[id])).rows[0];await client.query(`INSERT INTO diffusion_campaign_files (campaign_id,filename,mime_type,size_bytes,file_data,placement,position) SELECT $2,filename,mime_type,size_bytes,file_data,placement,position FROM diffusion_campaign_files WHERE campaign_id=$1`,[id,copy.id]);await client.query('COMMIT');res.status(201).json({...copy,editable:true,files:await campaignFilesMeta(copy.id)})}catch(error){await client.query('ROLLBACK');next(error)}finally{client.release()}
+})
+app.delete('/api/difusion/campaigns/:id',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
+  try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Publicación no encontrada.'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a esta publicación.'});if(!editableCampaignStatus(campaign.status)||campaign.content_deleted_at)return res.status(409).json({error:'Sólo pueden eliminarse borradores o publicaciones devueltas para corrección.'});await pool.query('DELETE FROM diffusion_campaigns WHERE id=$1',[id]);res.json({ok:true})}catch(error){next(error)}
+})
 async function cooldownFor(companyKey,benefitSlug){const slot=await benefitSlotStatus(companyKey,benefitSlug);return slot.allowed?null:argentinaMidnightUtc(slot.nextAllowed)}
 app.get('/api/admin/difusion/campaigns',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const status=safeText(req.query.status,30);const result=await pool.query(`SELECT c.*,COALESCE((SELECT json_agg(json_build_object('filename',f.filename,'mimeType',f.mime_type,'sizeBytes',f.size_bytes,'placement',f.placement) ORDER BY f.position,f.id) FROM diffusion_campaign_files f WHERE f.campaign_id=c.id),'[]'::json) AS files FROM diffusion_campaigns c ${status?'WHERE c.status=$1':''} ORDER BY c.created_at DESC LIMIT 100`,status?[status]:[]);res.json(result.rows)}catch(error){next(error)}})
 app.post('/api/admin/difusion/campaigns/:id/test',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
@@ -777,17 +865,19 @@ app.post('/api/admin/difusion/campaigns/:id/request-approval',requireDiffusionAc
 app.post('/api/admin/difusion/campaigns/:id/reject',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const id=safeId(req.params.id);if(!id)return res.status(400).json({error:'Comunicación inválida'});const result=await pool.query(`UPDATE diffusion_campaigns SET status='rejected',rejected_at=NOW(),safety_notes=$2,updated_at=NOW() WHERE id=$1 AND status='pending' RETURNING *`,[id,safeText(req.body.reason,500)||'Rechazada por validación administrativa.']);if(!result.rows[0])return res.status(409).json({error:'La comunicación ya no está pendiente.'});res.json(result.rows[0])}catch(error){next(error)}})
 app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{
   try{
-    const massEnabled=await massDiffusionEnabled(); const requiredWord=massEnabled?'ENVIAR':'VALIDAR'; if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la confirmación.`})
+    const testMode=await testModeEnabled(); const massEnabled=await massDiffusionEnabled(); const generalEnabled=!testMode&&massEnabled; const requiredWord=generalEnabled?'ENVIAR':'VALIDAR'; if(req.body.confirmFirst!==true)return res.status(400).json({error:'Falta la primera confirmación de seguridad.'}); if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la segunda confirmación.`})
     const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign||campaign.status!=='pending')return res.status(409).json({error:'La comunicación no está pendiente de validación.'}); if(campaign.safety_status==='blocked'||!campaign.test_verified_at)return res.status(400).json({error:'La comunicación no superó todos los controles previos.'})
     const slot=await benefitSlotStatus(campaign.company_key,campaign.benefit_slug); if(!slot.allowed)return res.status(409).json({error:`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${slot.nextAllowed.split('-').reverse().join('/')}. Los meses no son acumulativos.`,nextAllowed:slot.nextAllowed})
     const media=await campaignMedia(id); const baseHtml=campaignEmailHtml(campaign,media.inlineFiles,{unsubscribePreview:true})
-    await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.</div>${baseHtml}`,attachments:media.all})
-    const recipients=await buildQueueRecipients(campaign,massEnabled)
+    if(!testMode || isAllowedTestRecipient(campaign.originator_email)){
+      await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>${testMode?'Modo PRUEBA activo: esta copia se encuentra dentro de la lista blanca de control.':'Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.'}</div>${baseHtml}`,attachments:media.all})
+    }
+    const recipients=await buildQueueRecipients(campaign,massEnabled,testMode)
     const client=await pool.connect()
     try{
       await client.query('BEGIN'); const schedule=await authorizeBenefitSlot(client,campaign); const queued=await queueCampaign(client,campaign,recipients,schedule.nextAllowed); await client.query('COMMIT')
       const monitor=await monitorPayload(campaign.company_key); const mine=monitor.campaigns.find(item=>String(item.id)===String(id))
-      res.json({...queued,queued:true,massMode:massEnabled?'general':'pilot_tlk',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine})
+      res.json({...queued,queued:true,massMode:testMode?'test_mode':massEnabled?'general':'control_only',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine,testModeEnabled:testMode})
     }catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
   }catch(error){next(error)}
 })

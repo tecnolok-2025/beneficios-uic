@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.8.1 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.3 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.8.1')
-  assert.match(server, /BENEFICIOS_UIC_3981/)
-  assert.match(html, /BENEFICIOS_UIC_3981/)
+  assert.equal(pkg.version, '3.9.8.3')
+  assert.match(server, /BENEFICIOS_UIC_3983/)
+  assert.match(html, /BENEFICIOS_UIC_3983/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -489,25 +489,26 @@ test('47 · v3.9.1 aplica correcciones UIC del padrón del 24-10-2026', async ()
   assert.equal(byKey['socio:259'].companyName, 'BULLETBABA SRL - TIBEST')
 })
 
-test('48 · v3.9.3 mantiene Tecno Logisti-K SA como destino piloto permanente', async () => {
+test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres destinatarios', async () => {
   const config = JSON.parse(await read('data/diffusion-config.json'))
   assert.equal(config.testCompanies[0].name, 'TECNO LOGISTI-K SA')
   assert.equal(config.testCompanies[0].email, 'nestor.manucci@tecnolok.com.ar')
   const server = await read('server/index.js')
-  assert.match(server, /PILOTO DE DISTRIBUCIÓN/)
-  assert.match(server, /TECNO LOGISTI-K SA permanece siempre habilitada/)
+  assert.match(server, /MODO PRUEBA · DISTRIBUCIÓN CONTROLADA/)
+  assert.match(server, /normalizedTestRecipients/)
+  assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.8.1 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.3 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.8.1')
+  assert.equal(pkg.version, '3.9.8.3')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3981/)
-  assert.match(server, /BENEFICIOS_UIC_3981/)
+  assert.match(index, /BENEFICIOS_UIC_3983/)
+  assert.match(server, /BENEFICIOS_UIC_3983/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -559,11 +560,11 @@ test('54 · prueba genera código aleatorio de seis dígitos y exige verificaci�
   assert.match(schema, /test_code_hash/)
 })
 
-test('55 · masivos se controlan desde Validaciones y piloto TLK queda permanente', async () => {
+test('55 · masivos se controlan desde Validaciones y Modo PRUEBA bloquea el padrón', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  assert.match(app, /Habilitar envío de mails masivos/)
-  assert.match(app, /SÓLO PILOTO TLK/)
+  assert.match(app, /Habilitar envío al padrón general/)
+  assert.match(app, /BLOQUEADO POR MODO PRUEBA/)
   assert.match(server, /\/api\/admin\/difusion\/mass-send/)
   assert.match(server, /mass_send_enabled/)
   assert.match(server, /PILOT_COMPANY_KEY/)
@@ -744,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.8.1 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.8.2 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.8.1')
+  assert.equal(pkg.version, '3.9.8.3')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3981/)
+  assert.match(server, /BENEFICIOS_UIC_3983/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -875,4 +876,101 @@ test('87 · cola impone como mínimo 45 segundos entre destinatarios', async () 
   const env = await read('.env.example')
   assert.match(server, /Math\.max\(45000, Number\(process\.env\.DIFFUSION_SEND_INTERVAL_MS \|\| 45000\)\)/)
   assert.match(env, /DIFFUSION_SEND_INTERVAL_MS=45000/)
+})
+
+
+test('88 · Modo PRUEBA es fail-closed y nace activado por defecto', async () => {
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(schema, /test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE/)
+  assert.match(server, /async function testModeEnabled/)
+  assert.match(server, /return true\n}/)
+  assert.match(server, /Modo PRUEBA de seguridad/)
+})
+
+test('89 · lista blanca de prueba contiene exactamente UIC, INDUSVAR y TLK', async () => {
+  const config = JSON.parse(await read('data/diffusion-config.json'))
+  assert.deepEqual(config.testRecipients.map(x => x.email).sort(), [
+    'nestor.manucci@gmail.com',
+    'nestor.manucci@tecnolok.com.ar',
+    'uic@uic-campana.com.ar'
+  ].sort())
+  assert.ok(config.testRecipients.some(x => x.name === 'INDUSVAR GROUP' && x.phone === '11 6681 2532'))
+  assert.ok(config.testRecipients.some(x => x.name === 'UNIÓN INDUSTRIAL DE CAMPANA' && x.phone === '3489 65 0104'))
+})
+
+test('90 · envío general exige salir de prueba y mantiene doble llave administrativa', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /SALIR DE PRUEBA/)
+  assert.match(server, /Modo PRUEBA está activo\. Desactivá primero/)
+  assert.match(app, /MODO PRUEBA ACTIVADO/)
+  assert.match(app, /BLOQUEADO POR MODO PRUEBA/)
+  assert.match(app, /PRUEBA · 3 DESTINOS/)
+})
+
+test('91 · worker vuelve a validar la lista blanca inmediatamente antes del SMTP', async () => {
+  const server = await read('server/index.js')
+  const worker = server.slice(server.indexOf('async function processDiffusionQueue'), server.indexOf('function queueEtaSeconds'))
+  assert.match(worker, /await testModeEnabled\(\)/)
+  assert.match(worker, /isAllowedTestRecipient\(recipient\.email\)/)
+  assert.match(worker, /Bloqueado por Modo PRUEBA de seguridad/)
+})
+
+test('92 · todos los campos de contraseña visibles usan control de ojo', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /function PasswordInput/)
+  assert.match(app, /EyeOff/)
+  assert.equal((app.match(/<PasswordInput/g) || []).length, 5)
+  assert.equal((app.match(/type="password"/g) || []).length, 0)
+  assert.match(styles, /neo-password-eye/)
+})
+
+test('93 · botón Difusión de Beneficios queda jerarquizado en la portada', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /neo-diffusion-entry/)
+  assert.match(styles, /\.neo-diffusion-entry[\s\S]*border: 2px solid #f47a20[\s\S]*font-size: 15px/)
+})
+
+
+test('94 · beneficiario dispone de archivo visible de publicaciones guardadas', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /Mis publicaciones guardadas/)
+  assert.match(app, /Abrir y continuar/)
+  assert.match(app, /Duplicar/)
+  assert.match(app, /Eliminar/)
+  assert.match(server, /app\.get\('\/api\/difusion\/campaigns'/)
+  assert.match(server, /app\.get\('\/api\/difusion\/campaigns\/:id'/)
+})
+
+test('95 · abrir un borrador recupera layout, imágenes y adjuntos y permite actualizar el mismo registro', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /hydrateSavedCampaign/)
+  assert.match(app, /_imageSlots/)
+  assert.match(app, /Actualizar borrador/)
+  assert.match(server, /app\.put\('\/api\/difusion\/campaigns\/:id'/)
+  assert.match(server, /DELETE FROM diffusion_campaign_files WHERE campaign_id=\$1/)
+})
+
+test('96 · panel administrador muestra aviso rojo permanente de modo prueba', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /function AdminTestModeAlert/)
+  assert.match(app, /MODO PRUEBA ACTIVO/)
+  assert.match(styles, /\.neo-admin-test-alert/)
+  assert.match(styles, /position:sticky/)
+})
+
+test('97 · envíos administrativos críticos requieren confirmación doble', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /PRIMERA CONFIRMACIÓN DE SEGURIDAD/)
+  assert.match(app, /SEGUNDA CONFIRMACIÓN/)
+  assert.match(server, /confirmFirst!==true/)
+  assert.match(server, /segunda confirmación/)
+  assert.match(server, /escribir PROBAR/)
 })

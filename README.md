@@ -1,12 +1,22 @@
-> **Revisión actual: v3.9.8.1 · BENEFICIOS_UIC_3981 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.3 · BENEFICIOS_UIC_3983 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
+## Revisión v3.9.8.3 · 26/10/2026
 
-
-
+- Entrega **acumulativa desde v3.9.8.1**: no requiere instalar v3.9.8.2.
+- Conserva el **Modo PRUEBA fail-closed**, limitado a UIC institucional, INDUSVAR GROUP y TECNO LOGISTI-K SA.
+- Agrega un aviso rojo *sticky* **MODO PRUEBA ACTIVO** en el panel administrador.
+- La aprobación de una campaña exige **doble confirmación**: aceptación explícita y luego escritura de `VALIDAR` o `ENVIAR`.
+- La prueba SMTP administrativa exige aceptación explícita y luego `PROBAR`; el servidor verifica ambas confirmaciones.
+- Incorpora **Mis publicaciones guardadas** en el panel beneficiario, con Abrir y continuar, Duplicar y Eliminar cuando el estado lo permite.
+- Al recuperar un borrador vuelven al constructor el modelo, textos, franja, nombre visible, imágenes y adjuntos.
+- Guardar una nueva publicación ya no borra automáticamente otros borradores del mismo beneficio.
+- Todos los campos de contraseña conservan el ojo mostrar/ocultar y el botón **Difusión de Beneficios** mantiene su nueva jerarquía visual.
+- Mantiene 45 segundos mínimos entre destinatarios, trazabilidad, bajas, cola, monitor y calendario mensual.
+- **97/97 pruebas automáticas aprobadas**; sintaxis servidor y JSX aprobadas.
 
 ## Revisión v3.9.8.1 · 25/10/2026
 
@@ -141,8 +151,8 @@ La actualización mantiene la misma conexión a Neon. El catálogo local (`data/
 
 ## Identificación técnica
 
-- **Versión:** `3.9.8.1`
-- **Generación:** `BENEFICIOS_UIC_3981`
+- **Versión:** `3.9.8.3`
+- **Generación:** `BENEFICIOS_UIC_3983`
 - **Total de beneficios:** 51
 - **Beneficios activos:** 43
 - **A chequear validación:** 8

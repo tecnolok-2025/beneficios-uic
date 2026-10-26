@@ -41,5 +41,28 @@
         }
       ]
     }
+  ],
+  "testRecipients": [
+    {
+      "key": "uic-institucional",
+      "name": "UNIÓN INDUSTRIAL DE CAMPANA",
+      "contactName": "María José Godoy (Majo)",
+      "email": "uic@uic-campana.com.ar",
+      "phone": "3489 65 0104"
+    },
+    {
+      "key": "indusvar-group",
+      "name": "INDUSVAR GROUP",
+      "contactName": "Néstor Manucci",
+      "email": "nestor.manucci@gmail.com",
+      "phone": "11 6681 2532"
+    },
+    {
+      "key": "tecno-logisti-k-sa",
+      "name": "TECNO LOGISTI-K SA",
+      "contactName": "Néstor Manucci",
+      "email": "nestor.manucci@tecnolok.com.ar",
+      "phone": "011 66812532"
+    }
   ]
 }

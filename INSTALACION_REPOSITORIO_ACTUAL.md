@@ -1,18 +1,19 @@
-# Instalación v3.9.8.1 en el repositorio y Render actuales
+# Instalación v3.9.8.3 en el repositorio y Render actuales
 
-Esta entrega reemplaza v3.9.4 y conserva el servicio Render, la URL y la base PostgreSQL/Neon actuales. La migración es **aditiva**: incorpora cola persistente, monitor de avance, cancelación y calendario mensual fijo por beneficio sin eliminar catálogo, padrón, cuentas ni campañas existentes.
+Esta entrega actualiza directamente la **v3.9.8.1** y conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. La migración es **aditiva**: no borra catálogo, padrón, empresas, campañas, trazabilidad ni cuentas.
 
 ## GitHub / Render
 
-1. Reemplazar el contenido del repositorio por el ZIP completo o aplicar el parche **sólo sobre v3.9.4**.
-2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT` y las variables de Difusión existentes.
-3. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-4. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.1 · BENEFICIOS_UIC_3981`.
-5. No crear un servicio nuevo de Render ni una base nueva de Neon.
+1. Si el repositorio desplegado está exactamente en **v3.9.8.1**, aplicar el parche `v3.9.8.1 → v3.9.8.3`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
+2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT`, `DIFFUSION_MAIL_SECRET` y las demás variables de Difusión existentes.
+3. No cambiar `DIFFUSION_MAIL_SECRET` si ya existe: protege la contraseña SMTP cifrada guardada en Neon.
+4. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
+5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.3 · BENEFICIOS_UIC_3983`.
+6. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
 
-Mantener durante el piloto:
+Configuración recomendada durante el desarrollo:
 
 ```text
 DIFFUSION_MASS_SEND_ENABLED=false
@@ -21,124 +22,100 @@ DIFFUSION_FROM_EMAIL=tesoreria@uic-campana.com.ar
 DIFFUSION_FROM_NAME=Unión Industrial de Campana · Beneficios
 DIFFUSION_APPROVAL_EMAIL=tesoreria@uic-campana.com.ar
 DIFFUSION_MAIL_SECRET=<secreto estable, largo y privado>
-DIFFUSION_SEND_INTERVAL_MS=5000
+DIFFUSION_SEND_INTERVAL_MS=45000
 ```
 
-`DIFFUSION_SEND_INTERVAL_MS` es opcional. `5000` significa que la cola intenta iniciar como máximo un nuevo destinatario aproximadamente cada 5 segundos. El tiempo real puede variar por la respuesta del servidor SMTP; el monitor muestra una **estimación orientativa**, no una promesa exacta.
+`DIFFUSION_SEND_INTERVAL_MS=45000` equivale a 45 segundos. La v3.9.8.3 aplica **45.000 ms como mínimo efectivo**, aunque una variable anterior conserve accidentalmente un valor menor.
 
-`DIFFUSION_MAIL_SECRET` cifra la clave SMTP almacenada desde **Difusión > Correo emisor**. No debe guardarse en GitHub y no debe cambiarse después de guardar la clave SMTP, salvo que se vuelva a cargar esa configuración.
+## Modo PRUEBA — protección principal
 
-La dirección provisional de emisión y validación es `tesoreria@uic-campana.com.ar`. Cuando exista `beneficios@uic-campana.com.ar`, puede reemplazarse desde la configuración y la variable de aprobación. El correo institucional general UIC no se utiliza para este circuito privado ni para identificar empresas.
+La v3.9.8.3 incorpora `test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE` en Neon. Por lo tanto, después del primer arranque de esta versión el **Modo PRUEBA queda activado por defecto**.
 
-## Flujo v3.9.5
+Mientras está activo, la distribución autorizada puede dirigirse únicamente a estos tres correos de control:
 
-1. La empresa ingresa con su cuenta propia.
-2. Prepara el beneficio, guarda el borrador y envía la prueba obligatoria.
-3. Verifica el código de 6 dígitos recibido en su correo.
-4. Solicita validación UIC.
-5. El administrador aprueba en **Validaciones**.
-6. La empresa recibe primero la copia final que confirma la aprobación.
-7. En ese momento la oportunidad mensual queda **consumida** y el envío entra en la cola persistente.
-8. El beneficiario ve el trabajo en **Monitor de envíos**, con posición, avance y tiempos estimados.
-9. La cola envía los destinatarios uno por uno y registra cada correo como enviado o fallido.
-10. El beneficiario puede cancelar. Los ya enviados no se revierten y los pendientes se detienen.
+1. **UNIÓN INDUSTRIAL DE CAMPANA** — `uic@uic-campana.com.ar` — María José Godoy (Majo) — `3489 65 0104`.
+2. **INDUSVAR GROUP** — `nestor.manucci@gmail.com` — Néstor Manucci — `11 6681 2532`.
+3. **TECNO LOGISTI-K SA** — `nestor.manucci@tecnolok.com.ar` — Néstor Manucci — `011 66812532`.
 
-## Calendario mensual fijo
+La seguridad es doble:
 
-La primera aprobación real de cada beneficio fija su **día de referencia**.
+- al aprobar una campaña, el servidor construye la cola exclusivamente con esa lista blanca;
+- inmediatamente antes de cada envío SMTP, el worker vuelve a validar la dirección. Si no pertenece a la lista, la marca como bloqueada/cancelada y no la envía.
 
-Ejemplo: primera aprobación `05/10/2026`.
+Además, al activar Modo PRUEBA se fuerza `mass_send_enabled=FALSE` y se cancelan destinatarios pendientes ajenos a la lista blanca.
 
-- Ciclo 1: 05/10/2026 → 05/11/2026.
-- Ciclo 2: 05/11/2026 → 05/12/2026.
-- Ciclo 3: 05/12/2026 → 05/01/2027.
+Para salir de Modo PRUEBA el administrador debe escribir exactamente `SALIR DE PRUEBA`. Aun después, el padrón general **no queda habilitado automáticamente**: para eso existe una segunda barrera independiente que exige `HABILITAR`.
 
-Si el correo aprobado el día 5 recién empieza a distribuirse el día 20 por estar en cola, la próxima oportunidad sigue siendo el día 5 del mes siguiente.
+> Importante: ningún sistema puede retirar un correo que ya haya sido aceptado por el servidor SMTP antes de activar nuevamente Modo PRUEBA. La protección evita nuevos envíos desde que el control está activo.
 
-Si se cancela el envío el día 20 después de haber enviado parte del padrón, la próxima oportunidad también sigue siendo el día 5 del mes siguiente.
+## Correos técnicos y de identidad
 
-Si una empresa no utiliza la oportunidad de noviembre, **no obtiene dos oportunidades en diciembre**. Los meses no se acumulan.
+El Modo PRUEBA limita la **distribución de campañas autorizadas**. No bloquea los correos transaccionales necesarios para operar una cuenta, como códigos de registro/recuperación o la prueba obligatoria enviada al correo propio de la empresa beneficiaria. Estos mensajes nunca se envían al padrón general.
 
-Para referencias en días 29, 30 o 31, un mes más corto utiliza su último día válido y, cuando el calendario vuelve a permitirlo, recupera el día de referencia original.
+## Panel administrador
 
-## Monitor y cancelación
+El estado de Modo PRUEBA aparece de forma visible en la administración junto con los tres destinatarios autorizados. Este control no aparece en el lado beneficiario.
 
-El monitor muestra por cada trabajo:
+También se mantiene la segunda protección de **Habilitar envío al padrón general**, que permanece bloqueada mientras Modo PRUEBA está activo.
 
-- `EN COLA`, `ENVIANDO`, `FINALIZADO` o `CANCELADO`;
-- enviados / total;
-- pendientes;
-- correos con error;
-- posición en la cola global;
-- inicio estimado;
-- finalización estimada;
-- próxima oportunidad mensual.
+## Claves visibles bajo demanda
 
-La pantalla se actualiza automáticamente mientras permanece abierta.
+Todos los campos de contraseña o clave visibles incorporan el ícono de ojo para mostrar/ocultar lo que se está escribiendo:
 
-Al cancelar un trabajo en curso puede existir **como máximo un correo que ya se encuentre técnicamente en transmisión** y que alcance a completarse. Después de la solicitud de cancelación no se inicia ningún nuevo destinatario.
+- clave administrativa;
+- contraseña de beneficiario;
+- creación de contraseña;
+- recuperación/cambio de contraseña;
+- contraseña SMTP.
 
-## Persistencia y reinicios
+El ojo no permite recuperar secretos previamente guardados. En particular, la contraseña SMTP almacenada sigue cifrada y no se devuelve al navegador.
 
-La cola vive en Neon. Si Render se reinicia durante una campaña:
+## Difusión de Beneficios en portada
 
-- el trabajo no se pierde;
-- un destinatario que hubiera quedado exactamente en estado `sending` se marca como fallido/indeterminado y **no se reenvía automáticamente**, para evitar una copia duplicada si el SMTP alcanzó a aceptarlo antes del reinicio;
-- la campaña retorna a cola y continúa con los destinatarios pendientes siguientes;
-- no se reinicia desde cero la lista completa.
+El acceso **Difusión de Beneficios** conserva su ubicación, pero en v3.9.8.3 tiene mayor tamaño, contraste, borde naranja y jerarquía visual para identificarlo como una función principal del Portal.
 
-## Modo piloto
 
-Con `DIFFUSION_MASS_SEND_ENABLED=false`, el padrón general continúa bloqueado y **TECNO LOGISTI-K SA** es el único destino de control masivo. La cola, el monitor, la cancelación y el calendario mensual pueden probarse sin habilitar el padrón completo.
+## Publicaciones guardadas
 
-## Prueba específica v3.9.5
+Después del deploy, al ingresar como beneficiario aparece **Mis publicaciones guardadas** antes del monitor. Los borradores existentes de v3.9.8.1 se consultan directamente desde Neon; no hay que importarlos ni volver a cargarlos.
 
-1. Entrar en **Difusión de Beneficios > Como beneficiario** con TECNO LOGISTI-K SA.
-2. Preparar una comunicación, enviar prueba y verificar código.
-3. Entrar como administrador y aprobarla.
-4. Volver como beneficiario y confirmar que aparece en **Monitor de envíos**.
-5. Verificar estado `EN COLA` o `ENVIANDO`, avance y próxima oportunidad.
-6. Para probar cancelación, utilizar un intervalo suficientemente amplio o un trabajo con varios destinatarios en un entorno controlado.
-7. Confirmar que cancelar no modifica la próxima fecha mensual.
-8. Confirmar que un mes no utilizado no genera un cupo adicional en el siguiente.
+- **Abrir y continuar** recupera el diseño y sus archivos.
+- **Duplicar** crea un nuevo borrador editable.
+- **Eliminar** sólo está disponible antes de que la publicación ingrese al circuito de validación/envío.
+- Una edición invalida cualquier prueba/código anterior y obliga a repetir la verificación.
 
-## Validaciones realizadas antes de entregar
+## Aviso rojo y doble confirmación
 
-- `npm test`: 70/70 pruebas aprobadas.
+Mientras Modo PRUEBA esté activo, Administración muestra una banda roja permanente. La autorización final de una campaña requiere dos pasos independientes. La prueba técnica SMTP también requiere dos pasos.
+
+## Constructor, trazabilidad y bajas
+
+Se mantienen íntegros los componentes de v3.9.8.1:
+
+- Constructor Visual UIC con 8 modelos;
+- máximo 4 imágenes y control de tamaño;
+- vista previa escritorio/celular;
+- franja institucional y logo de Beneficios;
+- desuscripción visible y efectiva;
+- trazabilidad de aperturas detectadas;
+- resumen agregado para beneficiarios y detalle por empresa/correo para administración UIC;
+- cola persistente, monitor, cancelación y calendario mensual fijo no acumulativo.
+
+## Prueba recomendada después del deploy
+
+1. Abrir el Portal y confirmar `v3.9.8.3`.
+2. Verificar que **Difusión de Beneficios** esté destacado en la portada.
+3. Ingresar **Como administrador**.
+4. Confirmar visualmente **MODO PRUEBA ACTIVADO** y los tres destinatarios exactos.
+5. Confirmar que el interruptor del padrón general figure bloqueado por Modo PRUEBA.
+6. Probar los ojos de todas las claves.
+7. Entrar como beneficiario con TECNO LOGISTI-K SA, preparar una campaña y completar la prueba/código.
+8. Aprobarla desde administración y verificar que la cola contenga únicamente los tres destinos de prueba.
+9. Revisar monitor y trazabilidad antes de considerar cualquier salida del Modo PRUEBA.
+
+## Validaciones de entrega
+
+- `npm test`: **93/93 pruebas aprobadas**.
 - `node --check server/index.js`: aprobado.
 - Parseo JSX con TypeScript (`jsx: preserve`, sin emisión): aprobado.
-- `npm run build`: no pudo completarse localmente porque `npm ci` volvió a interrumpirse por timeout antes de instalar Vite. Render continuará ejecutando su instalación y build normal durante el despliegue.
-
-## Revisión 3.9.6 — navegación
-
-Después del despliegue, verificar especialmente:
-1. abrir `/`;
-2. entrar a **Difusión de Beneficios**;
-3. elegir Administrador o Beneficiario;
-4. volver al Portal;
-5. repetir usando el botón Atrás del navegador.
-
-Ninguno de esos pasos debe requerir F5 ni Enter. Si un navegador conserva una interfaz anterior, la v3.9.6 ejecuta recuperación automática de caché/Service Worker.
-
-
-## Revisión 3.9.7 — Constructor Visual UIC
-
-No requiere variables nuevas de entorno. La migración Neon es aditiva y se aplica al iniciar el servidor.
-
-Después del deploy verificar:
-
-1. Entrar a `Difusión de Beneficios` como beneficiario o como administrador → `Ver como empresa`.
-2. Abrir `Preparar difusión`.
-3. Confirmar que aparecen 8 modelos visuales.
-4. Probar el pegado de un texto con negritas: debe pegarse limpio y permitir aplicar formato desde la barra.
-5. Cargar 1, 2, 3 y 4 imágenes y cambiar entre modelos.
-6. Revisar `Escritorio` y `Celular`.
-7. Guardar borrador y enviar correo de prueba.
-8. Confirmar que las imágenes llegan con tamaño contenido y que la franja UIC se conserva.
-9. Probar el mensaje en Outlook y en un teléfono antes de habilitar cualquier envío masivo.
-
-El padrón general continúa sujeto al interruptor de Validaciones y a `DIFFUSION_MASS_SEND_ENABLED`.
-
-
-## Revisión 3.9.8.1 — trazabilidad y terminación del mail
-No requiere un servicio Render nuevo ni una base Neon nueva. La migración es aditiva. El intervalo de cola tiene un mínimo de 45 segundos aun si la variable de entorno conserva un valor menor. Se recomienda dejar `DIFFUSION_SEND_INTERVAL_MS=45000` para que la configuración visible coincida con el comportamiento efectivo.
+- La equivalencia entre el parche y el ZIP completo debe verificarse antes de publicar la entrega final.

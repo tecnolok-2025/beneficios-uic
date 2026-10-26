@@ -174,6 +174,7 @@ ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS placement TEXT NOT
 ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS position INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE diffusion_mail_settings ADD COLUMN IF NOT EXISTS mass_send_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE diffusion_mail_settings ADD COLUMN IF NOT EXISTS test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE;
 
 CREATE TABLE IF NOT EXISTS diffusion_company_accounts (
   id BIGSERIAL PRIMARY KEY,
