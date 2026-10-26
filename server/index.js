@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_3986'
+const GENERATION = 'BENEFICIOS_UIC_3987'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -490,9 +490,10 @@ async function sendDiffusionMail({to, subject, html, attachments=[]}) {
 function backgroundBaseUrl() { return String(process.env.PUBLIC_BASE_URL || 'https://beneficios-uic.onrender.com').replace(/\/$/,'') }
 async function buildQueueRecipients(campaign, massEnabled, testMode = true) {
   const origin=normalizeEmail(campaign.originator_email); const approval=normalizeEmail(process.env.DIFFUSION_APPROVAL_EMAIL||diffusionConfig.approvalEmail||'tesoreria@uic-campana.com.ar')
-  const byEmail=new Map()
-  // Modo PRUEBA o masivo deshabilitado: lista blanca cerrada de exactamente los destinos de control.
-  if(testMode || !massEnabled){
+  const byEmail=new Map(); const testCompany=isTestCompanyKey(campaign?.company_key)
+  // Modo PRUEBA, masivo deshabilitado o empresa interna de prueba: lista blanca cerrada de exactamente los destinos de control.
+  // Una empresa de prueba jamás puede caer accidentalmente en el padrón general, aunque el administrador lo haya habilitado.
+  if(testMode || !massEnabled || testCompany){
     for(const control of normalizedTestRecipients()){
       const dbRow=(await pool.query('SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE lower(email)=lower($1) ORDER BY id LIMIT 1',[control.email])).rows[0]
       byEmail.set(control.email,dbRow||control)
@@ -653,7 +654,21 @@ async function buildDiffusionCompanies() {
     const first=company.contacts.find(c=>validEmail(c.email))||company.contacts[0]; if(first){company.contactName=first.name||company.contactName;company.email=first.email||company.email;company.phone=first.phone||company.phone;company.role=first.role||company.role}
     company.benefits.push({id:item.id,slug:item.slug,title:item.title,category:item.category,summary:item.summary})
   }
-  for(const seed of diffusionConfig.testCompanies||[]){ const company={contacts:[{name:seed.contactName||'',role:seed.role||'',email:seed.email||'',phone:seed.phone||''}],...seed}; grouped.set(seed.key,company) }
+  for(const seed of diffusionConfig.testCompanies||[]){ const company={contacts:[{name:seed.contactName||'',role:seed.role||'',email:seed.email||'',phone:seed.phone||''}],...seed,testMode:true}; grouped.set(seed.key,company) }
+  // Los tres destinos de control también existen como empresas de prueba permanentes.
+  // Conviven con las empresas reales en el selector, pero se distinguen con testMode=true.
+  for(const seed of diffusionConfig.testRecipients||[]){
+    const key=String(seed.key||slugify(seed.name)||'').trim(); if(!key) continue
+    const existing=grouped.get(key)
+    const contact={name:seed.contactName||'',role:seed.role||'',email:seed.email||'',phone:seed.phone||''}
+    if(existing){
+      const contacts=[...(existing.contacts||[])]; if(!contacts.some(c=>normalizeEmail(c.email)===normalizeEmail(contact.email))) contacts.push(contact)
+      grouped.set(key,{...existing,contacts,testMode:true,contactName:existing.contactName||contact.name,email:existing.email||contact.email,phone:existing.phone||contact.phone,role:existing.role||contact.role})
+      continue
+    }
+    const name=String(seed.name||'Destino de prueba UIC').trim()
+    grouped.set(key,{key,name,contactName:contact.name,email:contact.email,phone:contact.phone,role:contact.role,contacts:[contact],testMode:true,benefits:[{slug:`test-${key}`,title:`Difusión de prueba · ${name}`,category:'Prueba controlada',summary:'Canal interno para validar el circuito completo sin habilitar el padrón general.'}]})
+  }
   if(pool&&databaseAvailable){
     try{
       const recipients=await pool.query(`SELECT company_name,contact_name,email,phone FROM diffusion_recipients WHERE email<>'' ORDER BY id`)
@@ -663,12 +678,13 @@ async function buildDiffusionCompanies() {
   return [...grouped.values()].map(company=>{const allowed=authorizedCompanyEmails(company);const first=company.contacts.find(c=>normalizeEmail(c.email)===allowed[0]);return {...company,email:first?.email||'',contactName:first?.name||company.contactName||'',phone:first?.phone||company.phone||'',role:first?.role||company.role||'',hasRegisteredEmail:allowed.length>0}}).sort((a,b)=>a.name.localeCompare(b.name,'es'))
 }
 async function findDiffusionCompany(companyKey){ return (await buildDiffusionCompanies()).find(c=>c.key===companyKey)||null }
-function authorizedCompanyEmails(company){ const institutional=new Set(['uic@uic-campana.com.ar']); return [...new Set((company?.contacts||[]).map(c=>normalizeEmail(c.email)).filter(email=>validEmail(email)&&!institutional.has(email)))] }
+function authorizedCompanyEmails(company){ const institutional=new Set(['uic@uic-campana.com.ar']); return [...new Set((company?.contacts||[]).map(c=>normalizeEmail(c.email)).filter(email=>validEmail(email)&&(company?.testMode||!institutional.has(email))))] }
+function isTestCompanyKey(companyKey){ const key=String(companyKey||'').trim(); if(!key)return false; const configured=[...(diffusionConfig.testCompanies||[]),...(diffusionConfig.testRecipients||[])]; return configured.some(item=>String(item?.key||slugify(item?.name)||'').trim()===key) }
 
 
 const companyAuthLimit=rateLimit({windowMs:15*60*1000,limit:20,standardHeaders:true,legacyHeaders:false})
 app.get('/api/difusion/companies', async (_req,res,next)=>{
-  try{const companies=(await buildDiffusionCompanies()).filter(c=>!c.testMode);res.json(companies.map(c=>({key:c.key,name:c.name,benefitCount:c.benefits.length,benefits:c.benefits,hasRegisteredEmail:c.hasRegisteredEmail})))}catch(error){next(error)}
+  try{const companies=await buildDiffusionCompanies();res.json(companies.map(c=>({key:c.key,name:c.name,benefitCount:c.benefits.length,benefits:c.benefits,hasRegisteredEmail:c.hasRegisteredEmail,testMode:Boolean(c.testMode)})))}catch(error){next(error)}
 })
 app.get('/api/difusion/company/me', async (req,res,next)=>{
   try{const session=companySession(req);if(!session)return res.json({authenticated:false});if(!pool||!databaseAvailable)return maintenanceResponse(res);const result=await pool.query('SELECT id,company_key,company_name,email,active,verified_at,last_login_at FROM diffusion_company_accounts WHERE id=$1 AND active=TRUE',[session.id]);if(!result.rows[0])return res.json({authenticated:false});res.json({authenticated:true,account:result.rows[0]})}catch(error){next(error)}
@@ -884,19 +900,20 @@ app.post('/api/admin/difusion/campaigns/:id/request-approval',requireDiffusionAc
 app.post('/api/admin/difusion/campaigns/:id/reject',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const id=safeId(req.params.id);if(!id)return res.status(400).json({error:'Comunicación inválida'});const client=await pool.connect();try{await client.query('BEGIN');const result=await client.query(`UPDATE diffusion_campaigns SET status='rejected',rejected_at=NOW(),safety_notes=$2,body_markup='',layout_json='{}'::jsonb,content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 AND status='pending' RETURNING *`,[id,safeText(req.body.reason,500)||'Rechazada por validación administrativa.']);if(!result.rows[0]){await client.query('ROLLBACK');return res.status(409).json({error:'La comunicación ya no está pendiente.'})}await client.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id]);await client.query('COMMIT');res.json(result.rows[0])}catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}}catch(error){next(error)}})
 app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{
   try{
-    const testMode=await testModeEnabled(); const massEnabled=await massDiffusionEnabled(); const generalEnabled=!testMode&&massEnabled; const requiredWord=generalEnabled?'ENVIAR':'VALIDAR'; if(req.body.confirmFirst!==true)return res.status(400).json({error:'Falta la primera confirmación de seguridad.'}); if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la segunda confirmación.`})
+    const testMode=await testModeEnabled(); const massEnabled=await massDiffusionEnabled()
     const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign||campaign.status!=='pending')return res.status(409).json({error:'La comunicación no está pendiente de validación.'}); if(campaign.safety_status==='blocked'||!campaign.test_verified_at)return res.status(400).json({error:'La comunicación no superó todos los controles previos.'})
+    const forcedTestCompany=isTestCompanyKey(campaign.company_key); const effectiveTestMode=testMode||forcedTestCompany; const generalEnabled=!effectiveTestMode&&massEnabled; const requiredWord=generalEnabled?'ENVIAR':'VALIDAR'; if(req.body.confirmFirst!==true)return res.status(400).json({error:'Falta la primera confirmación de seguridad.'}); if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la segunda confirmación.`})
     const slot=await benefitSlotStatus(campaign.company_key,campaign.benefit_slug); if(!slot.allowed)return res.status(409).json({error:`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${slot.nextAllowed.split('-').reverse().join('/')}. Los meses no son acumulativos.`,nextAllowed:slot.nextAllowed})
     const media=await campaignMedia(id); const baseHtml=campaignEmailHtml(campaign,media.inlineFiles,{unsubscribePreview:true,brandLogo:media.brandLogo})
-    if(!testMode || isAllowedTestRecipient(campaign.originator_email)){
-      await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>${testMode?'Modo PRUEBA activo: esta copia se encuentra dentro de la lista blanca de control.':'Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.'}</div>${baseHtml}`,attachments:media.all})
+    if(!effectiveTestMode || isAllowedTestRecipient(campaign.originator_email)){
+      await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>${effectiveTestMode?'Modo PRUEBA activo: esta copia se encuentra dentro de la lista blanca de control.':'Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.'}</div>${baseHtml}`,attachments:media.all})
     }
-    const recipients=await buildQueueRecipients(campaign,massEnabled,testMode)
+    const recipients=await buildQueueRecipients(campaign,massEnabled,effectiveTestMode)
     const client=await pool.connect()
     try{
       await client.query('BEGIN'); const schedule=await authorizeBenefitSlot(client,campaign); const queued=await queueCampaign(client,campaign,recipients,schedule.nextAllowed); await client.query('COMMIT')
       const monitor=await monitorPayload(campaign.company_key); const mine=monitor.campaigns.find(item=>String(item.id)===String(id))
-      res.json({...queued,queued:true,massMode:testMode?'test_mode':massEnabled?'general':'control_only',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine,testModeEnabled:testMode})
+      res.json({...queued,queued:true,massMode:effectiveTestMode?'test_mode':massEnabled?'general':'control_only',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine,testModeEnabled:effectiveTestMode,forcedTestCompany})
     }catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
   }catch(error){next(error)}
 })

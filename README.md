@@ -1,11 +1,11 @@
-> **Revisión actual: v3.9.8.6 · BENEFICIOS_UIC_3986 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.7 · BENEFICIOS_UIC_3987 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
-## Revisión v3.9.8.6 · 26/10/2026
+## Revisión v3.9.8.7 · 26/10/2026
 
 - La firma incorpora **página web** y **logo de empresa** editable, con tamaño proporcionado y sin deformación.
 - **Elegir dónde guardar `.uicpub`** abre el selector de carpeta/nombre en Chrome/Edge de PC cuando el navegador lo permite; conserva fallback a Descargas.

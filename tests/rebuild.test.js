@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.8.6 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.7 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.8.6')
-  assert.match(server, /BENEFICIOS_UIC_3986/)
-  assert.match(html, /BENEFICIOS_UIC_3986/)
+  assert.equal(pkg.version, '3.9.8.7')
+  assert.match(server, /BENEFICIOS_UIC_3987/)
+  assert.match(html, /BENEFICIOS_UIC_3987/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.8.6 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.7 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.8.6')
+  assert.equal(pkg.version, '3.9.8.7')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3986/)
-  assert.match(server, /BENEFICIOS_UIC_3986/)
+  assert.match(index, /BENEFICIOS_UIC_3987/)
+  assert.match(server, /BENEFICIOS_UIC_3987/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.8.6 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.8.7 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.8.6')
+  assert.equal(pkg.version, '3.9.8.7')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3986/)
+  assert.match(server, /BENEFICIOS_UIC_3987/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -976,12 +976,13 @@ test('97 · envíos administrativos críticos requieren confirmación doble', as
 })
 
 
-test('98 · v3.9.8.5 no expone la empresa piloto en la experiencia pública', async () => {
+test('98 · la portada pública no usa una empresa privada como ejemplo y el selector distingue empresas de prueba', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
-  const publicArea = app.slice(app.indexOf('function DiffusionGuide()'), app.indexOf('function formatMonitorDate'))
-  assert.doesNotMatch(publicArea, /TECNO LOGISTI-K SA/)
-  assert.match(server, /buildDiffusionCompanies\(\)\)\.filter\(c=>!c\.testMode\)/)
+  const roleArea = app.slice(app.indexOf('function DiffusionRoleSelector'), app.indexOf('function AdminLogin'))
+  assert.doesNotMatch(roleArea, /TECNO LOGISTI-K SA/)
+  assert.match(server, /testMode:Boolean\(c\.testMode\)/)
+  assert.match(app, /neo-test-company-badge/)
   assert.match(server, /api\/admin\/difusion\/companies.*buildDiffusionCompanies/)
 })
 
@@ -1057,4 +1058,31 @@ test('106 · monitor informa aperturas agregadas sin exponer detalle de destinat
   assert.match(app, /Última apertura detectada/)
   assert.match(app, /adminPreview&&sent>0/)
   assert.match(app, /Ver trazabilidad por empresa y correo/)
+})
+
+
+test('107 · las tres empresas de prueba conviven con las empresas reales y son visibles en el selector', async () => {
+  const config = JSON.parse(await read('data/diffusion-config.json'))
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.deepEqual(config.testRecipients.map(x => x.key), ['uic-institucional','indusvar-group','tecno-logisti-k-sa'])
+  assert.match(server, /for\(const seed of diffusionConfig\.testRecipients\|\|\[\]\)/)
+  assert.match(server, /testMode:Boolean\(c\.testMode\)/)
+  assert.doesNotMatch(server, /buildDiffusionCompanies\(\)\)\.filter\(c=>!c\.testMode\)/)
+  assert.match(app, /neo-test-company-badge/)
+})
+
+test('108 · una empresa de prueba queda forzada a la lista blanca aunque el padrón general esté habilitado', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /function isTestCompanyKey/)
+  assert.match(server, /testMode \|\| !massEnabled \|\| testCompany/)
+  assert.match(server, /forcedTestCompany=isTestCompanyKey\(campaign\.company_key\)/)
+  assert.match(server, /effectiveTestMode=testMode\|\|forcedTestCompany/)
+})
+
+test('109 · la validación administrativa reconoce empresas de prueba aun con padrón general habilitado', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /forcedTest=\['uic-institucional','indusvar-group','tecno-logisti-k-sa'\]\.includes\(item\.company_key\)/)
+  assert.match(app, /EMPRESA DE PRUEBA \(3 destinos\)/)
+  assert.match(app, /approve\(item\)/)
 })
