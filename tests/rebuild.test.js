@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.9.0 son coherentes', async () => {
+test('10 · versión y generación 3.9.9.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.9.0')
-  assert.match(server, /BENEFICIOS_UIC_3990/)
-  assert.match(html, /BENEFICIOS_UIC_3990/)
+  assert.equal(pkg.version, '3.9.9.1')
+  assert.match(server, /BENEFICIOS_UIC_3991/)
+  assert.match(html, /BENEFICIOS_UIC_3991/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.9.0 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.9.1 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.9.0')
+  assert.equal(pkg.version, '3.9.9.1')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3990/)
-  assert.match(server, /BENEFICIOS_UIC_3990/)
+  assert.match(index, /BENEFICIOS_UIC_3991/)
+  assert.match(server, /BENEFICIOS_UIC_3991/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.9.0 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.9.1 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.9.0')
+  assert.equal(pkg.version, '3.9.9.1')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3990/)
+  assert.match(server, /BENEFICIOS_UIC_3991/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1105,7 +1105,7 @@ test('111 · v3.9.8.8 usa selector nativo de apertura cuando está disponible y 
   assert.match(app, /No se pudo abrir el archivo\./)
 })
 
-test('112 · v3.9.9.0 incorpora 202 contactos Mailchimp como Socio a confirmar sin pisar existentes', async () => {
+test('112 · v3.9.9.1 incorpora 202 contactos Mailchimp como Socio a confirmar sin pisar existentes', async () => {
   const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
   const pending = recipients.filter(x => x.sourceType === 'socio_confirmar')
   assert.equal(pending.length, 202)
@@ -1114,7 +1114,7 @@ test('112 · v3.9.9.0 incorpora 202 contactos Mailchimp como Socio a confirmar s
   assert.ok(pending.every(x => /Mailchimp subscribed/.test(x.notes || '')))
 })
 
-test('113 · v3.9.9.0 evita duplicados de altas nuevas por correo y preserva el registro previo', async () => {
+test('113 · v3.9.9.1 evita duplicados de altas nuevas por correo y preserva el registro previo', async () => {
   const server = await read('server/index.js')
   assert.match(server, /DUPLICATE_EMAIL/)
   assert.match(server, /prevalece el registro existente/)
@@ -1122,7 +1122,7 @@ test('113 · v3.9.9.0 evita duplicados de altas nuevas por correo y preserva el 
   assert.match(server, /WHERE \$2 <> 'socio_confirmar'/)
 })
 
-test('114 · v3.9.9.0 muestra Socios a confirmar sólo como clasificación administrativa', async () => {
+test('114 · v3.9.9.1 muestra Socios a confirmar sólo como clasificación administrativa', async () => {
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
   assert.match(app, /SOCIOS A CONFIRMAR/)
@@ -1131,10 +1131,18 @@ test('114 · v3.9.9.0 muestra Socios a confirmar sólo como clasificación admin
   assert.match(server, /SELECT id,company_name,contact_name,email,phone FROM diffusion_recipients WHERE enabled=TRUE/)
 })
 
-test('115 · v3.9.9.0 mantiene deduplicación final de envío por e-mail normalizado', async () => {
+test('115 · v3.9.9.1 mantiene deduplicación final de envío por e-mail normalizado', async () => {
   const server = await read('server/index.js')
   assert.match(server, /const byEmail=new Map\(\)/)
   assert.match(server, /if\(validEmail\(email\)&&!byEmail\.has\(email\)\)byEmail\.set\(email,row\)/)
   assert.match(server, /ON CONFLICT \(campaign_id,email\) DO NOTHING/)
 })
 
+
+
+test('v3.9.9.1 migra el CHECK de source_type para socio_confirmar', async () => {
+  const schema = await fs.readFile(path.join(root, 'server/schema.sql'), 'utf8')
+  assert.match(schema, /source_type IN \('socio','socio_confirmar','convenio','manual'\)/)
+  assert.match(schema, /DROP CONSTRAINT IF EXISTS diffusion_recipients_source_type_check/)
+  assert.match(schema, /ADD CONSTRAINT diffusion_recipients_source_type_check/)
+})

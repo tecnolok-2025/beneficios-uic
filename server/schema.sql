@@ -85,7 +85,7 @@ CREATE INDEX IF NOT EXISTS traces_created_idx ON traces(created_at DESC);
 CREATE TABLE IF NOT EXISTS diffusion_recipients (
   id BIGSERIAL PRIMARY KEY,
   source_key TEXT UNIQUE NOT NULL,
-  source_type TEXT NOT NULL CHECK (source_type IN ('socio','convenio','manual')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('socio','socio_confirmar','convenio','manual')),
   member_number TEXT NOT NULL DEFAULT '',
   company_name TEXT NOT NULL,
   contact_name TEXT NOT NULL DEFAULT '',
@@ -99,6 +99,12 @@ CREATE TABLE IF NOT EXISTS diffusion_recipients (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- v3.9.9.1 · ampliar clasificación de destinatarios en bases Neon existentes.
+-- La tabla fue creada originalmente con un CHECK que no contemplaba socio_confirmar.
+ALTER TABLE diffusion_recipients DROP CONSTRAINT IF EXISTS diffusion_recipients_source_type_check;
+ALTER TABLE diffusion_recipients ADD CONSTRAINT diffusion_recipients_source_type_check
+  CHECK (source_type IN ('socio','socio_confirmar','convenio','manual'));
 
 CREATE TABLE IF NOT EXISTS diffusion_campaigns (
   id BIGSERIAL PRIMARY KEY,
