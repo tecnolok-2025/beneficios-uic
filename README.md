@@ -1,8 +1,31 @@
-> **Revisión actual: v3.9.8.3 · BENEFICIOS_UIC_3983 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.5 · BENEFICIOS_UIC_3985 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
+
+
+## Revisión v3.9.8.5 · 26/10/2026
+
+- **Los borradores dejan de guardarse en Neon.** Cada empresa guarda sus trabajos en su propia computadora mediante archivos con extensión `.uicpub`.
+- El archivo local conserva modelo, textos, imágenes, adjuntos, tipografía, franja, nombre visible y firma. Puede haber tantas versiones locales como el usuario necesite sin consumir almacenamiento ni cómputo de Neon.
+- En **Crear una nueva publicación** se incorporó **Abrir archivo local**, y el mismo control está disponible dentro del constructor.
+- Se eliminó del panel beneficiario **Mis publicaciones guardadas** y, con ello, los botones **Abrir y continuar / Duplicar / Eliminar** asociados al archivo remoto de borradores.
+- Neon interviene recién cuando el usuario pulsa **Enviar correo de prueba**. En ese momento se crea o actualiza una única instancia operativa necesaria para prueba, código, validación, cola y monitor.
+- El servidor rechaza intentos de versiones anteriores de guardar borradores remotos y elimina borradores `draft/blocked` heredados al arrancar la v3.9.8.5. También evita acumular más de una instancia operativa previa por empresa/beneficio/correo.
+- La **firma del documento es totalmente editable** (nombre, cargo/función, correo visible y teléfono visible). La edición de la firma no cambia la identidad autenticada ni el correo registrado al que se envía la prueba.
+- Los contenidos de campañas rechazadas se purgan del servidor y se conserva sólo la metadata necesaria.
+- La entrega es **acumulativa desde v3.9.8.3** e incluye íntegramente las correcciones de v3.9.8.4.
+- **102/102 pruebas automáticas aprobadas** y `server/index.js` supera la verificación de sintaxis de Node.
+
+## Revisión v3.9.8.4 · 26/10/2026
+
+- La pantalla pública de acceso explica que las empresas e instituciones con convenio UIC ingresan como **beneficiarios** sin utilizar la clave privada del administrador.
+- El acceso beneficiario se presenta expresamente como canal para preparar y publicar promociones, beneficios y novedades.
+- Se incorporó un aviso público destacado, de mayor tamaño y con énfasis visual alternado.
+- Las empresas de prueba internas (`testMode`) dejaron de exponerse en el listado público de beneficiarios.
+- La guía pública ya no identifica por nombre a los destinatarios internos del Modo PRUEBA.
+- Las protecciones, lista blanca y empresas de control siguen disponibles en el modo administrador y en la lógica interna.
 
 ## Revisión v3.9.8.3 · 26/10/2026
 

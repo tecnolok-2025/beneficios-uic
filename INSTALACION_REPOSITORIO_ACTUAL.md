@@ -1,14 +1,14 @@
-# Instalación v3.9.8.3 en el repositorio y Render actuales
+# Instalación v3.9.8.5 en el repositorio y Render actuales
 
-Esta entrega actualiza directamente la **v3.9.8.1** y conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. La migración es **aditiva**: no borra catálogo, padrón, empresas, campañas, trazabilidad ni cuentas.
+Esta entrega actualiza directamente la **v3.9.8.3** y ya incluye todo el parche de v3.9.8.4. Conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. No borra catálogo, padrón, cuentas, trazabilidad ni campañas autorizadas; al primer arranque sí elimina los antiguos borradores remotos `draft/blocked`, porque desde esta revisión los borradores pertenecen exclusivamente al disco local del usuario.
 
 ## GitHub / Render
 
-1. Si el repositorio desplegado está exactamente en **v3.9.8.1**, aplicar el parche `v3.9.8.1 → v3.9.8.3`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
+1. Si el repositorio desplegado está exactamente en **v3.9.8.3**, aplicar el parche `v3.9.8.3 → v3.9.8.5`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
 2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT`, `DIFFUSION_MAIL_SECRET` y las demás variables de Difusión existentes.
 3. No cambiar `DIFFUSION_MAIL_SECRET` si ya existe: protege la contraseña SMTP cifrada guardada en Neon.
 4. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.3 · BENEFICIOS_UIC_3983`.
+5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.5 · BENEFICIOS_UIC_3985`.
 6. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión
@@ -29,7 +29,7 @@ DIFFUSION_SEND_INTERVAL_MS=45000
 
 ## Modo PRUEBA — protección principal
 
-La v3.9.8.3 incorpora `test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE` en Neon. Por lo tanto, después del primer arranque de esta versión el **Modo PRUEBA queda activado por defecto**.
+La v3.9.8.5 conserva `test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE` en Neon. Por lo tanto, después del primer arranque de esta versión el **Modo PRUEBA queda activado por defecto**.
 
 Mientras está activo, la distribución autorizada puede dirigirse únicamente a estos tres correos de control:
 
@@ -72,17 +72,26 @@ El ojo no permite recuperar secretos previamente guardados. En particular, la co
 
 ## Difusión de Beneficios en portada
 
-El acceso **Difusión de Beneficios** conserva su ubicación, pero en v3.9.8.3 tiene mayor tamaño, contraste, borde naranja y jerarquía visual para identificarlo como una función principal del Portal.
+El acceso **Difusión de Beneficios** conserva su ubicación. En v3.9.8.5 la pantalla pública de ingreso destaca además el acceso de beneficiarios por convenio sin exponer empresas internas de prueba.
 
 
-## Publicaciones guardadas
+## Archivos de trabajo locales — sin consumo de Neon
 
-Después del deploy, al ingresar como beneficiario aparece **Mis publicaciones guardadas** antes del monitor. Los borradores existentes de v3.9.8.1 se consultan directamente desde Neon; no hay que importarlos ni volver a cargarlos.
+La v3.9.8.5 elimina **Mis publicaciones guardadas** del panel beneficiario. El constructor trabaja con archivos locales `.uicpub`:
 
-- **Abrir y continuar** recupera el diseño y sus archivos.
-- **Duplicar** crea un nuevo borrador editable.
-- **Eliminar** sólo está disponible antes de que la publicación ingrese al circuito de validación/envío.
-- Una edición invalida cualquier prueba/código anterior y obliga a repetir la verificación.
+- **Guardar archivo en mi PC** descarga un archivo que contiene textos, diseño, imágenes, adjuntos y firma.
+- **Abrir archivo local** reconstruye el trabajo directamente desde el disco del usuario y no consulta Neon.
+- Se pueden conservar 5, 20, 100 o más versiones locales sin ocupar la base.
+- Neon recién recibe una instancia cuando se pulsa **Enviar correo de prueba**, porque desde ese momento el contenido debe existir temporalmente en el servidor para prueba, código, validación y distribución.
+- Antes de crear una instancia operativa nueva, el servidor elimina cualquier `draft/blocked` anterior del mismo beneficio y correo para impedir acumulación.
+- Al arrancar esta versión se purgan los borradores remotos heredados de revisiones anteriores.
+- Los envíos `pending`, `queued`, `sending`, `sent` o `cancelled` y su trazabilidad se conservan.
+
+La extensión `.uicpub` es deliberadamente específica para que el usuario pueda identificar el archivo como una publicación de Beneficios UIC y volver a abrirlo desde el mismo constructor.
+
+## Firma editable
+
+Nombre, cargo/función, correo visible y teléfono visible de la firma pueden modificarse dentro del constructor. Estos cambios afectan únicamente la presentación del correo: la prueba de identidad continúa enviándose al **correo registrado de la empresa**.
 
 ## Aviso rojo y doble confirmación
 
@@ -103,19 +112,19 @@ Se mantienen íntegros los componentes de v3.9.8.1:
 
 ## Prueba recomendada después del deploy
 
-1. Abrir el Portal y confirmar `v3.9.8.3`.
+1. Abrir el Portal y confirmar `v3.9.8.5`.
 2. Verificar que **Difusión de Beneficios** esté destacado en la portada.
 3. Ingresar **Como administrador**.
 4. Confirmar visualmente **MODO PRUEBA ACTIVADO** y los tres destinatarios exactos.
 5. Confirmar que el interruptor del padrón general figure bloqueado por Modo PRUEBA.
 6. Probar los ojos de todas las claves.
-7. Entrar como beneficiario con TECNO LOGISTI-K SA, preparar una campaña y completar la prueba/código.
+7. Entrar como beneficiario de una empresa de prueba, crear una publicación, guardarla como `.uicpub`, cerrarla, volver a abrirla y confirmar que recupera textos, imágenes, adjuntos y firma.
 8. Aprobarla desde administración y verificar que la cola contenga únicamente los tres destinos de prueba.
 9. Revisar monitor y trazabilidad antes de considerar cualquier salida del Modo PRUEBA.
 
 ## Validaciones de entrega
 
-- `npm test`: **93/93 pruebas aprobadas**.
+- `npm test`: **102/102 pruebas aprobadas**.
 - `node --check server/index.js`: aprobado.
-- Parseo JSX con TypeScript (`jsx: preserve`, sin emisión): aprobado.
-- La equivalencia entre el parche y el ZIP completo debe verificarse antes de publicar la entrega final.
+- Parseo de `src/App.jsx` con TypeScript 5.8.3 (`jsx: preserve`, `noEmit`): aprobado.
+- El parche acumulativo debe compararse con el ZIP completo antes de publicar la entrega final.

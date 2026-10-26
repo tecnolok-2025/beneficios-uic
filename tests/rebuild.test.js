@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.8.3 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.5 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.8.3')
-  assert.match(server, /BENEFICIOS_UIC_3983/)
-  assert.match(html, /BENEFICIOS_UIC_3983/)
+  assert.equal(pkg.version, '3.9.8.5')
+  assert.match(server, /BENEFICIOS_UIC_3985/)
+  assert.match(html, /BENEFICIOS_UIC_3985/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.8.3 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.5 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.8.3')
+  assert.equal(pkg.version, '3.9.8.5')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3983/)
-  assert.match(server, /BENEFICIOS_UIC_3983/)
+  assert.match(index, /BENEFICIOS_UIC_3985/)
+  assert.match(server, /BENEFICIOS_UIC_3985/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -659,7 +659,7 @@ test('65 · al elegir beneficiario se abandona la sesión administrativa para pr
   assert.match(app, /nextRole==='beneficiary'|else\{/)
   assert.match(app, /\/api\/admin\/logout/)
   assert.match(app, /Cambiar tipo de acceso/)
-  assert.match(app, /Para probar TECNO LOGISTI-K SA como una empresa real/)
+  assert.match(app, /EMPRESAS E INSTITUCIONES CON CONVENIO/)
 })
 
 test('66 · pantalla beneficiario explica minuciosamente registro, recuperación y falta de correo', async () => {
@@ -749,10 +749,10 @@ test('74 · v3.9.8.2 conserva Error Boundary y generación técnica', async () =
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.8.3')
+  assert.equal(pkg.version, '3.9.8.5')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3983/)
+  assert.match(server, /BENEFICIOS_UIC_3985/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -935,25 +935,25 @@ test('93 · botón Difusión de Beneficios queda jerarquizado en la portada', as
 })
 
 
-test('94 · beneficiario dispone de archivo visible de publicaciones guardadas', async () => {
+test('94 · los borradores se guardan como archivo local .uicpub y no como archivo Neon', async () => {
   const app = await read('src/App.jsx')
-  const server = await read('server/index.js')
-  assert.match(app, /Mis publicaciones guardadas/)
-  assert.match(app, /Abrir y continuar/)
-  assert.match(app, /Duplicar/)
-  assert.match(app, /Eliminar/)
-  assert.match(server, /app\.get\('\/api\/difusion\/campaigns'/)
-  assert.match(server, /app\.get\('\/api\/difusion\/campaigns\/:id'/)
+  assert.match(app, /LOCAL_PUBLICATION_EXTENSION='\.uicpub'/)
+  assert.match(app, /Guardar archivo en mi PC/)
+  assert.match(app, /Abrir archivo de mi PC/)
+  assert.match(app, /no se almacenó en Neon ni en el servidor/)
+  assert.doesNotMatch(app, /Mis publicaciones guardadas/)
+  assert.doesNotMatch(app, />Duplicar</)
+  assert.doesNotMatch(app, /function SavedCampaigns/)
 })
 
-test('95 · abrir un borrador recupera layout, imágenes y adjuntos y permite actualizar el mismo registro', async () => {
+test('95 · abrir un archivo local recupera layout, imágenes, adjuntos y firma sin consultar Neon', async () => {
   const app = await read('src/App.jsx')
-  const server = await read('server/index.js')
-  assert.match(app, /hydrateSavedCampaign/)
-  assert.match(app, /_imageSlots/)
-  assert.match(app, /Actualizar borrador/)
-  assert.match(server, /app\.put\('\/api\/difusion\/campaigns\/:id'/)
-  assert.match(server, /DELETE FROM diffusion_campaign_files WHERE campaign_id=\$1/)
+  const reader = app.slice(app.indexOf('async function readLocalPublicationFile'), app.indexOf('function localPublicationFilename'))
+  assert.match(reader, /_imageSlots/)
+  assert.match(reader, /_attachments/)
+  assert.match(reader, /signature/)
+  assert.doesNotMatch(reader, /request\(/)
+  assert.doesNotMatch(reader, /\/api\//)
 })
 
 test('96 · panel administrador muestra aviso rojo permanente de modo prueba', async () => {
@@ -973,4 +973,54 @@ test('97 · envíos administrativos críticos requieren confirmación doble', as
   assert.match(server, /confirmFirst!==true/)
   assert.match(server, /segunda confirmación/)
   assert.match(server, /escribir PROBAR/)
+})
+
+
+test('98 · v3.9.8.5 no expone la empresa piloto en la experiencia pública', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  const publicArea = app.slice(app.indexOf('function DiffusionGuide()'), app.indexOf('function formatMonitorDate'))
+  assert.doesNotMatch(publicArea, /TECNO LOGISTI-K SA/)
+  assert.match(server, /buildDiffusionCompanies\(\)\)\.filter\(c=>!c\.testMode\)/)
+  assert.match(server, /api\/admin\/difusion\/companies.*buildDiffusionCompanies/)
+})
+
+test('99 · v3.9.8.5 comunica acceso por convenio y aviso destacado', async () => {
+  const app = await read('src/App.jsx')
+  const css = await read('src/styles.css')
+  assert.match(app, /Si tu empresa o institución firmó un convenio con la UIC/)
+  assert.match(app, /promociones, beneficios y novedades/)
+  assert.match(app, /neo-role-public-notice/)
+  assert.match(css, /neoPublicNoticePulse/)
+  assert.match(css, /prefers-reduced-motion/)
+})
+
+
+test('100 · Neon sólo recibe la publicación cuando comienza la prueba operativa', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /operationMode:'test'/)
+  assert.match(app, /const test=async\(\)=>\{setBusy\(true\).*?syncOperational/s)
+  assert.doesNotMatch(app, /Guardar borrador/)
+  assert.match(server, /operationMode\|\|'\'\)!=='test'/)
+  assert.match(server, /Los borradores ya no se guardan en Neon/)
+})
+
+test('101 · firma visible es editable y viaja dentro del layout sin alterar el correo registrado', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /FIRMA DEL DOCUMENTO · EDITABLE/)
+  assert.match(app, /updateSignature\('name'/)
+  assert.match(app, /updateSignature\('role'/)
+  assert.match(app, /updateSignature\('email'/)
+  assert.match(app, /updateSignature\('phone'/)
+  assert.match(app, /originatorEmail:company\.email/)
+  assert.match(server, /layout\.signature/)
+  assert.match(server, /sigEmail/)
+})
+
+test('102 · la versión limpia borradores remotos heredados y evita acumulación por beneficio', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /DELETE FROM diffusion_campaigns WHERE status IN \('draft','blocked'\) AND approval_requested_at IS NULL/)
+  assert.match(server, /DELETE FROM diffusion_campaigns WHERE company_key=\$1 AND benefit_slug=\$2 AND LOWER\(originator_email\)=LOWER\(\$3\)/)
 })
