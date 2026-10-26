@@ -1,9 +1,20 @@
-> **Revisión actual: v3.9.8.7 · BENEFICIOS_UIC_3987 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.8.8 · BENEFICIOS_UIC_3988 · 51 beneficios · 16 categorías**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
+
+
+## Revisión v3.9.8.8 · 26/10/2026
+
+- Corrección específica de **Abrir archivo local `.uicpub`**.
+- Compatibilidad confirmada con respaldos creados por v3.9.8.5, incluida una publicación real de 9,4 MB con cuatro imágenes PNG.
+- La reconstrucción de imágenes, logo y adjuntos se realiza completamente en memoria local; deja de utilizarse `fetch(dataUrl)`.
+- Lectura del archivo mediante `File.text()` con fallback a `FileReader`.
+- En Chrome/Edge se utiliza el selector nativo de apertura cuando está disponible y se conserva el selector tradicional como respaldo.
+- Si algo falla, el motivo aparece junto al botón **Abrir archivo local** y se informa expresamente que el archivo no fue enviado a Neon ni al servidor.
+- **111/111 pruebas automáticas aprobadas** y sintaxis del servidor validada.
 
 ## Revisión v3.9.8.7 · 26/10/2026
 

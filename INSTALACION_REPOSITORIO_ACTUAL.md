@@ -1,14 +1,14 @@
-# Instalación v3.9.8.7 en el repositorio y Render actuales
+# Instalación v3.9.8.8 en el repositorio y Render actuales
 
-Esta entrega actualiza directamente la **v3.9.8.3** e incluye de forma acumulativa v3.9.8.4 y v3.9.8.5. Conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. No borra catálogo, padrón, cuentas, trazabilidad ni campañas autorizadas. Los borradores de trabajo continúan siendo exclusivamente locales `.uicpub`; la limpieza automática sólo purga `draft/blocked` que no tengan prueba enviada ni verificada.
+Esta entrega puede aplicarse directamente sobre **v3.9.8.7** para corregir la apertura local. También se provee versión completa v3.9.8.8. Conserva acumulativamente todas las mejoras anteriores. Conserva el servicio Render, la URL y la base PostgreSQL/Neon existentes. No borra catálogo, padrón, cuentas, trazabilidad ni campañas autorizadas. Los borradores de trabajo continúan siendo exclusivamente locales `.uicpub`; la limpieza automática sólo purga `draft/blocked` que no tengan prueba enviada ni verificada.
 
 ## GitHub / Render
 
-1. Si el repositorio desplegado está exactamente en **v3.9.8.3**, aplicar el parche `v3.9.8.3 → v3.9.8.7`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
+1. Si el repositorio desplegado está en **v3.9.8.7**, aplicar el parche `v3.9.8.7 → v3.9.8.8`. Si existe duda sobre el estado del repositorio, usar el ZIP completo.
 2. Mantener `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SALT`, `DIFFUSION_MAIL_SECRET` y las demás variables de Difusión existentes.
 3. No cambiar `DIFFUSION_MAIL_SECRET` si ya existe: protege la contraseña SMTP cifrada guardada en Neon.
 4. Los comandos continúan siendo `npm ci --include=dev && npm run build` y `npm start`.
-5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.7 · BENEFICIOS_UIC_3987`.
+5. El arranque debe informar `Beneficios UIC NUEVO v3.9.8.8 · BENEFICIOS_UIC_3988`.
 6. No crear un servicio nuevo de Render ni una base nueva de Neon.
 
 ## Variables de Difusión

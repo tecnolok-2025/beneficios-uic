@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.8.7 son coherentes', async () => {
+test('10 · versión y generación 3.9.8.8 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.8.7')
-  assert.match(server, /BENEFICIOS_UIC_3987/)
-  assert.match(html, /BENEFICIOS_UIC_3987/)
+  assert.equal(pkg.version, '3.9.8.8')
+  assert.match(server, /BENEFICIOS_UIC_3988/)
+  assert.match(html, /BENEFICIOS_UIC_3988/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.8.7 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.8.8 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.8.7')
+  assert.equal(pkg.version, '3.9.8.8')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3987/)
-  assert.match(server, /BENEFICIOS_UIC_3987/)
+  assert.match(index, /BENEFICIOS_UIC_3988/)
+  assert.match(server, /BENEFICIOS_UIC_3988/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.8.7 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.8.8 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.8.7')
+  assert.equal(pkg.version, '3.9.8.8')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3987/)
+  assert.match(server, /BENEFICIOS_UIC_3988/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1085,4 +1085,22 @@ test('109 · la validación administrativa reconoce empresas de prueba aun con p
   assert.match(app, /forcedTest=\['uic-institucional','indusvar-group','tecno-logisti-k-sa'\]\.includes\(item\.company_key\)/)
   assert.match(app, /EMPRESA DE PRUEBA \(3 destinos\)/)
   assert.match(app, /approve\(item\)/)
+})
+
+
+test('110 · v3.9.8.8 reconstruye imágenes de .uicpub localmente sin fetch ni Neon', async () => {
+  const app = await read('src/App.jsx')
+  const restore = app.slice(app.indexOf('function dataUrlToBlob'), app.indexOf('async function snapshotFile'))
+  const reader = app.slice(app.indexOf('async function readLocalPublicationFile'), app.indexOf('function localPublicationFilename'))
+  assert.match(restore, /atob\(encoded\)/)
+  assert.doesNotMatch(restore, /fetch\(/)
+  assert.match(reader, /fileToText\(file\)/)
+  assert.doesNotMatch(reader, /\/api\//)
+})
+
+test('111 · v3.9.8.8 usa selector nativo de apertura cuando está disponible y mantiene fallback', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /showOpenFilePicker/)
+  assert.match(app, /localInputRef\.current\?\.click\(\)/)
+  assert.match(app, /No se pudo abrir el archivo\./)
 })

@@ -707,3 +707,6 @@ button { cursor: pointer; }
 .neo-public-company-list button.test-company,.neo-diffusion-company-list button.test-company{background:linear-gradient(90deg,#fffaf0 0%,#ffffff 72%);border-left:3px solid #e6b529}
 .neo-test-company-notice{display:flex;gap:10px;align-items:flex-start;margin:10px 0 14px;padding:11px 13px;border:1px solid #e6b529;border-radius:10px;background:#fff8df;color:#664b00}
 .neo-test-company-notice svg{width:19px;height:19px;flex:0 0 auto;color:#b47700}.neo-test-company-notice div{display:grid;gap:2px}.neo-test-company-notice strong{font-size:13px}.neo-test-company-notice small{font-size:11px;line-height:1.4}
+
+/* v3.9.8.8 · recuperación local robusta */
+.neo-local-open-feedback{margin:-8px 0 18px}.neo-form-error.neo-local-open-feedback{display:grid;gap:4px}.neo-form-error.neo-local-open-feedback strong{font-size:13px}.neo-form-error.neo-local-open-feedback span{line-height:1.45}.neo-form-error.neo-local-open-feedback small{color:#7f4a52}
