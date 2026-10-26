@@ -1,10 +1,21 @@
-> **Revisión actual: v3.9.8.8 · BENEFICIOS_UIC_3988 · 51 beneficios · 16 categorías**
+> **Revisión actual: v3.9.9.0 · BENEFICIOS_UIC_3990 · 51 beneficios · 16 categorías · padrón ampliado**
 
 # Beneficios UIC — Portal institucional de beneficios
 
 Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
+
+## Revisión v3.9.9.0 · 26/10/2026
+
+- Incorpora **202 correos nuevos** provenientes de Mailchimp `subscribed`, luego de cruzar 215 contactos contra el padrón existente.
+- **13 coincidencias de e-mail no se incorporan**: prevalece íntegramente el registro que ya existía en el Portal.
+- Las nuevas altas quedan identificadas **sólo en Administración** como `Socio a confirmar`.
+- La clasificación interna **no modifica el correo recibido**: el destinatario no es tratado ni rotulado como socio/no socio.
+- El envío general continúa deduplicando por e-mail normalizado: una misma dirección recibe una sola copia.
+- Las altas manuales y las ediciones ahora rechazan un e-mail que ya pertenezca a otro contacto.
+- Los contactos `Socio a confirmar` no habilitan por sí solos acceso como beneficiario de un convenio.
+- Padrón semilla resultante: **319 registros**, con **313 correos únicos** considerando los registros históricos conservados.
 
 ## Revisión v3.9.8.8 · 26/10/2026
 

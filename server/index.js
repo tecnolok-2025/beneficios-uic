@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_3988'
+const GENERATION = 'BENEFICIOS_UIC_3990'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -150,9 +150,18 @@ async function initializeDatabase() {
   }
 
   for (const recipient of diffusionRecipientSeed) {
+    // Los contactos "Socio a confirmar" se incorporan sólo si su e-mail todavía no existe.
+    // El registro histórico previo siempre prevalece cuando la casilla coincide.
     await pool.query(`INSERT INTO diffusion_recipients
       (source_key,source_type,member_number,company_name,contact_name,cuit,email,phone,active_code,enabled,email_valid,notes)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+      WHERE $2 <> 'socio_confirmar'
+         OR COALESCE(TRIM($7),'') = ''
+         OR NOT EXISTS (
+           SELECT 1 FROM diffusion_recipients
+           WHERE COALESCE(TRIM(email),'') <> ''
+             AND LOWER(TRIM(email)) = LOWER(TRIM($7))
+         )
       ON CONFLICT (source_key) DO NOTHING`, [
         recipient.sourceKey, recipient.sourceType, recipient.memberNumber || '', recipient.companyName || '', recipient.contactName || '',
         recipient.cuit || '', recipient.email || '', recipient.phone || '', recipient.activeCode || '', recipient.enabled !== false,
@@ -671,7 +680,7 @@ async function buildDiffusionCompanies() {
   }
   if(pool&&databaseAvailable){
     try{
-      const recipients=await pool.query(`SELECT company_name,contact_name,email,phone FROM diffusion_recipients WHERE email<>'' ORDER BY id`)
+      const recipients=await pool.query(`SELECT company_name,contact_name,email,phone FROM diffusion_recipients WHERE email<>'' AND source_type <> 'socio_confirmar' ORDER BY id`)
       for(const row of recipients.rows){const key=slugify(row.company_name); const company=grouped.get(key); if(!company) continue; if(!company.contacts.some(c=>normalizeEmail(c.email)===normalizeEmail(row.email))) company.contacts.push({name:row.contact_name||'',role:'',email:row.email||'',phone:row.phone||''})}
     }catch{}
   }
@@ -794,12 +803,12 @@ app.post('/api/admin/difusion/mail-settings/test', requireAdmin, requireDiffusio
 app.get('/api/admin/difusion/companies', requireAdmin, async (_req, res, next) => { try { res.json(await buildDiffusionCompanies()) } catch (error) { next(error) } })
 
 app.get('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
-  try { const result = await pool.query(`SELECT * FROM diffusion_recipients ORDER BY CASE source_type WHEN 'socio' THEN 0 WHEN 'convenio' THEN 1 ELSE 2 END, company_name, contact_name`); res.json(result.rows) } catch (error) { next(error) }
+  try { const result = await pool.query(`SELECT * FROM diffusion_recipients ORDER BY CASE source_type WHEN 'socio' THEN 0 WHEN 'socio_confirmar' THEN 1 WHEN 'convenio' THEN 2 ELSE 3 END, company_name, contact_name`); res.json(result.rows) } catch (error) { next(error) }
 })
 app.put('/api/admin/difusion/recipient-companies/toggle', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
   try {
     const sourceType=safeText(req.body.sourceType,30); const companyName=safeText(req.body.companyName,250); const enabled=Boolean(req.body.enabled)
-    if (!['socio','convenio','manual'].includes(sourceType) || !companyName) return res.status(400).json({ error: 'Empresa inválida' })
+    if (!['socio','socio_confirmar','convenio','manual'].includes(sourceType) || (!companyName && sourceType!=='socio_confirmar')) return res.status(400).json({ error: 'Empresa inválida' })
     if(slugify(companyName)===PILOT_COMPANY_KEY && !enabled) return res.status(400).json({error:'TECNO LOGISTI-K SA permanece siempre habilitada como destino de control.'})
     const result=await pool.query(`UPDATE diffusion_recipients SET enabled=CASE WHEN $1::boolean=TRUE THEN (email_valid AND opted_out_at IS NULL) ELSE FALSE END, updated_at=NOW() WHERE source_type=$2 AND company_name=$3 RETURNING *`,[enabled,sourceType,companyName])
     if (!result.rows.length) return res.status(404).json({ error: 'Empresa no encontrada' })
@@ -809,9 +818,13 @@ app.put('/api/admin/difusion/recipient-companies/toggle', requireAdmin, requireD
 app.post('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
   try {
     const company = safeText(req.body.companyName,250); const contact = safeText(req.body.contactName,200); const email = safeText(req.body.email,250); const phone = safeText(req.body.phone,100)
-    const requestedType=safeText(req.body.sourceType,30); const sourceType=['socio','convenio','manual'].includes(requestedType)?requestedType:'manual'
-    if (!company) return res.status(400).json({ error: 'La empresa es obligatoria' })
+    const requestedType=safeText(req.body.sourceType,30); const sourceType=['socio','socio_confirmar','convenio','manual'].includes(requestedType)?requestedType:'manual'
+    if (!company && sourceType!=='socio_confirmar') return res.status(400).json({ error: 'La empresa es obligatoria' })
     const emailValid = validEmail(email); const enabled = Boolean(req.body.enabled) && emailValid
+    if(emailValid){
+      const duplicate=await pool.query(`SELECT id,company_name,contact_name FROM diffusion_recipients WHERE LOWER(TRIM(email))=LOWER(TRIM($1)) AND COALESCE(TRIM(email),'')<>'' ORDER BY id LIMIT 1`,[email])
+      if(duplicate.rows[0]) return res.status(409).json({code:'DUPLICATE_EMAIL',error:'Ese correo ya existe en el padrón. No se agregó un segundo contacto; prevalece el registro existente.',existing:duplicate.rows[0]})
+    }
     const sourceKey = `${sourceType}:manual:${crypto.randomUUID()}`
     const result = await pool.query(`INSERT INTO diffusion_recipients (source_key,source_type,company_name,contact_name,email,phone,enabled,email_valid,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`, [sourceKey,sourceType,company,contact,email,phone,enabled,emailValid,safeText(req.body.notes,500)])
     res.status(201).json(result.rows[0])
@@ -821,8 +834,15 @@ app.put('/api/admin/difusion/recipients/:id', requireAdmin, requireDiffusionData
   try {
     const id=safeId(req.params.id); if (!id) return res.status(400).json({ error: 'Destinatario inválido' })
     const company=safeText(req.body.companyName,250); const contact=safeText(req.body.contactName,200); const email=safeText(req.body.email,250); const phone=safeText(req.body.phone,100); const notes=safeText(req.body.notes,500)
-    if (!company) return res.status(400).json({ error: 'La empresa es obligatoria' })
-    const emailValid=validEmail(email); const current=await pool.query('SELECT opted_out_at FROM diffusion_recipients WHERE id=$1',[id]); const enabled=Boolean(req.body.enabled) && emailValid && !current.rows[0]?.opted_out_at
+    const current=await pool.query('SELECT opted_out_at,source_type FROM diffusion_recipients WHERE id=$1',[id])
+    if (!current.rows[0]) return res.status(404).json({ error: 'Destinatario no encontrado' })
+    if (!company && current.rows[0].source_type!=='socio_confirmar') return res.status(400).json({ error: 'La empresa es obligatoria' })
+    const emailValid=validEmail(email)
+    if(emailValid){
+      const duplicate=await pool.query(`SELECT id,company_name,contact_name FROM diffusion_recipients WHERE id<>$1 AND LOWER(TRIM(email))=LOWER(TRIM($2)) AND COALESCE(TRIM(email),'')<>'' ORDER BY id LIMIT 1`,[id,email])
+      if(duplicate.rows[0]) return res.status(409).json({code:'DUPLICATE_EMAIL',error:'Ese correo ya pertenece a otro contacto. No se guardó el cambio para evitar duplicados.',existing:duplicate.rows[0]})
+    }
+    const enabled=Boolean(req.body.enabled) && emailValid && !current.rows[0]?.opted_out_at
     const result=await pool.query(`UPDATE diffusion_recipients SET company_name=$1,contact_name=$2,email=$3,phone=$4,enabled=$5,email_valid=$6,notes=$7,updated_at=NOW() WHERE id=$8 RETURNING *`,[company,contact,email,phone,enabled,emailValid,notes,id])
     if (!result.rows[0]) return res.status(404).json({ error: 'Destinatario no encontrado' })
     res.json(result.rows[0])
