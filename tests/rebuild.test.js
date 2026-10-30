@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.9.2 son coherentes', async () => {
+test('10 · versión y generación 3.9.9.3 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.9.2')
-  assert.match(server, /BENEFICIOS_UIC_3992/)
-  assert.match(html, /BENEFICIOS_UIC_3992/)
+  assert.equal(pkg.version, '3.9.9.3')
+  assert.match(server, /BENEFICIOS_UIC_3993/)
+  assert.match(html, /BENEFICIOS_UIC_3993/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.9.2 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.9.3 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.9.2')
+  assert.equal(pkg.version, '3.9.9.3')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3992/)
-  assert.match(server, /BENEFICIOS_UIC_3992/)
+  assert.match(index, /BENEFICIOS_UIC_3993/)
+  assert.match(server, /BENEFICIOS_UIC_3993/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.9.2 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.9.3 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.9.2')
+  assert.equal(pkg.version, '3.9.9.3')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3992/)
+  assert.match(server, /BENEFICIOS_UIC_3993/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1175,4 +1175,34 @@ test('120 · v3.9.9.2 permite reiniciar el acceso administrador desde la pantall
   assert.match(main, /Reiniciar acceso administrador/)
   assert.match(main, /\/api\/admin\/logout/)
   assert.match(main, /location\.assign\('\/difusion'\)/)
+})
+
+
+test('121 · v3.9.9.3 evita servir imágenes públicas desde BYTEA de Neon cuando existe imagen estática', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /El catálogo público usa siempre external_image_url/)
+  assert.match(server, /if \(includeHidden\)/)
+  assert.match(server, /PUBLIC_CATALOG_CACHE_MS/)
+})
+
+test('122 · v3.9.9.3 cachea medios de campaña para no releer imágenes y adjuntos por destinatario', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /const campaignMediaCache = new Map\(\)/)
+  assert.match(server, /campaignMediaCache\.has/)
+  assert.match(server, /campaignMediaCache\.set/)
+})
+
+test('123 · v3.9.9.3 limpia binarios históricos sin tocar pendientes, cola ni envíos activos', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /cleanupLegacyDiffusionStorage/)
+  assert.match(server, /c\.status IN \('sent','cancelled','rejected'\)/)
+  assert.match(server, /updated_at < NOW\(\) - INTERVAL '7 days'/)
+  assert.doesNotMatch(server, /DELETE FROM diffusion_campaigns WHERE status IN \('pending','queued','sending'\)/)
+})
+
+test('124 · v3.9.9.3 agrega auditoría de almacenamiento de difusión', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /diffusionStorageAudit/)
+  assert.match(server, /\/api\/admin\/difusion\/storage-audit/)
+  assert.match(server, /SUM\(size_bytes\)/)
 })

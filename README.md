@@ -1,4 +1,12 @@
-> **Revisión actual: v3.9.9.1 · BENEFICIOS_UIC_3991 · 51 beneficios · 16 categorías · padrón ampliado**
+> **Revisión actual: v3.9.9.3 · BENEFICIOS_UIC_3993 · optimización Neon / transferencia**
+
+## Revisión v3.9.9.3 · 30/10/2026
+- Catálogo público: prioriza imágenes estáticas incluidas en Render; evita leer flyers BYTEA desde Neon en visitas públicas.
+- Caché de catálogo público durante 5 minutos para reducir SELECT repetidos.
+- Envíos: imágenes, logo y adjuntos de una campaña se leen una vez desde Neon y se reutilizan en memoria durante la distribución.
+- Limpieza segura al iniciar: elimina binarios de campañas finalizadas/rechazadas/canceladas y pruebas operativas abandonadas de más de 7 días.
+- Auditoría administrativa disponible en `/api/admin/difusion/storage-audit`.
+- No modifica padrón, beneficios, campañas pendientes/en cola/en envío ni archivos `.uicpub` locales.
 
 # Beneficios UIC — Portal institucional de beneficios
 
@@ -6,7 +14,7 @@ Portal de beneficios de la **Unión Industrial de Campana (UIC)**.
 
 
 
-## Revisión v3.9.9.1 · 26/10/2026
+## Revisión v3.9.9.2 · 26/10/2026
 
 - Incorpora **202 correos nuevos** provenientes de Mailchimp `subscribed`, luego de cruzar 215 contactos contra el padrón existente.
 - **13 coincidencias de e-mail no se incorporan**: prevalece íntegramente el registro que ya existía en el Portal.
