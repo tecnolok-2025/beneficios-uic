@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_3991'
+const GENERATION = 'BENEFICIOS_UIC_3992'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -221,9 +221,11 @@ function slugify(value) { return safeText(value, 180).normalize('NFD').replace(/
 function safeId(value) { return /^\d+$/.test(String(value)) ? String(value) : null }
 
 const COOKIE = 'uic_nuevo_admin'
+const ADMIN_SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000
 function cookieValue(req,name){ return decodeURIComponent((req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(`${name}=`))?.slice(name.length+1)||'') }
 function signature(value) { return crypto.createHmac('sha256', process.env.SESSION_SECRET || 'desarrollo').update(value).digest('base64url') }
-function createSession() { const expires = Math.floor(Date.now() / 1000) + 28800; const value = `admin.${expires}`; return `${value}.${signature(value)}` }
+function createSession() { const expires = Math.floor(Date.now() / 1000) + Math.floor(ADMIN_SESSION_MAX_AGE_MS/1000); const value = `admin.${expires}`; return `${value}.${signature(value)}` }
+function setAdminSession(res) { return res.cookie(COOKIE, createSession(), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: ADMIN_SESSION_MAX_AGE_MS, path: '/' }) }
 function isAdmin(req) {
   const cookie = (req.headers.cookie || '').split(';').map(x => x.trim()).find(x => x.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1) || ''
   const parts = decodeURIComponent(cookie).split('.')
@@ -231,7 +233,7 @@ function isAdmin(req) {
   const expected = Buffer.from(signature(`${parts[0]}.${parts[1]}`)); const actual = Buffer.from(parts[2])
   return expected.length === actual.length && crypto.timingSafeEqual(expected, actual)
 }
-function requireAdmin(req, res, next) { return isAdmin(req) ? next() : res.status(401).json({ error: 'Acceso administrativo requerido' }) }
+function requireAdmin(req, res, next) { if(!isAdmin(req)) return res.status(401).json({ code:'ADMIN_SESSION_EXPIRED', error: 'La sesión administrativa venció. Volvé a ingresar con la clave para continuar.' }); setAdminSession(res); return next() }
 
 function maintenanceResponse(res) {
   return res.status(503).json({ maintenance: true, error: 'El Portal de Beneficios se encuentra temporalmente en mantenimiento. Por favor intentá nuevamente más tarde o comunicate con Administración UIC.', contact: diffusionConfig.maintenanceContact })
@@ -646,10 +648,10 @@ app.post('/api/admin/login', loginLimit, (req, res) => {
   const expected = String(process.env.ADMIN_PASSWORD || '')
   const actual = String(req.body.password || '')
   if (!expected || expected.length !== actual.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(actual))) return res.status(401).json({ error: 'Clave incorrecta' })
-  res.cookie(COOKIE, createSession(), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 28800000, path: '/' }).json({ authenticated: true })
+  setAdminSession(res).json({ authenticated: true })
 })
 app.post('/api/admin/logout', (_req, res) => res.clearCookie(COOKIE, { path: '/' }).json({ authenticated: false }))
-app.get('/api/admin/me', (req, res) => res.json({ authenticated: isAdmin(req) }))
+app.get('/api/admin/me', (req, res) => { const authenticated=isAdmin(req); if(authenticated) setAdminSession(res); else res.clearCookie(COOKIE,{path:'/'}); res.json({ authenticated }) })
 app.get('/api/admin/beneficios', requireAdmin, async (_req, res, next) => { try { res.json(await listBenefits(true)) } catch (error) { next(error) } })
 
 async function buildDiffusionCompanies() {

@@ -710,3 +710,6 @@ button { cursor: pointer; }
 
 /* v3.9.8.8 · recuperación local robusta */
 .neo-local-open-feedback{margin:-8px 0 18px}.neo-form-error.neo-local-open-feedback{display:grid;gap:4px}.neo-form-error.neo-local-open-feedback strong{font-size:13px}.neo-form-error.neo-local-open-feedback span{line-height:1.45}.neo-form-error.neo-local-open-feedback small{color:#7f4a52}
+
+/* v3.9.9.2 · aviso de sesión administrativa vencida */
+.neo-session-expired{display:flex;align-items:flex-start;gap:9px;margin:0 0 14px;padding:12px 13px;border:1px solid #e2b93b;border-radius:10px;background:#fff8d8;color:#674f00;font-size:13px;font-weight:750;line-height:1.45}.neo-session-expired svg{flex:none;width:18px;margin-top:1px}

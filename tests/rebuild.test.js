@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 3.9.9.1 son coherentes', async () => {
+test('10 · versión y generación 3.9.9.2 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '3.9.9.1')
-  assert.match(server, /BENEFICIOS_UIC_3991/)
-  assert.match(html, /BENEFICIOS_UIC_3991/)
+  assert.equal(pkg.version, '3.9.9.2')
+  assert.match(server, /BENEFICIOS_UIC_3992/)
+  assert.match(html, /BENEFICIOS_UIC_3992/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v3.9.9.1 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v3.9.9.2 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '3.9.9.1')
+  assert.equal(pkg.version, '3.9.9.2')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_3991/)
-  assert.match(server, /BENEFICIOS_UIC_3991/)
+  assert.match(index, /BENEFICIOS_UIC_3992/)
+  assert.match(server, /BENEFICIOS_UIC_3992/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v3.9.9.1 conserva Error Boundary y generación técnica', async () => {
+test('74 · v3.9.9.2 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '3.9.9.1')
+  assert.equal(pkg.version, '3.9.9.2')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_3991/)
+  assert.match(server, /BENEFICIOS_UIC_3992/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1145,4 +1145,34 @@ test('v3.9.9.1 migra el CHECK de source_type para socio_confirmar', async () => 
   assert.match(schema, /source_type IN \('socio','socio_confirmar','convenio','manual'\)/)
   assert.match(schema, /DROP CONSTRAINT IF EXISTS diffusion_recipients_source_type_check/)
   assert.match(schema, /ADD CONSTRAINT diffusion_recipients_source_type_check/)
+})
+
+
+test('117 · v3.9.9.2 renueva la sesión administrativa en cada operación autorizada', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /ADMIN_SESSION_MAX_AGE_MS = 8 \* 60 \* 60 \* 1000/)
+  assert.match(server, /function setAdminSession\(res\)/)
+  assert.match(server, /setAdminSession\(res\); return next\(\)/)
+  assert.match(server, /if\(authenticated\) setAdminSession\(res\)/)
+})
+
+test('118 · v3.9.9.2 devuelve código explícito cuando vence la sesión administrativa', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /ADMIN_SESSION_EXPIRED/)
+  assert.match(server, /La sesión administrativa venció/)
+})
+
+test('119 · v3.9.9.2 captura 401 administrativo y vuelve al login sin romper React', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /ADMIN_SESSION_EXPIRED_EVENT/)
+  assert.match(app, /response\.status === 401 && adminRequest/)
+  assert.match(app, /window\.dispatchEvent\(new CustomEvent\(ADMIN_SESSION_EXPIRED_EVENT/)
+  assert.match(app, /Tu sesión administrativa venció/)
+})
+
+test('120 · v3.9.9.2 permite reiniciar el acceso administrador desde la pantalla de recuperación', async () => {
+  const main = await read('src/main.jsx')
+  assert.match(main, /Reiniciar acceso administrador/)
+  assert.match(main, /\/api\/admin\/logout/)
+  assert.match(main, /location\.assign\('\/difusion'\)/)
 })

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import './styles.css'
 
-const RECOVERY_KEY = 'beneficios-uic-ui-recovery-396'
+const RECOVERY_KEY = 'beneficios-uic-ui-recovery-3992'
 
 class PortalErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,6 +37,7 @@ class PortalErrorBoundary extends React.Component {
         <div style={{display:'flex',gap:'10px',flexWrap:'wrap',marginTop:'20px'}}>
           <button onClick={()=>location.reload()} style={{border:0,borderRadius:'10px',padding:'12px 18px',fontWeight:800,cursor:'pointer'}}>Actualizar pantalla</button>
           <button onClick={()=>location.assign('/')} style={{border:'1px solid #9fcddd',background:'#fff',borderRadius:'10px',padding:'12px 18px',fontWeight:800,cursor:'pointer'}}>Volver al Portal de Beneficios</button>
+          <button onClick={async()=>{try{await fetch('/api/admin/logout',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:'{}'})}catch{}try{sessionStorage.removeItem(`${RECOVERY_KEY}:${location.pathname}`)}catch{}location.assign('/difusion')}} style={{border:'1px solid #d6a621',background:'#fff8d8',color:'#654d00',borderRadius:'10px',padding:'12px 18px',fontWeight:800,cursor:'pointer'}}>Reiniciar acceso administrador</button>
         </div>
       </section>
     </main>
