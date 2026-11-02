@@ -1,0 +1,5 @@
+BENEFICIOS UIC v4.0.0
+
+Este parche se aplica directamente sobre v3.9.9.3.
+No instale ninguna v4.0.0 anterior.
+El manual integrado es la última revisión: Beneficios UIC v4.0.0.pdf.

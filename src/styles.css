@@ -713,3 +713,9 @@ button { cursor: pointer; }
 
 /* v3.9.9.2 · aviso de sesión administrativa vencida */
 .neo-session-expired{display:flex;align-items:flex-start;gap:9px;margin:0 0 14px;padding:12px 13px;border:1px solid #e2b93b;border-radius:10px;background:#fff8d8;color:#674f00;font-size:13px;font-weight:750;line-height:1.45}.neo-session-expired svg{flex:none;width:18px;margin-top:1px}
+
+/* v4.0.0 · Manual descargable desde portada */
+.neo-hero-buttons .neo-manual-download{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.12);color:#fff;border-radius:12px;padding:12px 15px;font-weight:850;line-height:1.1;backdrop-filter:blur(3px)}
+.neo-hero-buttons .neo-manual-download:hover{background:#fff;color:#075173;border-color:#fff;transform:translateY(-1px)}
+.neo-hero-buttons .neo-manual-download svg{width:18px;height:18px;flex:0 0 auto}
+@media(max-width:650px){.neo-hero-buttons .neo-manual-download{width:100%;box-sizing:border-box}}

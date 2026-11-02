@@ -1,4 +1,10 @@
-> **Revisión actual: v3.9.9.3 · BENEFICIOS_UIC_3993 · optimización Neon / transferencia**
+> **Revisión actual: v4.0.0 · BENEFICIOS_UIC_4000 · manual institucional integrado**
+
+## Revisión v4.0.0 · 01/11/2026
+- Manual PDF descargable desde la portada pública.
+- Acceso adicional desde menú móvil.
+- Archivo servido estáticamente desde `public/`, sin consumo de Neon.
+- Conserva las optimizaciones y funciones de v3.9.9.3.
 
 ## Revisión v3.9.9.3 · 30/10/2026
 - Catálogo público: prioriza imágenes estáticas incluidas en Render; evita leer flyers BYTEA desde Neon en visitas públicas.
