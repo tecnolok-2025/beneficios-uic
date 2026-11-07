@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 4.0.0 son coherentes', async () => {
+test('10 · versión y generación 4.0.1 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '4.0.0')
-  assert.match(server, /BENEFICIOS_UIC_4000/)
-  assert.match(html, /BENEFICIOS_UIC_4000/)
+  assert.equal(pkg.version, '4.0.1')
+  assert.match(server, /BENEFICIOS_UIC_4010/)
+  assert.match(html, /BENEFICIOS_UIC_4010/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v4.0.0 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v4.0.1 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '4.0.0')
+  assert.equal(pkg.version, '4.0.1')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4000/)
-  assert.match(server, /BENEFICIOS_UIC_4000/)
+  assert.match(index, /BENEFICIOS_UIC_4010/)
+  assert.match(server, /BENEFICIOS_UIC_4010/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,14 +745,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · v4.0.0 conserva Error Boundary y generación técnica', async () => {
+test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '4.0.0')
+  assert.equal(pkg.version, '4.0.1')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4000/)
+  assert.match(server, /BENEFICIOS_UIC_4010/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1034,8 +1034,8 @@ test('103 · monitor acompaña el ciclo completo desde prueba hasta distribució
   assert.match(server, /c\.status='draft' AND c\.test_sent_at IS NOT NULL/)
   assert.match(app, /ESPERANDO VALIDACIÓN UIC/)
   assert.match(app, /PRUEBA ENVIADA/)
-  assert.match(app, /PRUEBA VERIFICADA/)
-  assert.match(app, /AUTORIZADO · EN COLA/)
+  assert.match(app, /CÓDIGO VERIFICADO/)
+  assert.match(app, /AUTORIZADO \/ EN COLA/)
   assert.match(app, /MONITOR Y TRAZABILIDAD/)
 })
 
@@ -1215,3 +1215,46 @@ test('125 · v4.0.0 incorpora manual PDF descargable desde portada', async () =>
   assert.match(app, /Descargar manual v4\.0\.0/)
   assert.match(app, /Beneficios%20UIC%20v4\.0\.0\.pdf/)
 })
+
+
+test('126 · v4.0.1 agrega Monitor general como pestaña administrativa permanente', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /tab==='monitor'/)
+  assert.match(app, /MONITOR ADMINISTRATIVO GENERAL/)
+  assert.match(app, /Todos los envíos/)
+  assert.match(server, /async function adminMonitorPayload/)
+  assert.match(server, /companyKey\?await monitorPayload\(companyKey\):await adminMonitorPayload\(\)/)
+})
+
+test('127 · v4.0.1 muestra botón Monitor de envíos al beneficiario y separa edición', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /Monitor de envíos/)
+  assert.match(app, /Crear \/ gestionar publicaciones/)
+  assert.match(app, /companyTab==='monitor'/)
+  assert.match(app, /Privacidad: el beneficiario ve métricas generales/)
+})
+
+test('128 · v4.0.1 reserva cancelación y trazabilidad individual al administrador', async () => {
+  const app = await read('src/App.jsx')
+  assert.match(app, /adminPreview&&\['queued','sending'\]\.includes\(item\.status\)/)
+  assert.match(app, /adminPreview&&sent>0/)
+  assert.match(app, /Ver trazabilidad por empresa y correo/)
+})
+
+test('129 · v4.0.1 usa la nomenclatura acordada para estados del monitor', async () => {
+  const app = await read('src/App.jsx')
+  for (const text of ['BORRADOR','PRUEBA ENVIADA','CÓDIGO VERIFICADO','ESPERANDO VALIDACIÓN UIC','REQUIERE CORRECCIÓN','AUTORIZADO / EN COLA','ENVIANDO','FINALIZADO','CANCELADO','BLOQUEADO']) assert.match(app, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')))
+})
+
+test('v4.0.1 agrega accesos directos de validación para Tesorería y administrador', async () => {
+  const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
+  const server = await fs.readFile(path.join(root, 'server/index.js'), 'utf8')
+  assert.match(app, /Ver beneficio publicado/)
+  assert.match(app, /p\.get\('modo'\).*admin/)
+  assert.match(app, /validation-campaign-/)
+  assert.match(server, /Ver beneficio en el Portal/)
+  assert.match(server, /Abrir Validación UIC/)
+  assert.match(server, /tab=validaciones&campana=/)
+})
+
