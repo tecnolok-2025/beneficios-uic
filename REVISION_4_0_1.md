@@ -55,11 +55,22 @@ No se incorporan tablas ni columnas nuevas. No hay migración de Neon. La correc
 El parche se aplica directamente sobre **Beneficios UIC v4.0.0**. También se entrega un ZIP completo v4.0.1.
 
 ## Validación
-`npm test`: **129/129 pruebas aprobadas**.
+`npm test`: **131/131 pruebas aprobadas**.
 
 ## Acceso directo para validación desde Tesorería
 - El correo enviado a Tesorería cuando una empresa solicita validación incluye acceso directo a la ficha pública del beneficio y acceso directo a la pantalla administrativa de Validaciones.
 - El enlace administrativo conserva la campaña como foco; si la sesión no está iniciada, solicita la clave y luego abre Validaciones.
 - Cada tarjeta de Validaciones incorpora **Ver beneficio publicado**, abriendo la ficha pública en una pestaña nueva sin perder el trabajo administrativo.
 - No se modifican campañas, padrón, datos de Neon ni reglas de autorización.
+
+
+## Ajuste posterior · Panel de empresa
+
+Se refuerza la visibilidad del acceso **Monitor de envíos** como acción principal del panel autenticado de empresa. El monitor consulta únicamente la clave de empresa contenida en la sesión y presenta el historial propio de campañas, estados y métricas agregadas, sin exponer campañas ni destinatarios de terceros.
+
+## Manual integrado en la aplicación
+- Se reemplaza el manual público v4.0.0 por **Beneficios UIC v4.0.1.pdf**.
+- El botón de descarga de escritorio y el menú móvil apuntan a la versión v4.0.1.
+- El manual incorpora el acceso del usuario a **Monitor de envíos** y el recorrido para consultar sus campañas, estados, enviados, pendientes, errores e historial.
+- Se elimina del paquete público el PDF v4.0.0 para evitar descargas desactualizadas.
 

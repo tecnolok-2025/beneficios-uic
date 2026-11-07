@@ -1210,10 +1210,10 @@ test('124 · v4.0.0 agrega auditoría de almacenamiento de difusión', async () 
 
 test('125 · v4.0.0 incorpora manual PDF descargable desde portada', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
-  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.0.pdf'))
+  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.1.pdf'))
   assert.ok(manual.length > 100000)
-  assert.match(app, /Descargar manual v4\.0\.0/)
-  assert.match(app, /Beneficios%20UIC%20v4\.0\.0\.pdf/)
+  assert.match(app, /Descargar manual v4\.0\.1/)
+  assert.match(app, /Beneficios%20UIC%20v4\.0\.1\.pdf/)
 })
 
 
@@ -1258,3 +1258,16 @@ test('v4.0.1 agrega accesos directos de validación para Tesorería y administra
   assert.match(server, /tab=validaciones&campana=/)
 })
 
+
+
+test('131 · panel de empresa expone acceso principal al Monitor y métricas propias', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /neo-company-monitor-entry/)
+  assert.match(app, /Ver mis campañas, estados, enviados, pendientes, errores e historial/)
+  assert.match(app, /HISTORIAL DE CAMPAÑAS/)
+  assert.match(app, /No se muestran campañas de otras empresas/)
+  assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany/)
+  assert.match(server, /monitorPayload\(req\.companySession\.companyKey\)/)
+  assert.match(server, /WHERE c\.company_key=\$1/)
+})
