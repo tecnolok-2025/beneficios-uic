@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_4010'
+const GENERATION = 'BENEFICIOS_UIC_4020'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -595,7 +595,7 @@ async function monitorPayload(companyKey) {
     FROM diffusion_campaigns c WHERE c.company_key=$1 AND (
       c.status IN ('pending','rejected','queued','sending','sent','cancelled','blocked') OR
       (c.status='draft' AND c.test_sent_at IS NOT NULL)
-    ) ORDER BY COALESCE(c.approval_requested_at,c.approved_at,c.updated_at,c.created_at) DESC LIMIT 20`,[companyKey])).rows.map(row=>({...row,open_rate:Number(row.sent_count||0)>0?Math.round(Number(row.opened_recipients||0)*10000/Number(row.sent_count||0))/100:0,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
+    ) ORDER BY COALESCE(c.approval_requested_at,c.approved_at,c.updated_at,c.created_at) DESC LIMIT 100`,[companyKey])).rows.map(row=>({...row,open_rate:Number(row.sent_count||0)>0?Math.round(Number(row.opened_recipients||0)*10000/Number(row.sent_count||0))/100:0,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
   const today=argentinaDateString()
   const schedules=(await pool.query(`SELECT company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at FROM diffusion_benefit_schedules WHERE company_key=$1 ORDER BY benefit_slug`,[companyKey])).rows.map(row=>{const anchor=dateOnly(row.anchor_date);const cycle=monthlyCycle(anchor,today);const last=row.last_authorized_at?argentinaDateString(row.last_authorized_at):null;const used=Boolean(last&&last>=cycle.start&&last<cycle.end);return {...row,anchor_date:anchor,next_slot_at:used?cycle.end:cycle.start,current_cycle_start:cycle.start,current_cycle_end:cycle.end,available_now:!used,next_available_at:used?cycle.end:today}})
   return {campaigns,schedules,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}

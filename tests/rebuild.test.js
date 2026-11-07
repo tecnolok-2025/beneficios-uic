@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 4.0.1 son coherentes', async () => {
+test('10 · versión y generación 4.0.2 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '4.0.1')
-  assert.match(server, /BENEFICIOS_UIC_4010/)
-  assert.match(html, /BENEFICIOS_UIC_4010/)
+  assert.equal(pkg.version, '4.0.2')
+  assert.match(server, /BENEFICIOS_UIC_4020/)
+  assert.match(html, /BENEFICIOS_UIC_4020/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v4.0.1 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v4.0.2 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '4.0.1')
+  assert.equal(pkg.version, '4.0.2')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4010/)
-  assert.match(server, /BENEFICIOS_UIC_4010/)
+  assert.match(index, /BENEFICIOS_UIC_4020/)
+  assert.match(server, /BENEFICIOS_UIC_4020/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -749,10 +749,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '4.0.1')
+  assert.equal(pkg.version, '4.0.2')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4010/)
+  assert.match(server, /BENEFICIOS_UIC_4020/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1208,12 +1208,12 @@ test('124 · v4.0.0 agrega auditoría de almacenamiento de difusión', async () 
 })
 
 
-test('125 · v4.0.0 incorpora manual PDF descargable desde portada', async () => {
+test('125 · v4.0.2 incorpora manual PDF descargable desde portada', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
-  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.1.pdf'))
+  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.2.pdf'))
   assert.ok(manual.length > 100000)
-  assert.match(app, /Descargar manual v4\.0\.1/)
-  assert.match(app, /Beneficios%20UIC%20v4\.0\.1\.pdf/)
+  assert.match(app, /Descargar manual v4\.0\.2/)
+  assert.match(app, /Beneficios%20UIC%20v4\.0\.2\.pdf/)
 })
 
 
@@ -1270,4 +1270,29 @@ test('131 · panel de empresa expone acceso principal al Monitor y métricas pro
   assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany/)
   assert.match(server, /monitorPayload\(req\.companySession\.companyKey\)/)
   assert.match(server, /WHERE c\.company_key=\$1/)
+})
+
+
+test('132 · v4.0.2 hace visible el Monitor antes y después de autenticar empresa', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /Monitor de envíos disponible para esta empresa/)
+  assert.match(app, /ACCESO DIRECTO · v4\.0\.2/)
+  assert.match(app, /const \[companyTab,setCompanyTab\]=useState\('monitor'\)/)
+  assert.match(app, /Abrir Monitor de envíos/)
+  assert.match(styles, /\.neo-company-monitor-hero/)
+})
+
+test('133 · monitor de empresa permanece aislado por sesión y no acepta companyKey externo', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany,requireDiffusionDatabase/)
+  assert.match(server, /monitorPayload\(req\.companySession\.companyKey\)/)
+  assert.doesNotMatch(server, /api\/difusion\/company\/monitor[^\n]*req\.query\.companyKey/)
+})
+
+test('134 · línea de tiempo del monitor contempla las seis etapas visibles', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, /const timelineSteps=\['Prueba','Código','Validación UIC','Cola','Envío','Finalizado'\]/)
+  assert.match(styles, /\.neo-monitor-timeline\{display:grid;grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/)
 })
