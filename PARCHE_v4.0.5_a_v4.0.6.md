@@ -21,3 +21,7 @@ Actualizar el padrón de difusión con 50 contactos corporativos previamente val
 
 ## Criterio
 No se agregan correos personales, automatismos, spam ni contactos corporativos antiguos no validados.
+
+
+## Corrección de despliegue
+- Se incluye explícitamente `index.html` con generación `BENEFICIOS_UIC_4060` para mantener sincronizada la validación de arranque del servidor con el frontend compilado.

@@ -85,8 +85,8 @@ test('10 · versión y generación 4.0.6 son coherentes', async () => {
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
   assert.equal(pkg.version, '4.0.6')
-  assert.match(server, /BENEFICIOS_UIC_4050/)
-  assert.match(html, /BENEFICIOS_UIC_4050/)
+  assert.match(server, /BENEFICIOS_UIC_4060/)
+  assert.match(html, /BENEFICIOS_UIC_4060/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -507,8 +507,8 @@ test('49 · v4.0.6 identifica versión, generación y dependencia SMTP', async (
   assert.equal(pkg.version, '4.0.6')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4050/)
-  assert.match(server, /BENEFICIOS_UIC_4050/)
+  assert.match(index, /BENEFICIOS_UIC_4060/)
+  assert.match(server, /BENEFICIOS_UIC_4060/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -752,7 +752,7 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   assert.equal(pkg.version, '4.0.6')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4050/)
+  assert.match(server, /BENEFICIOS_UIC_4060/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1314,7 +1314,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=4040/)
+  assert.match(html, /boot-recovery\.js\?v=4060/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
