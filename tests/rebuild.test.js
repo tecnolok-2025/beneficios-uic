@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 4.0.3 son coherentes', async () => {
+test('10 · versión y generación 4.0.4 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '4.0.3')
-  assert.match(server, /BENEFICIOS_UIC_4030/)
-  assert.match(html, /BENEFICIOS_UIC_4030/)
+  assert.equal(pkg.version, '4.0.4')
+  assert.match(server, /BENEFICIOS_UIC_4040/)
+  assert.match(html, /BENEFICIOS_UIC_4040/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v4.0.3 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v4.0.4 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '4.0.3')
+  assert.equal(pkg.version, '4.0.4')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4030/)
-  assert.match(server, /BENEFICIOS_UIC_4030/)
+  assert.match(index, /BENEFICIOS_UIC_4040/)
+  assert.match(server, /BENEFICIOS_UIC_4040/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -749,10 +749,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '4.0.3')
+  assert.equal(pkg.version, '4.0.4')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4030/)
+  assert.match(server, /BENEFICIOS_UIC_4040/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1208,12 +1208,12 @@ test('124 · v4.0.0 agrega auditoría de almacenamiento de difusión', async () 
 })
 
 
-test('125 · v4.0.3 incorpora manual PDF descargable desde portada', async () => {
+test('125 · v4.0.4 incorpora manual PDF descargable desde portada', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
-  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.3.pdf'))
+  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.4.pdf'))
   assert.ok(manual.length > 100000)
-  assert.match(app, /Descargar manual v4\.0\.3/)
-  assert.match(app, /Beneficios%20UIC%20v4\.0\.3\.pdf/)
+  assert.match(app, /Descargar manual v4\.0\.4/)
+  assert.match(app, /Beneficios%20UIC%20v4\.0\.4\.pdf/)
 })
 
 
@@ -1273,11 +1273,11 @@ test('131 · panel de empresa expone acceso principal al Monitor y métricas pro
 })
 
 
-test('132 · v4.0.3 hace visible el Monitor antes y después de autenticar empresa', async () => {
+test('132 · v4.0.4 hace visible el Monitor antes y después de autenticar empresa', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   assert.match(app, /Monitor de envíos disponible para esta empresa/)
-  assert.match(app, /ACCESO DIRECTO · v4\.0\.3/)
+  assert.match(app, /ACCESO DIRECTO · v4\.0\.4/)
   assert.match(app, /const \[companyTab,setCompanyTab\]=useState\('monitor'\)/)
   assert.match(app, /Abrir Monitor de envíos/)
   assert.match(styles, /\.neo-company-monitor-hero/)
@@ -1298,7 +1298,7 @@ test('134 · línea de tiempo del monitor contempla las seis etapas visibles', a
 })
 
 
-test('135 · v4.0.3 expone Monitor de envíos desde la portada pública y abre flujo beneficiario', async () => {
+test('135 · v4.0.4 expone Monitor de envíos desde la portada pública y abre flujo beneficiario', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
   assert.match(app, /neo-monitor-public-entry/)
   assert.match(app, /\/difusion\?modo=beneficiario&vista=monitor/)
@@ -1308,11 +1308,25 @@ test('135 · v4.0.3 expone Monitor de envíos desde la portada pública y abre f
   assert.match(app, /No se muestran datos de otras empresas/)
 })
 
-test('136 · v4.0.3 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
+test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
-  assert.match(boot, /VERSION = '403'/)
-  assert.match(html, /boot-recovery\.js\?v=4030/)
+  assert.match(boot, /VERSION = '404'/)
+  assert.match(html, /boot-recovery\.js\?v=4040/)
   assert.match(app, />Monitor de envíos<\/button>/)
+})
+
+
+test('137 · v4.0.4 prioriza listado de empresas y relega instrucciones a ayuda desplegable', async () => {
+  const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
+  const styles = await fs.readFile(path.join(root, 'src/styles.css'), 'utf8')
+  assert.match(app, /<details className="neo-diffusion-help">/)
+  assert.match(app, /Ayuda e instrucciones de acceso/)
+  assert.match(app, /Consultalas sólo cuando las necesites/)
+  const workspace = app.indexOf('<section className="neo-diffusion-workspace">')
+  const guide = app.indexOf('<DiffusionGuide/>', workspace)
+  assert.ok(workspace >= 0 && guide > workspace, 'La ayuda debe quedar después del listado/workspace de empresas')
+  assert.match(styles, /\.neo-diffusion-help summary/)
+  assert.match(styles, /\.neo-diffusion-help\[open\] summary>svg/)
 })
