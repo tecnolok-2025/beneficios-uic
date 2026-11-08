@@ -1,6 +1,21 @@
 # Beneficios UIC
 
-> **Revisión actual: v4.0.4 · BENEFICIOS_UIC_4040 · Acceso de empresas simplificado y ayuda desplegable**
+> **Revisión actual: v4.0.6 · BENEFICIOS_UIC_4060 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
+
+
+## Revisión v4.0.6 · 08/11/2026
+- Incorpora 50 contactos corporativos validados desde los exportes de Mailchimp de 2 estrellas.
+- Reutiliza el nombre de empresa existente cuando corresponde para evitar duplicados.
+- Crea entidades nuevas únicamente cuando el dominio permite identificarlas con claridad.
+- Excluye correos personales, automatismos, spam y contactos históricos no validados.
+- No modifica campañas, bajas, historial de envíos ni beneficios.
+
+## Revisión v4.0.5 · 08/11/2026
+
+- Padrón de difusión actualizado con correos aportados por UIC.
+- SWA/NEUCO reactivada con correo confirmado.
+- SINGH SRL completada por dominio corporativo.
+- Se incorporan nueve correos institucionales sin duplicar empresas ya confirmadas.
 
 ## Revisión v4.0.4 · 08/11/2026
 

@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_4040'
+const GENERATION = 'BENEFICIOS_UIC_4050'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -180,6 +180,13 @@ async function initializeDatabase() {
   await pool.query(`UPDATE diffusion_recipients SET email='info@montajesinteracero.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:67' AND email='ficinatecnica@montajesinteracero.com.a'`)
   await pool.query(`UPDATE diffusion_recipients SET email='martin@eraina.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:92' AND email='dministracion@hotelplazacampana.com.a'`)
   await pool.query(`UPDATE diffusion_recipients SET company_name='SWA/NEUCO', email='', enabled=FALSE, email_valid=FALSE, notes='Nombre actualizado por UIC. Correo pendiente de confirmación; permanece destildado.', updated_at=NOW() WHERE source_key='socio:210' AND company_name='SWA' AND email='contacto@swa-trabajosustentable.com.a'`)
+
+  // v4.0.6 · incorpora 50 contactos corporativos validados por UIC el 08/11/2026.
+  // Se cargan desde diffusionRecipientSeed con deduplicación por e-mail; las empresas existentes conservan su identidad y sus contactos previos.
+  // v4.0.5 · actualización del padrón aportada por UIC el 08/11/2026.
+  // Sólo completa registros conocidos; no reemplaza correos confirmados de otras empresas.
+  await pool.query(`UPDATE diffusion_recipients SET company_name='SWA/NEUCO', email='contacto@swa-trabajosustentable.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 08/11/2026. Nombre vigente SWA/NEUCO.', updated_at=NOW() WHERE source_key='socio:210' AND COALESCE(email,'')=''`)
+  await pool.query(`UPDATE diffusion_recipients SET company_name='SINGH SRL', notes='Mailchimp subscribed · 26/10/2026 · Socio a confirmar · 5 estrellas · Empresa completada por dominio corporativo el 08/11/2026', updated_at=NOW() WHERE LOWER(TRIM(email))='mmedrano@singhsrl.com.ar' AND COALESCE(TRIM(company_name),'')=''`)
 
   const verification = await pool.query(`SELECT slug, company_contacts, agreement_url, agreement_links, external_image_url
     FROM benefits WHERE slug = ANY($1::text[])`, [localCatalog.map(item => item.slug)])
