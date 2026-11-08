@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '396'
+  const VERSION = '403'
   const KEY_PREFIX = `beneficios-uic-boot-recovery-${VERSION}:`
   const pathKey = `${KEY_PREFIX}${location.pathname}`
 

@@ -1,11 +1,9 @@
-# Parche Beneficios UIC v4.0.1 -> v4.0.2
+# Beneficios UIC
 
-Copiar el contenido de este ZIP sobre la raíz del proyecto v4.0.1, conservando las carpetas `src`, `server`, `public` y `tests`, y volver a desplegar en Render.
+> **Revisión actual: v4.0.3 · BENEFICIOS_UIC_4030 · Monitor visible desde portada y panel de empresa**
 
-No requiere migración de Neon.
+## Revisión v4.0.3 · 07/11/2026
 
-Al finalizar, Render debe mostrar:
-- `beneficios-uic@4.0.2`
-- `BENEFICIOS_UIC_4020`
+Esta revisión corrige de raíz la visibilidad del Monitor de envíos para beneficiarios. El acceso queda visible desde la portada pública, desde el menú móvil, antes del login de empresa y dentro del panel autenticado. Tras autenticarse, la empresa ingresa directamente al Monitor.
 
-El manual descargable queda en `public/Beneficios UIC v4.0.2.pdf`.
+Se mantienen el Monitor administrativo, Validaciones, accesos directos de Tesorería, trazabilidad administrativa, 51 beneficios y datos existentes en Neon.
