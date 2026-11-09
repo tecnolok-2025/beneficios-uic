@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 4.0.6 son coherentes', async () => {
+test('10 · versión y generación 4.0.7 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '4.0.6')
-  assert.match(server, /BENEFICIOS_UIC_4060/)
-  assert.match(html, /BENEFICIOS_UIC_4060/)
+  assert.equal(pkg.version, '4.0.7')
+  assert.match(server, /BENEFICIOS_UIC_4070/)
+  assert.match(html, /BENEFICIOS_UIC_4070/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v4.0.6 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v4.0.7 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '4.0.6')
+  assert.equal(pkg.version, '4.0.7')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4060/)
-  assert.match(server, /BENEFICIOS_UIC_4060/)
+  assert.match(index, /BENEFICIOS_UIC_4070/)
+  assert.match(server, /BENEFICIOS_UIC_4070/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -749,10 +749,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '4.0.6')
+  assert.equal(pkg.version, '4.0.7')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4060/)
+  assert.match(server, /BENEFICIOS_UIC_4070/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1041,10 +1041,10 @@ test('103 · monitor acompaña el ciclo completo desde prueba hasta distribució
 
 test('104 · monitor reduce consultas Neon cuando no hay actividad', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /activeRefreshMs=.*15000.*45000.*:0/s)
-  assert.match(app, /Sin consultas permanentes/)
+  assert.doesNotMatch(app, /setInterval\s*\(/)
+  assert.match(app, /Sin consultas periódicas a Neon/)
   assert.match(app, /Actualizar estado/)
-  assert.doesNotMatch(app, /setInterval\(.*5000/s)
+  assert.match(app, /refreshMetrics=\$\{manual\?'1':'0'\}/)
 })
 
 test('105 · reinicio conserva instancias operativas con prueba ya enviada', async () => {
@@ -1054,7 +1054,7 @@ test('105 · reinicio conserva instancias operativas con prueba ya enviada', asy
 
 test('106 · monitor informa aperturas agregadas sin exponer detalle de destinatarios a beneficiarios', async () => {
   const app = await read('src/App.jsx')
-  assert.match(app, /aperturas totales detectadas/)
+  assert.match(app, /aperturas totales/)
   assert.match(app, /Última apertura detectada/)
   assert.match(app, /adminPreview&&sent>0/)
   assert.match(app, /Ver trazabilidad por empresa y correo/)
@@ -1225,7 +1225,7 @@ test('126 · v4.0.1 agrega Monitor general como pestaña administrativa permanen
   assert.match(app, /MONITOR ADMINISTRATIVO GENERAL/)
   assert.match(app, /Todos los envíos/)
   assert.match(server, /async function adminMonitorPayload/)
-  assert.match(server, /companyKey\?await monitorPayload\(companyKey\):await adminMonitorPayload\(\)/)
+  assert.match(server, /companyKey\?await monitorPayload\(companyKey,\{refreshMetrics:/)
 })
 
 test('127 · v4.0.1 muestra botón Monitor de envíos al beneficiario y separa edición', async () => {
@@ -1269,7 +1269,7 @@ test('131 · panel de empresa expone acceso principal al Monitor y métricas pro
   assert.match(app, /HISTORIAL DE CAMPAÑAS/)
   assert.match(app, /No se muestran campañas de otras empresas/)
   assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany/)
-  assert.match(server, /monitorPayload\(req\.companySession\.companyKey\)/)
+  assert.match(server, /monitorPayload\(req\.companySession\.companyKey,\{refreshMetrics:/)
   assert.match(server, /WHERE c\.company_key=\$1/)
 })
 
@@ -1278,7 +1278,7 @@ test('132 · v4.0.4 hace visible el Monitor antes y después de autenticar empre
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   assert.match(app, /Monitor de envíos disponible para esta empresa/)
-  assert.match(app, /ACCESO DIRECTO · v4\.0\.6/)
+  assert.match(app, /ACCESO DIRECTO · v4\.0\.7/)
   assert.match(app, /const \[companyTab,setCompanyTab\]=useState\('monitor'\)/)
   assert.match(app, /Abrir Monitor de envíos/)
   assert.match(styles, /\.neo-company-monitor-hero/)
@@ -1287,7 +1287,7 @@ test('132 · v4.0.4 hace visible el Monitor antes y después de autenticar empre
 test('133 · monitor de empresa permanece aislado por sesión y no acepta companyKey externo', async () => {
   const server = await read('server/index.js')
   assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany,requireDiffusionDatabase/)
-  assert.match(server, /monitorPayload\(req\.companySession\.companyKey\)/)
+  assert.match(server, /monitorPayload\(req\.companySession\.companyKey,\{refreshMetrics:/)
   assert.doesNotMatch(server, /api\/difusion\/company\/monitor[^\n]*req\.query\.companyKey/)
 })
 
@@ -1314,7 +1314,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=4060/)
+  assert.match(html, /boot-recovery\.js\?v=4070/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1353,7 +1353,7 @@ test('138 · v4.0.5 actualiza padrón corporativo sin duplicar empresas confirma
 })
 
 
-test('139 · v4.0.6 incorpora sólo los 50 contactos corporativos validados y sin duplicados', async () => {
+test('139 · v4.0.7 incorpora sólo los 50 contactos corporativos validados y sin duplicados', async () => {
   const recipients = JSON.parse(await fs.readFile(path.join(root, 'data/diffusion-recipients.json'), 'utf8'))
   const selected = recipients.filter(x => String(x.sourceKey || '').startsWith('socio_confirmar:v406:'))
   assert.equal(selected.length, 50)
@@ -1369,4 +1369,17 @@ test('139 · v4.0.6 incorpora sólo los 50 contactos corporativos validados y si
   assert.ok(!byEmail['borisov-g30tf@autorambler.ru'])
   assert.ok(!byEmail['avisos@send.ventux.io'])
   assert.ok(!byEmail['uic-campana-com-ar@inbound.godigitalpigeon.com'])
+})
+
+
+test('140 · v4.0.7 calcula aperturas totales sólo bajo actualización manual y elimina polling del Monitor', async () => {
+  const app = await fs.readFile(path.join(root,'src','App.jsx'),'utf8')
+  const server = await fs.readFile(path.join(root,'server','index.js'),'utf8')
+  assert.doesNotMatch(app, /setInterval\s*\(/)
+  assert.match(app, /refreshMetrics=\$\{manual\?'1':'0'\}/)
+  assert.match(app, /aperturas totales/)
+  assert.match(server, /loadTotalOpenCounts/)
+  assert.match(server, /SUM\(open_count\)/)
+  assert.match(server, /refreshMetrics:String\(req\.query\.refreshMetrics/)
+  assert.match(server, /NULL::int AS total_opens/)
 })

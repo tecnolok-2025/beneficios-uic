@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_4060'
+const GENERATION = 'BENEFICIOS_UIC_4070'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -590,37 +590,48 @@ async function processDiffusionQueue() {
   }finally{diffusionQueueBusy=false}
 }
 function queueEtaSeconds(remainingRecipients) { return Math.max(0,Number(remainingRecipients)||0) * Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000) }
-async function monitorPayload(companyKey) {
+async function loadTotalOpenCounts(campaigns) {
+  if(!campaigns.length)return campaigns
+  const ids=campaigns.map(row=>Number(row.id)).filter(Number.isFinite)
+  if(!ids.length)return campaigns
+  const result=await pool.query(`SELECT campaign_id,COALESCE(SUM(open_count),0)::int AS total_opens FROM diffusion_campaign_queue_recipients WHERE campaign_id=ANY($1::bigint[]) GROUP BY campaign_id`,[ids])
+  const totals=new Map(result.rows.map(row=>[String(row.campaign_id),Number(row.total_opens||0)]))
+  return campaigns.map(row=>({...row,total_opens:totals.get(String(row.id))||0}))
+}
+
+async function monitorPayload(companyKey,{refreshMetrics=false}={}) {
   const active=(await pool.query(`SELECT id,company_key,company_name,benefit_slug,benefit_title,status,approved_at,queue_started_at,completed_at,cancel_requested_at,cancelled_at,sent_count,failed_count,total_recipients,next_allowed_at,queue_note FROM diffusion_campaigns WHERE status IN ('queued','sending') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id`)).rows
   let ahead=0; const metrics=new Map(); let queueNumber=0
   for(const row of active){const remaining=Math.max(0,Number(row.total_recipients||0)-Number(row.sent_count||0)-Number(row.failed_count||0));if(row.status==='sending'){metrics.set(String(row.id),{queuePosition:0,estimatedStartAt:new Date().toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(remaining)*1000).toISOString(),remaining})}else{queueNumber+=1;metrics.set(String(row.id),{queuePosition:queueNumber,estimatedStartAt:new Date(Date.now()+queueEtaSeconds(ahead)*1000).toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(ahead+remaining)*1000).toISOString(),remaining})}ahead+=remaining}
-  const campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
+  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.first_opened_at IS NOT NULL),0) AS opened_recipients,
-    COALESCE((SELECT SUM(q.open_count)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id),0) AS total_opens,
+    NULL::int AS total_opens,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.unsubscribed_at IS NOT NULL),0) AS unsubscribed_count,
     (SELECT MAX(q.last_opened_at) FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id) AS last_opened_at
     FROM diffusion_campaigns c WHERE c.company_key=$1 AND (
       c.status IN ('pending','rejected','queued','sending','sent','cancelled','blocked') OR
       (c.status='draft' AND c.test_sent_at IS NOT NULL)
     ) ORDER BY COALESCE(c.approval_requested_at,c.approved_at,c.updated_at,c.created_at) DESC LIMIT 100`,[companyKey])).rows.map(row=>({...row,open_rate:Number(row.sent_count||0)>0?Math.round(Number(row.opened_recipients||0)*10000/Number(row.sent_count||0))/100:0,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
+  if(refreshMetrics)campaigns=await loadTotalOpenCounts(campaigns)
   const today=argentinaDateString()
   const schedules=(await pool.query(`SELECT company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at FROM diffusion_benefit_schedules WHERE company_key=$1 ORDER BY benefit_slug`,[companyKey])).rows.map(row=>{const anchor=dateOnly(row.anchor_date);const cycle=monthlyCycle(anchor,today);const last=row.last_authorized_at?argentinaDateString(row.last_authorized_at):null;const used=Boolean(last&&last>=cycle.start&&last<cycle.end);return {...row,anchor_date:anchor,next_slot_at:used?cycle.end:cycle.start,current_cycle_start:cycle.start,current_cycle_end:cycle.end,available_now:!used,next_available_at:used?cycle.end:today}})
   return {campaigns,schedules,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}
 }
 
-async function adminMonitorPayload() {
+async function adminMonitorPayload({refreshMetrics=false}={}) {
   const active=(await pool.query(`SELECT id,status,sent_count,failed_count,total_recipients,approved_at FROM diffusion_campaigns WHERE status IN ('queued','sending') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id`)).rows
   let ahead=0; const metrics=new Map(); let queueNumber=0
   for(const row of active){const remaining=Math.max(0,Number(row.total_recipients||0)-Number(row.sent_count||0)-Number(row.failed_count||0));if(row.status==='sending'){metrics.set(String(row.id),{queuePosition:0,estimatedStartAt:new Date().toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(remaining)*1000).toISOString(),remaining})}else{queueNumber+=1;metrics.set(String(row.id),{queuePosition:queueNumber,estimatedStartAt:new Date(Date.now()+queueEtaSeconds(ahead)*1000).toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(ahead+remaining)*1000).toISOString(),remaining})}ahead+=remaining}
-  const campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
+  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.first_opened_at IS NOT NULL),0) AS opened_recipients,
-    COALESCE((SELECT SUM(q.open_count)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id),0) AS total_opens,
+    NULL::int AS total_opens,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.unsubscribed_at IS NOT NULL),0) AS unsubscribed_count,
     (SELECT MAX(q.last_opened_at) FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id) AS last_opened_at
     FROM diffusion_campaigns c WHERE (
       c.status IN ('pending','rejected','queued','sending','sent','cancelled','blocked') OR
       (c.status='draft' AND c.test_sent_at IS NOT NULL)
     ) ORDER BY COALESCE(c.approval_requested_at,c.approved_at,c.updated_at,c.created_at) DESC LIMIT 250`)).rows.map(row=>({...row,open_rate:Number(row.sent_count||0)>0?Math.round(Number(row.opened_recipients||0)*10000/Number(row.sent_count||0))/100:0,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
+  if(refreshMetrics)campaigns=await loadTotalOpenCounts(campaigns)
   return {campaigns,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}
 }
 
@@ -986,8 +997,8 @@ app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusi
   }catch(error){next(error)}
 })
 
-app.get('/api/difusion/company/monitor',requireCompany,requireDiffusionDatabase,async(req,res,next)=>{try{res.json(await monitorPayload(req.companySession.companyKey))}catch(error){next(error)}})
-app.get('/api/admin/difusion/monitor',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const companyKey=safeText(req.query.companyKey,180);res.json(companyKey?await monitorPayload(companyKey):await adminMonitorPayload())}catch(error){next(error)}})
+app.get('/api/difusion/company/monitor',requireCompany,requireDiffusionDatabase,async(req,res,next)=>{try{res.json(await monitorPayload(req.companySession.companyKey,{refreshMetrics:String(req.query.refreshMetrics||'')==='1'}))}catch(error){next(error)}})
+app.get('/api/admin/difusion/monitor',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{try{const companyKey=safeText(req.query.companyKey,180);res.json(companyKey?await monitorPayload(companyKey,{refreshMetrics:String(req.query.refreshMetrics||'')==='1'}):await adminMonitorPayload({refreshMetrics:String(req.query.refreshMetrics||'')==='1'}))}catch(error){next(error)}})
 app.get('/api/admin/difusion/campaigns/:id/trace',requireAdmin,requireDiffusionDatabase,async(req,res,next)=>{
   try{
     const id=safeId(req.params.id);if(!id)return res.status(400).json({error:'Campaña inválida.'})

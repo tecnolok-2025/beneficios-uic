@@ -1,7 +1,12 @@
 # Beneficios UIC
 
-> **Revisión actual: v4.0.6 · BENEFICIOS_UIC_4060 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
+> **Revisión actual: v4.0.7 · BENEFICIOS_UIC_4070 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
 
+
+## Revisión v4.0.7 · 08/11/2026
+- Monitor sin polling automático.
+- Nueva métrica manual **Aperturas totales**.
+- Sólo se consulta al presionar **Actualizar**.
 
 ## Revisión v4.0.6 · 08/11/2026
 - Incorpora 50 contactos corporativos validados desde los exportes de Mailchimp de 2 estrellas.
