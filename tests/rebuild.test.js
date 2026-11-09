@@ -79,14 +79,14 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación 4.0.7 son coherentes', async () => {
+test('10 · versión y generación 4.0.8 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '4.0.7')
-  assert.match(server, /BENEFICIOS_UIC_4070/)
-  assert.match(html, /BENEFICIOS_UIC_4070/)
+  assert.equal(pkg.version, '4.0.8')
+  assert.match(server, /BENEFICIOS_UIC_4080/)
+  assert.match(html, /BENEFICIOS_UIC_4080/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -466,7 +466,7 @@ test('45 · herramientas sensibles siguen exclusivas del administrador aunque ex
 
 test('46 · v3.9.1 carga padrón de socios y convenios no socios con habilitación por empresa', async () => {
   const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
-  assert.equal(recipients.filter(x => x.sourceType === 'socio').length, 94)
+  assert.equal(recipients.filter(x => x.sourceType === 'socio' && !String(x.sourceKey || '').startsWith('socio:v408:')).length, 94)
   assert.equal(new Set(recipients.filter(x => x.sourceType === 'convenio').map(x => x.companyName)).size, 19)
   const app = await read('src/App.jsx')
   const server = await read('server/index.js')
@@ -499,16 +499,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v4.0.7 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v4.0.8 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '4.0.7')
+  assert.equal(pkg.version, '4.0.8')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_4070/)
-  assert.match(server, /BENEFICIOS_UIC_4070/)
+  assert.match(index, /BENEFICIOS_UIC_4080/)
+  assert.match(server, /BENEFICIOS_UIC_4080/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -749,10 +749,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '4.0.7')
+  assert.equal(pkg.version, '4.0.8')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_4070/)
+  assert.match(server, /BENEFICIOS_UIC_4080/)
 })
 
 test('75 · v3.9.7 reemplaza el editor lineal por Constructor Visual UIC con ocho modelos', async () => {
@@ -1109,7 +1109,7 @@ test('112 · v3.9.9.1 incorpora 202 contactos Mailchimp como Socio a confirmar s
   const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
   const pending = recipients.filter(x => x.sourceType === 'socio_confirmar')
   assert.equal(pending.length, 261)
-  assert.equal(recipients.length, 378)
+  assert.equal(recipients.filter(x => !String(x.sourceKey || '').startsWith('socio:v408:')).length, 378)
   assert.ok(pending.every(x => x.enabled === true && x.emailValid === true))
   assert.equal(pending.filter(x => String(x.sourceKey || '').startsWith('socio_confirmar:mailchimp:')).length, 202)
   assert.equal(pending.filter(x => /Correo aportado por UIC el 08\/11\/2026/.test(x.notes || '')).length, 9)
@@ -1120,7 +1120,8 @@ test('113 · v3.9.9.1 evita duplicados de altas nuevas por correo y preserva el 
   assert.match(server, /DUPLICATE_EMAIL/)
   assert.match(server, /prevalece el registro existente/)
   assert.match(server, /LOWER\(TRIM\(email\)\)=LOWER\(TRIM\(\$1\)\)/)
-  assert.match(server, /WHERE \$2 <> 'socio_confirmar'/)
+  assert.match(server, /recipient.sourceType === 'socio_confirmar'/)
+  assert.match(server, /protectByEmail/)
 })
 
 test('114 · v3.9.9.1 muestra Socios a confirmar sólo como clasificación administrativa', async () => {
@@ -1314,7 +1315,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=4070/)
+  assert.match(html, /boot-recovery\.js\?v=4080/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1353,7 +1354,7 @@ test('138 · v4.0.5 actualiza padrón corporativo sin duplicar empresas confirma
 })
 
 
-test('139 · v4.0.7 incorpora sólo los 50 contactos corporativos validados y sin duplicados', async () => {
+test('139 · v4.0.8 incorpora sólo los 50 contactos corporativos validados y sin duplicados', async () => {
   const recipients = JSON.parse(await fs.readFile(path.join(root, 'data/diffusion-recipients.json'), 'utf8'))
   const selected = recipients.filter(x => String(x.sourceKey || '').startsWith('socio_confirmar:v406:'))
   assert.equal(selected.length, 50)
@@ -1372,7 +1373,7 @@ test('139 · v4.0.7 incorpora sólo los 50 contactos corporativos validados y si
 })
 
 
-test('140 · v4.0.7 calcula aperturas totales sólo bajo actualización manual y elimina polling del Monitor', async () => {
+test('140 · v4.0.8 calcula aperturas totales sólo bajo actualización manual y elimina polling del Monitor', async () => {
   const app = await fs.readFile(path.join(root,'src','App.jsx'),'utf8')
   const server = await fs.readFile(path.join(root,'server','index.js'),'utf8')
   assert.doesNotMatch(app, /setInterval\s*\(/)
@@ -1382,4 +1383,17 @@ test('140 · v4.0.7 calcula aperturas totales sólo bajo actualización manual y
   assert.match(server, /SUM\(open_count\)/)
   assert.match(server, /refreshMetrics:String\(req\.query\.refreshMetrics/)
   assert.match(server, /NULL::int AS total_opens/)
+})
+
+
+test('141 · v4.0.8 incorpora 32 contactos depurados sin reemplazar correos vigentes', async () => {
+  const recipients = JSON.parse(await read('data/diffusion-recipients.json'))
+  const added = recipients.filter(r => String(r.sourceKey || '').startsWith('socio:v408:'))
+  assert.equal(added.length, 32)
+  assert.equal(new Set(added.map(r => String(r.email || '').trim().toLowerCase())).size, 32)
+  assert.ok(added.every(r => r.sourceType === 'socio'))
+  const server = await read('server/index.js')
+  assert.match(server, /socio:v408:/)
+  assert.match(server, /Sólo se completan campos vacíos/)
+  assert.doesNotMatch(server, /SET email=.*v4\.0\.8/)
 })

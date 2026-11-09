@@ -1,9 +1,9 @@
 # Beneficios UIC
 
-> **Revisión actual: v4.0.7 · BENEFICIOS_UIC_4070 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
+> **Revisión actual: v4.0.8 · BENEFICIOS_UIC_4080 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
 
 
-## Revisión v4.0.7 · 08/11/2026
+## Revisión v4.0.8 · 08/11/2026
 - Monitor sin polling automático.
 - Nueva métrica manual **Aperturas totales**.
 - Sólo se consulta al presionar **Actualizar**.

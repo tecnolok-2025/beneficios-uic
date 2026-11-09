@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_4070'
+const GENERATION = 'BENEFICIOS_UIC_4080'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -155,12 +155,14 @@ async function initializeDatabase() {
   }
 
   for (const recipient of diffusionRecipientSeed) {
-    // Los contactos "Socio a confirmar" se incorporan sólo si su e-mail todavía no existe.
     // El registro histórico previo siempre prevalece cuando la casilla coincide.
+    // v4.0.8: los 32 contactos depurados también se protegen por email exacto para evitar duplicados
+    // si la base de producción hubiera cambiado entre la exportación y el deploy.
+    const protectByEmail = recipient.sourceType === 'socio_confirmar' || String(recipient.sourceKey || '').startsWith('socio:v408:')
     await pool.query(`INSERT INTO diffusion_recipients
       (source_key,source_type,member_number,company_name,contact_name,cuit,email,phone,active_code,enabled,email_valid,notes)
       SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
-      WHERE $2 <> 'socio_confirmar'
+      WHERE NOT $13
          OR COALESCE(TRIM($7),'') = ''
          OR NOT EXISTS (
            SELECT 1 FROM diffusion_recipients
@@ -170,8 +172,22 @@ async function initializeDatabase() {
       ON CONFLICT (source_key) DO NOTHING`, [
         recipient.sourceKey, recipient.sourceType, recipient.memberNumber || '', recipient.companyName || '', recipient.contactName || '',
         recipient.cuit || '', recipient.email || '', recipient.phone || '', recipient.activeCode || '', recipient.enabled !== false,
-        recipient.emailValid !== false, recipient.notes || ''
+        recipient.emailValid !== false, recipient.notes || '', protectByEmail
       ])
+
+    // Si un email v4.0.8 ya existiera en Neon, no se reemplaza jamás su correo vigente.
+    // Sólo se completan campos vacíos con información depurada; enabled/email_valid tampoco se fuerzan.
+    if (String(recipient.sourceKey || '').startsWith('socio:v408:') && String(recipient.email || '').trim()) {
+      await pool.query(`UPDATE diffusion_recipients SET
+        company_name = CASE WHEN COALESCE(TRIM(company_name),'')='' THEN $2 ELSE company_name END,
+        contact_name = CASE WHEN COALESCE(TRIM(contact_name),'')='' THEN $3 ELSE contact_name END,
+        phone = CASE WHEN COALESCE(TRIM(phone),'')='' THEN $4 ELSE phone END,
+        notes = CASE WHEN COALESCE(TRIM(notes),'')='' THEN $5 ELSE notes END,
+        updated_at = CASE WHEN COALESCE(TRIM(company_name),'')='' OR COALESCE(TRIM(contact_name),'')='' OR COALESCE(TRIM(phone),'')='' OR COALESCE(TRIM(notes),'')='' THEN NOW() ELSE updated_at END
+        WHERE LOWER(TRIM(email)) = LOWER(TRIM($1))`, [
+          recipient.email, recipient.companyName || '', recipient.contactName || '', recipient.phone || '', recipient.notes || ''
+        ])
+    }
   }
 
   // v3.9.1 · correcciones puntuales del padrón confirmadas por UIC el 24/10/2026.
@@ -181,6 +197,9 @@ async function initializeDatabase() {
   await pool.query(`UPDATE diffusion_recipients SET email='martin@eraina.com.ar', enabled=TRUE, email_valid=TRUE, notes='Correo confirmado por UIC el 24/10/2026.', updated_at=NOW() WHERE source_key='socio:92' AND email='dministracion@hotelplazacampana.com.a'`)
   await pool.query(`UPDATE diffusion_recipients SET company_name='SWA/NEUCO', email='', enabled=FALSE, email_valid=FALSE, notes='Nombre actualizado por UIC. Correo pendiente de confirmación; permanece destildado.', updated_at=NOW() WHERE source_key='socio:210' AND company_name='SWA' AND email='contacto@swa-trabajosustentable.com.a'`)
 
+  // v4.0.8 · incorpora 32 contactos industriales depurados contra exportación real de Neon del 09/11/2026.
+  // Regla UIC: ningún correo vigente se reemplaza salvo corrección explícita por error de envío.
+  // Los nuevos contactos se agregan como socios; si el email ya existe, sólo se completan campos vacíos.
   // v4.0.6 · incorpora 50 contactos corporativos validados por UIC el 08/11/2026.
   // Se cargan desde diffusionRecipientSeed con deduplicación por e-mail; las empresas existentes conservan su identidad y sus contactos previos.
   // v4.0.5 · actualización del padrón aportada por UIC el 08/11/2026.
