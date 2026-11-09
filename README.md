@@ -1,7 +1,13 @@
 # Beneficios UIC
 
-> **Revisión actual: v4.0.8 · BENEFICIOS_UIC_4080 · 50 contactos corporativos validados incorporados con asociación conservadora por empresa**
+> **Revisión actual: v5.0.0 · BENEFICIOS_UIC_5000 · almacenamiento sólo texto en Neon + nuevo pie institucional de correo**
 
+
+## Revisión v5.0.0 · 09/11/2026
+- Portal y Difusión sin material visual ni archivos binarios almacenados en Neon.
+- Limpieza de tablas binarias históricas `flyers` y `diffusion_campaign_files`.
+- Nuevo pie de email: no responder Tesorería, contactar al prestador y llamado a Hacete socio.
+- Enlace: https://uic-campana.com.ar/hacete-socio/.
 
 ## Revisión v4.0.8 · 08/11/2026
 - Monitor sin polling automático.

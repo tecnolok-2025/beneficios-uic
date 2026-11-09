@@ -20,23 +20,12 @@ CREATE TABLE IF NOT EXISTS benefits (
   end_date DATE,
   agreement_url TEXT NOT NULL DEFAULT '',
   agreement_links JSONB NOT NULL DEFAULT '[]'::jsonb,
-  external_image_url TEXT NOT NULL DEFAULT '',
-  external_image_alt TEXT NOT NULL DEFAULT '',
   analysis_warnings JSONB NOT NULL DEFAULT '[]'::jsonb,
   published BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS flyers (
-  id BIGSERIAL PRIMARY KEY,
-  benefit_id BIGINT NOT NULL REFERENCES benefits(id) ON DELETE CASCADE,
-  url TEXT NOT NULL DEFAULT '',
-  alt_text TEXT NOT NULL DEFAULT '',
-  position INTEGER NOT NULL DEFAULT 0,
-  image_data BYTEA,
-  mime_type TEXT NOT NULL DEFAULT ''
-);
 
 CREATE TABLE IF NOT EXISTS traces (
   id BIGSERIAL PRIMARY KEY,
@@ -59,26 +48,10 @@ ALTER TABLE benefits ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS company_contacts JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS agreement_url TEXT NOT NULL DEFAULT '';
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS agreement_links JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE benefits ADD COLUMN IF NOT EXISTS external_image_url TEXT NOT NULL DEFAULT '';
-ALTER TABLE benefits ADD COLUMN IF NOT EXISTS external_image_alt TEXT NOT NULL DEFAULT '';
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS start_date DATE;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS end_date DATE;
 ALTER TABLE benefits ADD COLUMN IF NOT EXISTS analysis_warnings JSONB NOT NULL DEFAULT '[]'::jsonb;
 
-ALTER TABLE flyers ADD COLUMN IF NOT EXISTS url TEXT;
-UPDATE flyers SET url='' WHERE url IS NULL;
-ALTER TABLE flyers ALTER COLUMN url SET DEFAULT '';
-ALTER TABLE flyers ALTER COLUMN url SET NOT NULL;
-ALTER TABLE flyers ADD COLUMN IF NOT EXISTS alt_text TEXT;
-UPDATE flyers SET alt_text='' WHERE alt_text IS NULL;
-ALTER TABLE flyers ALTER COLUMN alt_text SET DEFAULT '';
-ALTER TABLE flyers ALTER COLUMN alt_text SET NOT NULL;
-ALTER TABLE flyers ADD COLUMN IF NOT EXISTS position INTEGER;
-UPDATE flyers SET position=0 WHERE position IS NULL;
-ALTER TABLE flyers ALTER COLUMN position SET DEFAULT 0;
-ALTER TABLE flyers ALTER COLUMN position SET NOT NULL;
-ALTER TABLE flyers ADD COLUMN IF NOT EXISTS image_data BYTEA;
-ALTER TABLE flyers ADD COLUMN IF NOT EXISTS mime_type TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS traces_created_idx ON traces(created_at DESC);
 
 -- v3.9.1 · Difusión de Beneficios (piloto administrativo)
@@ -133,15 +106,6 @@ CREATE TABLE IF NOT EXISTS diffusion_campaigns (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS diffusion_campaign_files (
-  id BIGSERIAL PRIMARY KEY,
-  campaign_id BIGINT NOT NULL REFERENCES diffusion_campaigns(id) ON DELETE CASCADE,
-  filename TEXT NOT NULL,
-  mime_type TEXT NOT NULL,
-  size_bytes INTEGER NOT NULL DEFAULT 0,
-  file_data BYTEA NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
 CREATE INDEX IF NOT EXISTS diffusion_recipients_type_idx ON diffusion_recipients(source_type, company_name);
 CREATE INDEX IF NOT EXISTS diffusion_campaigns_status_idx ON diffusion_campaigns(status, created_at DESC);
@@ -176,8 +140,6 @@ ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_code_hash TEXT NOT
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_code_expires_at TIMESTAMPTZ;
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS test_verified_at TIMESTAMPTZ;
 
-ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS placement TEXT NOT NULL DEFAULT 'attachment';
-ALTER TABLE diffusion_campaign_files ADD COLUMN IF NOT EXISTS position INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE diffusion_mail_settings ADD COLUMN IF NOT EXISTS mass_send_enabled BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE diffusion_mail_settings ADD COLUMN IF NOT EXISTS test_mode_enabled BOOLEAN NOT NULL DEFAULT TRUE;
@@ -253,3 +215,11 @@ ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS last_op
 ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS unsubscribed_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS diffusion_queue_recipient_open_idx ON diffusion_campaign_queue_recipients(campaign_id, first_opened_at);
+
+
+-- v5.0.0 · política de almacenamiento sólo texto.
+-- DROP libera las relaciones BYTEA históricas y evita que sigan consumiendo almacenamiento en Neon.
+DROP TABLE IF EXISTS diffusion_campaign_files;
+DROP TABLE IF EXISTS flyers;
+ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_url;
+ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_alt;

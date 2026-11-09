@@ -1,0 +1,6 @@
+Al aplicar sólo el PARCHE sobre un repositorio v4.0.8 existente, eliminar la carpeta:
+
+public/benefits/
+
+La carpeta contiene imágenes estáticas históricas de las 51 fichas y ya no es utilizada por v5.0.0.
+No afecta Neon ni la información textual de los beneficios.

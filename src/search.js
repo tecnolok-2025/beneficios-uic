@@ -14,7 +14,7 @@ function searchText(item = {}) {
   return [
     item.title, item.partner, item.category, item.slug, item.summary, item.description,
     item.concreteBenefit, item.costsDiscounts, item.scope, ...(item.requirements || []),
-    item.contactName, item.contactPhone, item.contactEmail, ...contacts, ...links, item.externalImageAlt
+    item.contactName, item.contactPhone, item.contactEmail, ...contacts, ...links
   ].filter(Boolean).join(' ')
 }
 
