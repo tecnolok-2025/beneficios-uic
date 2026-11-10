@@ -72,12 +72,14 @@ function tokenVariants(token) {
 
 function fuzzyTokenMatch(token, words) {
   if (token.length < 4) return false
-  const limit = token.length >= 6 ? 2 : 1
-  return words.some(word =>
-    word.length >= 3 &&
-    Math.abs(word.length - token.length) <= limit &&
-    editDistance(token, word) <= limit
-  )
+  return words.some(word => {
+    if (word.length < 3) return false
+    const difference = Math.abs(word.length - token.length)
+    const distance = editDistance(token, word)
+    if (difference <= 1 && distance <= 1) return true
+    if (token.length >= 6 && word.length === token.length && distance <= 2) return true
+    return token.length >= 9 && difference <= 2 && distance <= 2
+  })
 }
 
 export function searchScore(item, rawQuery) {

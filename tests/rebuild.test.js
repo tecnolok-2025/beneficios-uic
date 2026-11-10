@@ -86,9 +86,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.0.4')
-  assert.match(server, /BENEFICIOS_UIC_5040/)
-  assert.match(html, /BENEFICIOS_UIC_5040/)
+  assert.equal(pkg.version, '5.0.6')
+  assert.match(server, /BENEFICIOS_UIC_5060/)
+  assert.match(html, /BENEFICIOS_UIC_5060/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -202,7 +202,7 @@ test('21 · v3.8.0 conserva búsqueda pública e identidad industrial premium', 
   const styles = await read('src/styles.css')
   const pattern = await fs.readFile(path.join(root, 'public/industrial-uic-pattern.svg'), 'utf8')
   assert.match(app, /Búsqueda flexible/)
-  assert.match(app, /Buscá DNV, CEOP, TIBEST, Praxis, Talento PyME/)
+  assert.match(app, /Buscá por empresa, servicio o palabra clave/)
   assert.match(app, /rankBenefits\(categoryItems, query\)/)
   assert.match(styles, /industrial-uic-pattern\.svg/)
   assert.match(styles, /neo-hero-signals/)
@@ -500,11 +500,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.0.4')
+  assert.equal(pkg.version, '5.0.6')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5040/)
-  assert.match(server, /BENEFICIOS_UIC_5040/)
+  assert.match(index, /BENEFICIOS_UIC_5060/)
+  assert.match(server, /BENEFICIOS_UIC_5060/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -747,10 +747,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.0.4')
+  assert.equal(pkg.version, '5.0.6')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5040/)
+  assert.match(server, /BENEFICIOS_UIC_5060/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1313,7 +1313,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5040/)
+  assert.match(html, /boot-recovery\.js\?v=5060/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1462,4 +1462,27 @@ test('146 · v5.0.4 separa Praxis de Gestión empresarial sin mover C-Forma ni I
   check(initial)
   assert.doesNotMatch(server, /UPDATE benefits SET category='Dto\. Finanzas Corporativas'.*WHERE category='Gestión empresarial'/s)
   assert.match(server, /function normalizeBenefitCategory\(value\) \{ return safeText\(value,120\) \}/)
+})
+
+
+test('147 · v5.0.5 desacopla búsqueda y filtros y evita falsos positivos amplios', async () => {
+  const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
+  const search = await fs.readFile(path.join(root, 'src/search.js'), 'utf8')
+  const catalog = JSON.parse(await fs.readFile(path.join(root, 'data/catalog.json'), 'utf8'))
+  const { rankBenefits } = await import(new URL('../src/search.js', import.meta.url))
+  assert.match(app, /onChange=\{event => \{ setCategory\('Todos'\); setQuery\(event\.target\.value\) \}\}/)
+  assert.match(app, /onClick=\{\(\) => \{ setQuery\(''\); setCategory\(name\) \}\}/)
+  assert.match(search, /word\.length === token\.length && distance <= 2/)
+  const praxis = rankBenefits(catalog, 'Praxis')
+  assert.equal(praxis.length, 1)
+  assert.match(String(praxis[0]?.partner || ''), /Praxis Finanzas/)
+})
+
+
+test('148 · v5.0.6 elimina accesos rápidos promocionales del buscador', async () => {
+  const app = await read('src/App.jsx')
+  assert.doesNotMatch(app, /neo-search-examples/)
+  assert.doesNotMatch(app, /\['DNV','CEOP','TIBEST','Praxis'\]/)
+  assert.match(app, /placeholder="Buscá por empresa, servicio o palabra clave…"/)
+  assert.match(app, /Búsqueda flexible:/)
 })
