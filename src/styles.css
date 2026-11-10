@@ -851,3 +851,15 @@ button { cursor: pointer; }
   .neo-hero-buttons-v501 .neo-hero-action{width:100%;min-height:54px;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
   .neo-hero-buttons-v501 .neo-hero-action span{max-width:none}
 }
+
+
+/* v5.0.2 · filtros especiales del catálogo */
+.neo-categories button.neo-special-category { border-color: #9fd6e8; background: #f7fcfe; }
+.neo-categories button.neo-special-category svg { color: #008bb8; }
+.neo-categories button.neo-special-category.active { background: var(--night); border-color: var(--night); color: #fff; }
+.neo-categories button.neo-special-category.active svg { color: var(--sky); }
+.neo-special-note { display:flex; align-items:flex-start; gap:12px; margin:-12px 0 22px; padding:14px 16px; border:1px solid #bfe3ee; border-radius:10px; background:#f4fbfd; color:#48616d; }
+.neo-special-note > svg { width:20px; height:20px; flex:none; color:#008bb8; margin-top:2px; }
+.neo-special-note div { display:grid; gap:3px; }
+.neo-special-note strong { color:#073047; font-size:13px; letter-spacing:.05em; }
+.neo-special-note span { font-size:14px; line-height:1.45; }

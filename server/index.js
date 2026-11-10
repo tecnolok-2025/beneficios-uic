@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5010'
+const GENERATION = 'BENEFICIOS_UIC_5020'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -647,6 +647,40 @@ app.get('/api/health', async (_req, res) => {
 })
 
 app.get('/api/beneficios', async (_req, res, next) => { try { res.json(await listBenefits()) } catch (error) { next(error) } })
+
+// v5.0.2 · filtros públicos dinámicos del catálogo.
+// No expone destinatarios ni datos sensibles de campañas: sólo empresa, beneficio y fecha de finalización.
+app.get('/api/beneficios-destacados', async (_req, res, next) => {
+  try {
+    const items = await listBenefits()
+    const latestBenefits = [...items]
+      .filter(item => item.published !== false)
+      .sort((a,b) => String(b.startDate || '').localeCompare(String(a.startDate || '')) || String(a.title || '').localeCompare(String(b.title || '')))
+      .slice(0,4)
+    if (!pool || !databaseAvailable) return res.json({ latestBenefits, latestCompanies: [] })
+    const campaigns = (await pool.query(`SELECT company_key,company_name,benefit_slug,benefit_title,COALESCE(completed_at,sent_at,updated_at,created_at) AS diffusion_at
+      FROM diffusion_campaigns
+      WHERE status='sent' AND COALESCE(sent_count,recipient_count,0) > 0
+      ORDER BY COALESCE(completed_at,sent_at,updated_at,created_at) DESC,id DESC
+      LIMIT 80`)).rows
+    const bySlug = new Map(items.map(item => [item.slug,item]))
+    const seen = new Set()
+    const latestCompanies = []
+    for (const campaign of campaigns) {
+      const key = String(campaign.company_key || '').trim().toLowerCase()
+      const name = String(campaign.company_name || '').trim()
+      const normalizedName = name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
+      if (!key || key === PILOT_COMPANY_KEY || normalizedName === PILOT_COMPANY_KEY || seen.has(key)) continue
+      const benefit = bySlug.get(campaign.benefit_slug)
+      if (!benefit) continue
+      seen.add(key)
+      latestCompanies.push({ companyKey:key, companyName:name, benefitSlug:benefit.slug, benefitTitle:benefit.title, diffusionAt:campaign.diffusion_at, benefit })
+      if (latestCompanies.length >= 4) break
+    }
+    res.json({ latestBenefits, latestCompanies })
+  } catch (error) { next(error) }
+})
+
 app.get('/api/beneficios/:slug', async (req, res, next) => {
   try {
     const items = await listBenefits()

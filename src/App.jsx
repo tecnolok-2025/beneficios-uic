@@ -130,12 +130,20 @@ function Home() {
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todos')
-  useEffect(() => { request('/api/beneficios').then(setItems).catch(error => setError(error.message)).finally(() => setLoading(false)) }, [])
-  const categories = useMemo(() => ['Todos', ...new Set(items.map(item => item.category))], [items])
+  const [highlights, setHighlights] = useState({ latestBenefits: [], latestCompanies: [] })
+  useEffect(() => {
+    Promise.all([request('/api/beneficios'), request('/api/beneficios-destacados').catch(() => ({ latestBenefits: [], latestCompanies: [] }))])
+      .then(([catalog, featured]) => { setItems(catalog); setHighlights(featured || { latestBenefits: [], latestCompanies: [] }) })
+      .catch(error => setError(error.message)).finally(() => setLoading(false))
+  }, [])
+  const categories = useMemo(() => ['Todos', 'Últimos beneficios', 'Últimas empresas que difundieron', ...new Set(items.map(item => item.category))], [items])
   const visible = useMemo(() => {
-    const categoryItems = category === 'Todos' ? items : items.filter(item => item.category === category)
+    let categoryItems = items
+    if (category === 'Últimos beneficios') categoryItems = (highlights.latestBenefits || []).slice(0,4)
+    else if (category === 'Últimas empresas que difundieron') categoryItems = (highlights.latestCompanies || []).slice(0,4).map(entry => entry.benefit).filter(Boolean)
+    else if (category !== 'Todos') categoryItems = items.filter(item => item.category === category)
     return rankBenefits(categoryItems, query)
-  }, [items, category, query])
+  }, [items, category, query, highlights])
   const explore = () => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
   useEffect(() => {
     const saved = Number(sessionStorage.getItem('beneficios-uic-scroll'))
@@ -169,7 +177,9 @@ function Home() {
     <section id="catalogo" className="neo-catalog neo-shell">
       <div className="neo-section-title"><span>EXPLORÁ EL NUEVO CATÁLOGO</span><h2>Encontrá una oportunidad para tu empresa</h2><p>Elegí un rubro o buscá por servicio, empresa o palabra clave.</p></div>
       <label className="neo-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscá DNV, CEOP, TIBEST, Praxis, Talento PyME…" aria-label="Buscar beneficios" autoComplete="off"/>{query && <button onClick={() => setQuery('')} aria-label="Limpiar"><X/></button>}</label><div className="neo-search-help"><ShieldCheck/><span><strong>Búsqueda flexible:</strong> encuentra por empresa, parte del nombre, rubro, contacto o palabra clave; ignora tildes y tolera pequeños errores.</span><div className="neo-search-examples">{['DNV','CEOP','TIBEST','Praxis'].map(example => <button key={example} onClick={() => setQuery(example)}>{example}</button>)}</div></div>
-      <div className="neo-categories">{categories.map(name => <button key={name} className={`${category === name ? 'active' : ''} ${name === 'UIPBA' ? 'neo-uipba-category' : ''}`} onClick={() => setCategory(name)}>{name === 'Todos' ? <LayoutGrid/> : name === 'UIPBA' ? <Building2/> : <ChevronRight/>}<span>{name}</span></button>)}</div>
+      <div className="neo-categories">{categories.map(name => <button key={name} className={`${category === name ? 'active' : ''} ${name === 'UIPBA' ? 'neo-uipba-category' : ''} ${name === 'Últimos beneficios' || name === 'Últimas empresas que difundieron' ? 'neo-special-category' : ''}`} onClick={() => setCategory(name)}>{name === 'Todos' ? <LayoutGrid/> : name === 'Últimos beneficios' ? <Sparkles/> : name === 'Últimas empresas que difundieron' ? <Mail/> : name === 'UIPBA' ? <Building2/> : <ChevronRight/>}<span>{name}</span></button>)}</div>
+      {category === 'Últimos beneficios' && <div className="neo-special-note"><Sparkles/><div><strong>ÚLTIMOS BENEFICIOS</strong><span>Se muestran hasta los 4 beneficios con fecha más reciente disponible en el catálogo.</span></div></div>}
+      {category === 'Últimas empresas que difundieron' && <div className="neo-special-note"><Mail/><div><strong>ÚLTIMAS EMPRESAS QUE DIFUNDIERON</strong><span>Se muestran hasta 4 empresas distintas con envíos finalizados. Tecno Logisti-K se excluye por ser la empresa utilizada para pruebas.</span></div></div>}
       {category === 'UIPBA' && <div className="neo-uipba-note"><Building2/><div><strong>ENTIDAD MADRE · UIPBA</strong><span>Reúne beneficios, servicios y convenios trasladados a los socios UIC. Las fichas marcadas <b>A CHEQUEAR VALIDACIÓN</b> provienen de antecedentes publicados por UIPBA y requieren confirmar vigencia antes de utilizarlas.</span></div></div>}
       <div className="neo-results"><strong>{category}</strong><span>{visible.length} resultado{visible.length === 1 ? '' : 's'}</span></div>
       {error ? <div className="neo-empty"><CircleAlert/><h3>No pudimos cargar los beneficios</h3><p>{error}</p></div> : loading ? <div className="neo-empty">Cargando el nuevo catálogo…</div> : <div className="neo-grid">{visible.map(item => <BenefitCard key={item.id} item={item}/>)}</div>}

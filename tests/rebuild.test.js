@@ -84,9 +84,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.0.1')
-  assert.match(server, /BENEFICIOS_UIC_5010/)
-  assert.match(html, /BENEFICIOS_UIC_5010/)
+  assert.equal(pkg.version, '5.0.2')
+  assert.match(server, /BENEFICIOS_UIC_5020/)
+  assert.match(html, /BENEFICIOS_UIC_5020/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -498,11 +498,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.0.1')
+  assert.equal(pkg.version, '5.0.2')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5010/)
-  assert.match(server, /BENEFICIOS_UIC_5010/)
+  assert.match(index, /BENEFICIOS_UIC_5020/)
+  assert.match(server, /BENEFICIOS_UIC_5020/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,10 +745,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.0.1')
+  assert.equal(pkg.version, '5.0.2')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5010/)
+  assert.match(server, /BENEFICIOS_UIC_5020/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1311,7 +1311,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5010/)
+  assert.match(html, /boot-recovery\.js\?v=5020/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1430,4 +1430,16 @@ test('144 · v5.0.1 deja cuatro accesos pictóricos con nombres originales', asy
   assert.match(styles, /neo-hero-buttons-v501/)
   assert.match(styles, /clip-path:polygon/)
   assert.match(styles, /grid-template-columns:repeat\(4/)
+})
+
+
+test('145 · v5.0.2 agrega filtros de últimos beneficios y últimas empresas difundidas', async () => {
+  const app = await fs.readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const server = await fs.readFile(new URL('../server/index.js', import.meta.url), 'utf8')
+  assert.match(app, /Últimos beneficios/)
+  assert.match(app, /Últimas empresas que difundieron/)
+  assert.match(server, /\/api\/beneficios-destacados/)
+  assert.match(server, /status='sent'/)
+  assert.match(server, /PILOT_COMPANY_KEY/)
+  assert.match(server, /latestCompanies\.length >= 4/)
 })
