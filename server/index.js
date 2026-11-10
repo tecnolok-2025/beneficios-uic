@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5020'
+const GENERATION = 'BENEFICIOS_UIC_5040'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -125,6 +125,8 @@ async function initializeDatabase() {
     ])
     if (!result.rows?.[0]) throw new Error(`No se pudo sincronizar el beneficio ${item.slug}`)
   }
+  // v5.0.4 · Praxis se encuadra en Dto. Finanzas Corporativas; Gestión empresarial continúa vigente para C-Forma e Inventiva.
+
   // Corrección nominal explícitamente aprobada. No altera textos ni ediciones administrativas de otros beneficios.
   await pool.query(`UPDATE benefits
     SET partner='Paseo Gavazzi · SYGSA S.A. · CADEMA', updated_at=NOW()
@@ -241,6 +243,7 @@ function effectiveServerStatus(item, today = argentinaDateKey()) {
 }
 
 function safeText(value, max = 2000) { return String(value ?? '').trim().slice(0, max) }
+function normalizeBenefitCategory(value) { return safeText(value,120) }
 function safeStatus(value) { return ['activo','revalidacion','proximo','finalizado'].includes(value) ? value : 'activo' }
 function slugify(value) { return safeText(value, 180).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
 function safeId(value) { return /^\d+$/.test(String(value)) ? String(value) : null }
@@ -1028,7 +1031,7 @@ function cleanCompanyContacts(value) {
 }
 
 function values(body) {
-  return [safeText(body.title,200), safeText(body.partner,200), safeText(body.category,120), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), JSON.stringify(cleanAgreementLinks(body.agreementLinks)), body.startDate || null, body.endDate || null, body.published !== false]
+  return [safeText(body.title,200), safeText(body.partner,200), normalizeBenefitCategory(body.category), safeStatus(body.status), Boolean(body.featured), safeText(body.summary,1000), safeText(body.description,5000), safeText(body.concreteBenefit,2000), safeText(body.costsDiscounts,2000), JSON.stringify(Array.isArray(body.requirements) ? body.requirements.map(x => safeText(x,500)).filter(Boolean) : []), safeText(body.scope,1000), safeText(body.contactName,200), safeText(body.contactPhone,100), safeText(body.contactEmail,250), JSON.stringify(cleanCompanyContacts(body.companyContacts)), safeText(body.agreementUrl,1000), JSON.stringify(cleanAgreementLinks(body.agreementLinks)), body.startDate || null, body.endDate || null, body.published !== false]
 }
 
 app.post('/api/admin/beneficios', requireAdmin, async (req, res, next) => {

@@ -20,10 +20,12 @@ test('01 · conserva la base v3.7.1 y llega a 51 fichas sin duplicar Praxis', as
 test('02 · mantiene los rubros existentes y suma Certificación y calidad', async () => {
   const items = await catalog()
   const categories = new Set(items.map(item => item.category))
-  assert.equal(categories.size, 16)
+  assert.equal(categories.size, 17)
   assert.ok(categories.has('UIPBA'))
   assert.ok(categories.has('Eventos y exposiciones'))
   assert.ok(categories.has('Certificación y calidad'))
+  assert.ok(categories.has('Gestión empresarial'))
+  assert.ok(categories.has('Dto. Finanzas Corporativas'))
 })
 
 test('03 · estados y slugs quedan coherentes con la revisión 3.8.0', async () => {
@@ -84,9 +86,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.0.2')
-  assert.match(server, /BENEFICIOS_UIC_5020/)
-  assert.match(html, /BENEFICIOS_UIC_5020/)
+  assert.equal(pkg.version, '5.0.4')
+  assert.match(server, /BENEFICIOS_UIC_5040/)
+  assert.match(html, /BENEFICIOS_UIC_5040/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -106,12 +108,12 @@ test('12 · detalle duplica textos pequeños y agrega directorio de contactos', 
   assert.match(styles, /neo-contact-directory-grid/)
 })
 
-test('13 · Praxis está en Gestión empresarial y Render conserva el servicio actual', async () => {
+test('13 · Praxis está en Dto. Finanzas Corporativas y Render conserva el servicio actual', async () => {
   const items = await catalog()
   const praxis = items.find(item => item.slug === praxisSlug)
   const render = await read('render.yaml')
   assert.equal(praxis?.partner, 'Praxis Finanzas · Departamento de Finanzas Corporativas UIC')
-  assert.equal(praxis?.category, 'Gestión empresarial')
+  assert.equal(praxis?.category, 'Dto. Finanzas Corporativas')
   assert.match(praxis?.agreementUrl || '', /praxisfinanzas\.com\.ar/)
   assert.match(render, /startCommand: npm start/)
   assert.match(render, /healthCheckPath: \/api\/health/)
@@ -191,7 +193,7 @@ test('Villa Dálmine queda como beneficio 26 con contactos y sin imagen', async 
   assert.equal(item.partner, 'Club Villa Dálmine')
   assert.equal(item.companyContacts[0].email, 'secretaria@villadalmine.com.ar')
   assert.equal(Object.prototype.hasOwnProperty.call(item, 'externalImageUrl'), false)
-  assert.equal(new Set(items.map(x => x.category)).size, 16)
+  assert.equal(new Set(items.map(x => x.category)).size, 17)
 })
 
 
@@ -372,7 +374,7 @@ test('36 · v3.8.0 incorpora CEOP, TIBEST y DNV y actualiza Praxis sin duplicarl
   assert.equal(tibest?.category, 'Broker de seguros')
   assert.equal(dnv?.category, 'Certificación y calidad')
   assert.equal(praxis.length, 1)
-  assert.equal(praxis[0].category, 'Gestión empresarial')
+  assert.equal(praxis[0].category, 'Dto. Finanzas Corporativas')
   assert.equal(ceop.companyContacts[0].name, 'Hugo López')
   assert.equal(ceop.companyContacts[1].name, 'Sandra Rodríguez')
   assert.doesNotMatch(JSON.stringify(ceop), /Martha Mamtoiuk/i)
@@ -498,11 +500,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.0.2')
+  assert.equal(pkg.version, '5.0.4')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5020/)
-  assert.match(server, /BENEFICIOS_UIC_5020/)
+  assert.match(index, /BENEFICIOS_UIC_5040/)
+  assert.match(server, /BENEFICIOS_UIC_5040/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,10 +747,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.0.2')
+  assert.equal(pkg.version, '5.0.4')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5020/)
+  assert.match(server, /BENEFICIOS_UIC_5040/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1311,7 +1313,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5020/)
+  assert.match(html, /boot-recovery\.js\?v=5040/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1442,4 +1444,22 @@ test('145 · v5.0.2 agrega filtros de últimos beneficios y últimas empresas di
   assert.match(server, /status='sent'/)
   assert.match(server, /PILOT_COMPANY_KEY/)
   assert.match(server, /latestCompanies\.length >= 4/)
+})
+
+test('146 · v5.0.4 separa Praxis de Gestión empresarial sin mover C-Forma ni Inventiva', async () => {
+  const catalog = JSON.parse(await fs.readFile(path.join(root, 'data/catalog.json'), 'utf8'))
+  const initial = JSON.parse(await fs.readFile(path.join(root, 'data/initial-benefits.json'), 'utf8'))
+  const server = await fs.readFile(path.join(root, 'server/index.js'), 'utf8')
+  const check = list => {
+    const praxis = list.find(item => item.slug === 'finanzas-corporativas-praxis')
+    const cforma = list.find(item => item.partner === 'C-Forma')
+    const inventiva = list.find(item => String(item.partner || '').startsWith('Inventiva Comercialización & Management'))
+    assert.equal(praxis?.category, 'Dto. Finanzas Corporativas')
+    assert.equal(cforma?.category, 'Gestión empresarial')
+    assert.equal(inventiva?.category, 'Gestión empresarial')
+  }
+  check(catalog)
+  check(initial)
+  assert.doesNotMatch(server, /UPDATE benefits SET category='Dto\. Finanzas Corporativas'.*WHERE category='Gestión empresarial'/s)
+  assert.match(server, /function normalizeBenefitCategory\(value\) \{ return safeText\(value,120\) \}/)
 })
