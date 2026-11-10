@@ -41,11 +41,11 @@ test('04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro', as
   assert.equal(latest.category, 'Capacitación y talento')
 })
 
-test('05 · no reaparece el filtro Acuerdos nuevos y el botón destaca un acuerdo reciente', async () => {
+test('05 · v5.0.1 elimina el acceso de nuevos acuerdos y conserva el catálogo sin ese filtro', async () => {
   const app = await read('src/App.jsx')
   assert.doesNotMatch(app, /'Acuerdos nuevos'/)
-  assert.match(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(app, /ceop-internacional-formacion-liderazgo-uic/)
+  assert.doesNotMatch(app, /Descubrir beneficios de nuevos acuerdos/)
+  assert.doesNotMatch(app, /showLatestAgreement/)
 })
 
 test('06 · Actualizar versión sigue trabajando dentro del portal', async () => {
@@ -84,9 +84,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.0.0')
-  assert.match(server, /BENEFICIOS_UIC_5000/)
-  assert.match(html, /BENEFICIOS_UIC_5000/)
+  assert.equal(pkg.version, '5.0.1')
+  assert.match(server, /BENEFICIOS_UIC_5010/)
+  assert.match(html, /BENEFICIOS_UIC_5010/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -493,16 +493,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v5.0.0 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.0.0')
+  assert.equal(pkg.version, '5.0.1')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5000/)
-  assert.match(server, /BENEFICIOS_UIC_5000/)
+  assert.match(index, /BENEFICIOS_UIC_5010/)
+  assert.match(server, /BENEFICIOS_UIC_5010/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -745,10 +745,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.0.0')
+  assert.equal(pkg.version, '5.0.1')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5000/)
+  assert.match(server, /BENEFICIOS_UIC_5010/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1311,7 +1311,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5000/)
+  assert.match(html, /boot-recovery\.js\?v=5010/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1416,4 +1416,18 @@ test('143 · v5.0.0 agrega aviso de no responder y Hacete socio al correo', asyn
   assert.match(server, /comuníquese directamente con la empresa prestadora/)
   assert.match(server, /👉 ¿Todavía no sos socio de la UIC\?/)
   assert.match(server, /https:\/\/uic-campana\.com\.ar\/hacete-socio\//)
+})
+
+
+test('144 · v5.0.1 deja cuatro accesos pictóricos con nombres originales', async () => {
+  const app = await read('src/App.jsx')
+  const styles = await read('src/styles.css')
+  assert.match(app, />Descubrir beneficios</)
+  assert.match(app, />Difusión de Beneficios</)
+  assert.match(app, />Monitor de envíos</)
+  assert.match(app, />Descargar manual v4\.0\.4</)
+  assert.doesNotMatch(app, /Descubrir beneficios de nuevos acuerdos/)
+  assert.match(styles, /neo-hero-buttons-v501/)
+  assert.match(styles, /clip-path:polygon/)
+  assert.match(styles, /grid-template-columns:repeat\(4/)
 })
