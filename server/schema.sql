@@ -208,6 +208,10 @@ CREATE INDEX IF NOT EXISTS diffusion_campaign_queue_idx ON diffusion_campaigns(s
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT 'institutional';
 ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS layout_json JSONB NOT NULL DEFAULT '{}'::jsonb;
 
+-- v5.1.6 · distingue envíos generales de pruebas/control para no consumir cupos mensuales por error.
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS distribution_mode TEXT NOT NULL DEFAULT '';
+ALTER TABLE diffusion_campaigns ADD COLUMN IF NOT EXISTS quota_consumed_at TIMESTAMPTZ;
+
 
 -- v3.9.8.1 · trazabilidad de aperturas y bajas por campaña
 ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS first_opened_at TIMESTAMPTZ;

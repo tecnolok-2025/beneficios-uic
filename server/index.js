@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5150'
+const GENERATION = 'BENEFICIOS_UIC_5160'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -213,6 +213,7 @@ async function initializeDatabase() {
     (!row.agreement_url && (!Array.isArray(row.agreement_links) || row.agreement_links.length === 0)))
   if (incomplete.length) console.warn(`Sincronización de completitud: ${incomplete.length} beneficio(s) conservan campos administrados sin completar: ${incomplete.map(x => x.slug).join(', ')}`)
   else console.log(`Sincronización de completitud OK · ${localCatalog.length}/${localCatalog.length} beneficios con contacto y convenio`)
+  await repairLegacyQuotaSchedules()
 }
 async function listBenefits(includeHidden = false) {
   if (!pool || !databaseAvailable) return localCatalog.map(localBenefit).filter(item => includeHidden || item.published)
@@ -291,20 +292,76 @@ function monthlyCycle(anchorDate, today = argentinaDateString()) {
   const prev=shiftMonth(now.year,now.month,-1);return {start:anchoredDate(prev.year,prev.month,anchor.day),end:thisOccurrence,anchorDay:anchor.day}
 }
 function argentinaMidnightUtc(dateString) { return new Date(`${dateString}T03:00:00.000Z`) }
+function isUnlimitedPilotCompanyKey(companyKey) { return String(companyKey || '').trim() === PILOT_COMPANY_KEY }
+function nonQuotaDistributionMode(mode) { return ['test_mode','control_only','legacy_control'].includes(String(mode || '')) }
+async function campaignUsesOnlyControlRecipients(db, campaignId) {
+  const controlEmails=normalizedTestRecipients().map(item=>item.email)
+  if(!campaignId||!controlEmails.length)return false
+  const row=(await db.query(`SELECT COUNT(*)::int AS total,
+    COUNT(*) FILTER (WHERE LOWER(TRIM(email)) = ANY($2::text[]))::int AS control_count
+    FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1`,[campaignId,controlEmails])).rows[0]
+  return Number(row?.total||0)>0 && Number(row?.total||0)===Number(row?.control_count||0)
+}
+async function scheduleRepresentsRealDistribution(db, schedule) {
+  if(!schedule?.last_campaign_id)return true
+  const campaign=(await db.query('SELECT id,distribution_mode,quota_consumed_at FROM diffusion_campaigns WHERE id=$1',[schedule.last_campaign_id])).rows[0]
+  if(!campaign)return true
+  if(campaign.quota_consumed_at || campaign.distribution_mode==='general')return true
+  if(nonQuotaDistributionMode(campaign.distribution_mode))return false
+  return !(await campaignUsesOnlyControlRecipients(db,campaign.id))
+}
+async function repairLegacyQuotaSchedules() {
+  if(!pool||!databaseAvailable)return
+  const client=await pool.connect();let released=0,confirmed=0
+  try{
+    await client.query('BEGIN')
+    // Tecno Logisti-K S.A. es la única empresa con cupo ilimitado: nunca debe conservar schedule mensual.
+    const pilotDeleted=await client.query('DELETE FROM diffusion_benefit_schedules WHERE company_key=$1 RETURNING last_campaign_id',[PILOT_COMPANY_KEY]);released+=pilotDeleted.rowCount||0
+    const schedules=(await client.query(`SELECT company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at FROM diffusion_benefit_schedules WHERE last_campaign_id IS NOT NULL`)).rows
+    for(const schedule of schedules){
+      const campaign=(await client.query('SELECT id,distribution_mode,quota_consumed_at,approved_at FROM diffusion_campaigns WHERE id=$1',[schedule.last_campaign_id])).rows[0]
+      if(!campaign)continue
+      let real=true
+      if(campaign.quota_consumed_at||campaign.distribution_mode==='general') real=true
+      else if(nonQuotaDistributionMode(campaign.distribution_mode)) real=false
+      else real=!(await campaignUsesOnlyControlRecipients(client,campaign.id))
+      if(!real){
+        await client.query('DELETE FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2',[schedule.company_key,schedule.benefit_slug])
+        await client.query(`UPDATE diffusion_campaigns SET distribution_mode=CASE WHEN COALESCE(distribution_mode,'')='' THEN 'legacy_control' ELSE distribution_mode END,quota_consumed_at=NULL,next_allowed_at=NULL,updated_at=NOW() WHERE id=$1`,[campaign.id])
+        released++
+      }else if(!campaign.quota_consumed_at){
+        await client.query(`UPDATE diffusion_campaigns SET distribution_mode=CASE WHEN COALESCE(distribution_mode,'')='' THEN 'general' ELSE distribution_mode END,quota_consumed_at=COALESCE(approved_at,NOW()),updated_at=NOW() WHERE id=$1`,[campaign.id])
+        confirmed++
+      }
+    }
+    await client.query('COMMIT')
+    if(released||confirmed)console.log(`Auditoría cupos v5.1.6 · bloqueos de prueba liberados ${released} · campañas generales confirmadas ${confirmed}`)
+  }catch(error){await client.query('ROLLBACK');console.warn(`Auditoría cupos v5.1.6 no pudo completarse (${error.code||error.message})`)}finally{client.release()}
+}
 async function benefitSlotStatus(companyKey, benefitSlug) {
+  // Excepción exclusiva para Tecno Logisti-K S.A.: empresa piloto con oportunidades ilimitadas.
+  if(isUnlimitedPilotCompanyKey(companyKey))return {allowed:true,anchorDate:null,currentStart:null,nextAllowed:null,usedThisCycle:false,unlimited:true}
   const result=await pool.query('SELECT * FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2',[companyKey,benefitSlug]); const schedule=result.rows[0]
-  if(!schedule)return {allowed:true,anchorDate:null,currentStart:null,nextAllowed:null,usedThisCycle:false}
+  if(!schedule)return {allowed:true,anchorDate:null,currentStart:null,nextAllowed:null,usedThisCycle:false,unlimited:false}
+  if(!(await scheduleRepresentsRealDistribution(pool,schedule))){
+    await pool.query('DELETE FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2',[companyKey,benefitSlug])
+    return {allowed:true,anchorDate:null,currentStart:null,nextAllowed:null,usedThisCycle:false,unlimited:false,repaired:true}
+  }
   const today=argentinaDateString(); const cycle=monthlyCycle(dateOnly(schedule.anchor_date),today); const last=schedule.last_authorized_at?argentinaDateString(schedule.last_authorized_at):null; const used=Boolean(last&&last>=cycle.start&&last<cycle.end)
-  return {allowed:!used,anchorDate:dateOnly(schedule.anchor_date),currentStart:cycle.start,nextAllowed:cycle.end,usedThisCycle:used}
+  return {allowed:!used,anchorDate:dateOnly(schedule.anchor_date),currentStart:cycle.start,nextAllowed:cycle.end,usedThisCycle:used,unlimited:false}
 }
 async function authorizeBenefitSlot(client, campaign) {
-  const existing=(await client.query('SELECT * FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2 FOR UPDATE',[campaign.company_key,campaign.benefit_slug])).rows[0]
+  if(isUnlimitedPilotCompanyKey(campaign.company_key))return {anchorDate:null,nextAllowed:null,unlimited:true}
+  let existing=(await client.query('SELECT * FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2 FOR UPDATE',[campaign.company_key,campaign.benefit_slug])).rows[0]
+  if(existing && !(await scheduleRepresentsRealDistribution(client,existing))){
+    await client.query('DELETE FROM diffusion_benefit_schedules WHERE company_key=$1 AND benefit_slug=$2',[campaign.company_key,campaign.benefit_slug]);existing=null
+  }
   const today=argentinaDateString()
-  if(!existing){const next=monthlyCycle(today,today).end;await client.query(`INSERT INTO diffusion_benefit_schedules (company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at,updated_at) VALUES ($1,$2,$3,NOW(),$4,$5,NOW())`,[campaign.company_key,campaign.benefit_slug,today,campaign.id,next]);return {anchorDate:today,nextAllowed:next}}
+  if(!existing){const next=monthlyCycle(today,today).end;await client.query(`INSERT INTO diffusion_benefit_schedules (company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at,updated_at) VALUES ($1,$2,$3,NOW(),$4,$5,NOW())`,[campaign.company_key,campaign.benefit_slug,today,campaign.id,next]);return {anchorDate:today,nextAllowed:next,unlimited:false}}
   const cycle=monthlyCycle(dateOnly(existing.anchor_date),today); const last=existing.last_authorized_at?argentinaDateString(existing.last_authorized_at):null
   if(last&&last>=cycle.start&&last<cycle.end){const error=new Error(`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${cycle.end.split('-').reverse().join('/')}.`);error.status=409;error.nextAllowed=cycle.end;throw error}
   await client.query(`UPDATE diffusion_benefit_schedules SET last_authorized_at=NOW(),last_campaign_id=$3,next_slot_at=$4,updated_at=NOW() WHERE company_key=$1 AND benefit_slug=$2`,[campaign.company_key,campaign.benefit_slug,campaign.id,cycle.end])
-  return {anchorDate:dateOnly(existing.anchor_date),nextAllowed:cycle.end}
+  return {anchorDate:dateOnly(existing.anchor_date),nextAllowed:cycle.end,unlimited:false}
 }
 function plainMarkup(value) { return safeText(value, 12000).replace(/[<>]/g, '') }
 function markupToHtml(value) {
@@ -553,16 +610,16 @@ async function buildQueueRecipients(campaign, massEnabled, testMode = true) {
   byEmail.delete(approval)
   return [...byEmail.values()]
 }
-async function queueCampaign(client, campaign, recipients, nextAllowed) {
+async function queueCampaign(client, campaign, recipients, nextAllowed, distributionMode='general') {
   await client.query('DELETE FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1',[campaign.id])
   for(const recipient of recipients){const email=normalizeEmail(recipient.email);if(!validEmail(email))continue;await client.query(`INSERT INTO diffusion_campaign_queue_recipients (campaign_id,recipient_id,email,company_name,contact_name,status) VALUES ($1,$2,$3,$4,$5,'pending') ON CONFLICT (campaign_id,email) DO NOTHING`,[campaign.id,recipient.id||null,email,recipient.company_name||'',recipient.contact_name||''])}
   const total=(await client.query(`SELECT COUNT(*)::int AS count FROM diffusion_campaign_queue_recipients WHERE campaign_id=$1`,[campaign.id])).rows[0].count
-  const result=await client.query(`UPDATE diffusion_campaigns SET status='queued',approved_at=NOW(),next_allowed_at=$2,total_recipients=$3,sent_count=0,failed_count=0,recipient_count=0,queue_started_at=NULL,completed_at=NULL,cancel_requested_at=NULL,cancelled_at=NULL,last_progress_at=NOW(),queue_note='En cola de distribución',updated_at=NOW() WHERE id=$1 RETURNING *`,[campaign.id,argentinaMidnightUtc(nextAllowed),total])
+  const result=await client.query(`UPDATE diffusion_campaigns SET status='queued',approved_at=NOW(),next_allowed_at=$2,total_recipients=$3,distribution_mode=$4,quota_consumed_at=CASE WHEN $4='general' THEN NOW() ELSE NULL END,sent_count=0,failed_count=0,recipient_count=0,queue_started_at=NULL,completed_at=NULL,cancel_requested_at=NULL,cancelled_at=NULL,last_progress_at=NOW(),queue_note=CASE WHEN $4='general' THEN 'En cola de distribución' ELSE 'En cola de control · no consume oportunidad mensual' END,updated_at=NOW() WHERE id=$1 RETURNING *`,[campaign.id,nextAllowed?argentinaMidnightUtc(nextAllowed):null,total,distributionMode])
   return result.rows[0]
 }
 async function finishCancelledCampaign(id) {
   await pool.query(`UPDATE diffusion_campaign_queue_recipients SET status='cancelled',updated_at=NOW() WHERE campaign_id=$1 AND status IN ('pending','sending')`,[id])
-  const result=await pool.query(`UPDATE diffusion_campaigns SET status='cancelled',cancelled_at=NOW(),completed_at=NOW(),recipient_count=sent_count,queue_note='Cancelado por el usuario. La oportunidad mensual ya fue consumida.',body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id])
+  const result=await pool.query(`UPDATE diffusion_campaigns SET status='cancelled',cancelled_at=NOW(),completed_at=NOW(),recipient_count=sent_count,queue_note=CASE WHEN company_key=$2 THEN 'Cancelado por el usuario. Empresa piloto: puede crear otra difusión de inmediato.' WHEN quota_consumed_at IS NULL AND distribution_mode IN ('test_mode','control_only','legacy_control') THEN 'Cancelado por el usuario. Campaña de prueba/control: no consume oportunidad mensual.' ELSE 'Cancelado por el usuario. La oportunidad mensual ya fue consumida.' END,body_markup='',content_deleted_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,PILOT_COMPANY_KEY])
   await pool.query('DELETE FROM diffusion_campaign_files WHERE campaign_id=$1',[id]); invalidateCampaignMediaCache(id)
   return result.rows[0]
 }
@@ -609,7 +666,7 @@ async function monitorPayload(companyKey,{refreshMetrics=false}={}) {
   const active=(await pool.query(`SELECT id,company_key,company_name,benefit_slug,benefit_title,status,approved_at,queue_started_at,completed_at,cancel_requested_at,cancelled_at,sent_count,failed_count,total_recipients,next_allowed_at,queue_note FROM diffusion_campaigns WHERE status IN ('queued','sending') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id`)).rows
   let ahead=0; const metrics=new Map(); let queueNumber=0
   for(const row of active){const remaining=Math.max(0,Number(row.total_recipients||0)-Number(row.sent_count||0)-Number(row.failed_count||0));if(row.status==='sending'){metrics.set(String(row.id),{queuePosition:0,estimatedStartAt:new Date().toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(remaining)*1000).toISOString(),remaining})}else{queueNumber+=1;metrics.set(String(row.id),{queuePosition:queueNumber,estimatedStartAt:new Date(Date.now()+queueEtaSeconds(ahead)*1000).toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(ahead+remaining)*1000).toISOString(),remaining})}ahead+=remaining}
-  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
+  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.distribution_mode,c.quota_consumed_at,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.first_opened_at IS NOT NULL),0) AS opened_recipients,
     NULL::int AS total_opens,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.unsubscribed_at IS NOT NULL),0) AS unsubscribed_count,
@@ -620,15 +677,16 @@ async function monitorPayload(companyKey,{refreshMetrics=false}={}) {
     ) ORDER BY COALESCE(c.approval_requested_at,c.approved_at,c.updated_at,c.created_at) DESC LIMIT 100`,[companyKey])).rows.map(row=>({...row,open_rate:Number(row.sent_count||0)>0?Math.round(Number(row.opened_recipients||0)*10000/Number(row.sent_count||0))/100:0,...(metrics.get(String(row.id))||{queuePosition:null,estimatedStartAt:null,estimatedFinishAt:null,remaining:0})}))
   if(refreshMetrics)campaigns=await loadTotalOpenCounts(campaigns)
   const today=argentinaDateString()
-  const schedules=(await pool.query(`SELECT company_key,benefit_slug,anchor_date,last_authorized_at,last_campaign_id,next_slot_at FROM diffusion_benefit_schedules WHERE company_key=$1 ORDER BY benefit_slug`,[companyKey])).rows.map(row=>{const anchor=dateOnly(row.anchor_date);const cycle=monthlyCycle(anchor,today);const last=row.last_authorized_at?argentinaDateString(row.last_authorized_at):null;const used=Boolean(last&&last>=cycle.start&&last<cycle.end);return {...row,anchor_date:anchor,next_slot_at:used?cycle.end:cycle.start,current_cycle_start:cycle.start,current_cycle_end:cycle.end,available_now:!used,next_available_at:used?cycle.end:today}})
-  return {campaigns,schedules,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}
+  const unlimitedPilot=isUnlimitedPilotCompanyKey(companyKey)
+  const schedules=unlimitedPilot?[]:(await pool.query(`SELECT s.company_key,s.benefit_slug,s.anchor_date,s.last_authorized_at,s.last_campaign_id,s.next_slot_at FROM diffusion_benefit_schedules s LEFT JOIN diffusion_campaigns c ON c.id=s.last_campaign_id WHERE s.company_key=$1 AND (s.last_campaign_id IS NULL OR c.id IS NULL OR c.distribution_mode='general' OR c.quota_consumed_at IS NOT NULL) ORDER BY s.benefit_slug`,[companyKey])).rows.map(row=>{const anchor=dateOnly(row.anchor_date);const cycle=monthlyCycle(anchor,today);const last=row.last_authorized_at?argentinaDateString(row.last_authorized_at):null;const used=Boolean(last&&last>=cycle.start&&last<cycle.end);return {...row,anchor_date:anchor,next_slot_at:used?cycle.end:cycle.start,current_cycle_start:cycle.start,current_cycle_end:cycle.end,available_now:!used,next_available_at:used?cycle.end:today}})
+  return {campaigns,schedules,unlimitedPilot,sendIntervalSeconds:Math.ceil(DIFFUSION_SEND_INTERVAL_MS/1000),generatedAt:new Date().toISOString()}
 }
 
 async function adminMonitorPayload({refreshMetrics=false}={}) {
   const active=(await pool.query(`SELECT id,status,sent_count,failed_count,total_recipients,approved_at FROM diffusion_campaigns WHERE status IN ('queued','sending') ORDER BY CASE WHEN status='sending' THEN 0 ELSE 1 END,approved_at,id`)).rows
   let ahead=0; const metrics=new Map(); let queueNumber=0
   for(const row of active){const remaining=Math.max(0,Number(row.total_recipients||0)-Number(row.sent_count||0)-Number(row.failed_count||0));if(row.status==='sending'){metrics.set(String(row.id),{queuePosition:0,estimatedStartAt:new Date().toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(remaining)*1000).toISOString(),remaining})}else{queueNumber+=1;metrics.set(String(row.id),{queuePosition:queueNumber,estimatedStartAt:new Date(Date.now()+queueEtaSeconds(ahead)*1000).toISOString(),estimatedFinishAt:new Date(Date.now()+queueEtaSeconds(ahead+remaining)*1000).toISOString(),remaining})}ahead+=remaining}
-  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
+  let campaigns=(await pool.query(`SELECT c.id,c.company_key,c.company_name,c.benefit_slug,c.benefit_title,c.status,c.safety_status,c.safety_notes,c.test_sent_at,c.test_verified_at,c.approval_requested_at,c.approved_at,c.rejected_at,c.queue_started_at,c.completed_at,c.cancel_requested_at,c.cancelled_at,c.sent_at,c.sent_count,c.failed_count,c.total_recipients,c.distribution_mode,c.quota_consumed_at,c.next_allowed_at,c.queue_note,c.created_at,c.updated_at,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.first_opened_at IS NOT NULL),0) AS opened_recipients,
     NULL::int AS total_opens,
     COALESCE((SELECT COUNT(*)::int FROM diffusion_campaign_queue_recipients q WHERE q.campaign_id=c.id AND q.unsubscribed_at IS NOT NULL),0) AS unsubscribed_count,
@@ -1107,7 +1165,8 @@ app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusi
     const testMode=await testModeEnabled(); const massEnabled=await massDiffusionEnabled()
     const id=safeId(req.params.id); const campaign=id?await getCampaign(id):null; if(!campaign||campaign.status!=='pending')return res.status(409).json({error:'La comunicación no está pendiente de validación.'}); if(campaign.safety_status==='blocked'||!campaign.test_verified_at)return res.status(400).json({error:'La comunicación no superó todos los controles previos.'})
     const forcedTestCompany=isTestCompanyKey(campaign.company_key); const effectiveTestMode=testMode||forcedTestCompany; const generalEnabled=!effectiveTestMode&&massEnabled; const requiredWord=generalEnabled?'ENVIAR':'VALIDAR'; if(req.body.confirmFirst!==true)return res.status(400).json({error:'Falta la primera confirmación de seguridad.'}); if(String(req.body.confirm||'').trim().toUpperCase()!==requiredWord)return res.status(400).json({error:`Para evitar acciones accidentales escribí ${requiredWord} en la segunda confirmación.`})
-    const slot=await benefitSlotStatus(campaign.company_key,campaign.benefit_slug); if(!slot.allowed)return res.status(409).json({error:`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${slot.nextAllowed.split('-').reverse().join('/')}. Los meses no son acumulativos.`,nextAllowed:slot.nextAllowed})
+    const quotaApplies=generalEnabled && !isUnlimitedPilotCompanyKey(campaign.company_key)
+    const slot=quotaApplies?await benefitSlotStatus(campaign.company_key,campaign.benefit_slug):{allowed:true,nextAllowed:null,unlimited:isUnlimitedPilotCompanyKey(campaign.company_key)}; if(!slot.allowed)return res.status(409).json({error:`Este beneficio ya utilizó su oportunidad del ciclo mensual actual. La próxima habilitación será el ${slot.nextAllowed.split('-').reverse().join('/')}. Los meses no son acumulativos.`,nextAllowed:slot.nextAllowed})
     const media=await campaignMedia(id); const baseHtml=campaignEmailHtml(campaign,media.inlineFiles,{unsubscribePreview:true,brandLogo:media.brandLogo})
     if(!effectiveTestMode || isAllowedTestRecipient(campaign.originator_email)){
       await sendDiffusionMail({to:campaign.originator_email,subject:campaign.subject,html:`<div style="background:#e9f8ef;padding:12px;border:1px solid #8ac7a4"><strong>PUBLICACIÓN VALIDADA POR UIC</strong><br>${effectiveTestMode?'Modo PRUEBA activo: esta copia se encuentra dentro de la lista blanca de control.':'Esta copia confirma que la comunicación fue validada. El envío al padrón ingresará ahora en la cola de distribución.'}</div>${baseHtml}`,attachments:media.all})
@@ -1115,9 +1174,9 @@ app.post('/api/admin/difusion/campaigns/:id/approve',requireAdmin,requireDiffusi
     const recipients=await buildQueueRecipients(campaign,massEnabled,effectiveTestMode)
     const client=await pool.connect()
     try{
-      await client.query('BEGIN'); const schedule=await authorizeBenefitSlot(client,campaign); const queued=await queueCampaign(client,campaign,recipients,schedule.nextAllowed); await client.query('COMMIT')
+      await client.query('BEGIN'); const distributionMode=effectiveTestMode?'test_mode':massEnabled?'general':'control_only'; const schedule=quotaApplies?await authorizeBenefitSlot(client,campaign):{nextAllowed:null,unlimited:isUnlimitedPilotCompanyKey(campaign.company_key)}; const queued=await queueCampaign(client,campaign,recipients,schedule.nextAllowed,distributionMode); await client.query('COMMIT')
       const monitor=await monitorPayload(campaign.company_key); const mine=monitor.campaigns.find(item=>String(item.id)===String(id))
-      res.json({...queued,queued:true,massMode:effectiveTestMode?'test_mode':massEnabled?'general':'control_only',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,monitor:mine,testModeEnabled:effectiveTestMode,forcedTestCompany})
+      res.json({...queued,queued:true,massMode:distributionMode,quotaConsumed:distributionMode==='general',recipients:queued.total_recipients,nextAllowed:schedule.nextAllowed,unlimitedPilot:Boolean(schedule.unlimited),monitor:mine,testModeEnabled:effectiveTestMode,forcedTestCompany})
     }catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
   }catch(error){next(error)}
 })
@@ -1135,8 +1194,8 @@ app.get('/api/admin/difusion/campaigns/:id/trace',requireAdmin,requireDiffusionD
 })
 app.post('/api/admin/difusion/campaigns/:id/cancel',requireDiffusionActor,requireDiffusionDatabase,async(req,res,next)=>{
   try{const id=safeId(req.params.id);const campaign=id?await getCampaign(id):null;if(!campaign)return res.status(404).json({error:'Envío no encontrado.'});if(!campaignOwnedByActor(req,campaign))return res.status(403).json({error:'No tenés acceso a este envío.'});if(!['queued','sending'].includes(campaign.status))return res.status(409).json({error:'Este envío ya no puede cancelarse.'});const nextAllowed=campaign.next_allowed_at?dateOnly(campaign.next_allowed_at):null
-    if(campaign.status==='queued'){const cancelled=await finishCancelledCampaign(id);return res.json({...cancelled,cancelled:true,nextAllowed})}
-    const result=await pool.query(`UPDATE diffusion_campaigns SET cancel_requested_at=NOW(),queue_note='Cancelación solicitada. Se detendrá antes del próximo correo pendiente.',updated_at=NOW() WHERE id=$1 RETURNING *`,[id]);res.json({...result.rows[0],cancelRequested:true,nextAllowed,note:'Los correos ya enviados no pueden retirarse. Si había un correo en transmisión al momento de cancelar, ese envío puede completarse; no se iniciarán nuevos destinatarios.'})
+    if(campaign.status==='queued'){const cancelled=await finishCancelledCampaign(id);const unlimitedPilot=isUnlimitedPilotCompanyKey(campaign.company_key);const quotaConsumed=Boolean(campaign.quota_consumed_at||campaign.distribution_mode==='general');return res.json({...cancelled,cancelled:true,nextAllowed:unlimitedPilot||!quotaConsumed?null:nextAllowed,unlimitedPilot,quotaConsumed,note:unlimitedPilot?'Envío cancelado. Tecno Logisti-K S.A. puede crear otra difusión de inmediato.':!quotaConsumed?'Envío de prueba/control cancelado. No consume la oportunidad mensual.':undefined})}
+    const result=await pool.query(`UPDATE diffusion_campaigns SET cancel_requested_at=NOW(),queue_note='Cancelación solicitada. Se detendrá antes del próximo correo pendiente.',updated_at=NOW() WHERE id=$1 RETURNING *`,[id]);const unlimitedPilot=isUnlimitedPilotCompanyKey(campaign.company_key);const quotaConsumed=Boolean(campaign.quota_consumed_at||campaign.distribution_mode==='general');res.json({...result.rows[0],cancelRequested:true,nextAllowed:unlimitedPilot||!quotaConsumed?null:nextAllowed,unlimitedPilot,quotaConsumed,note:unlimitedPilot?'Los correos ya enviados no pueden retirarse. Tecno Logisti-K S.A. conserva oportunidades ilimitadas y podrá crear otra difusión inmediatamente.':!quotaConsumed?'Los correos ya enviados no pueden retirarse. Esta campaña era de prueba/control y no consume la oportunidad mensual.':'Los correos ya enviados no pueden retirarse. Si había un correo en transmisión al momento de cancelar, ese envío puede completarse; no se iniciarán nuevos destinatarios.'})
   }catch(error){next(error)}
 })
 
