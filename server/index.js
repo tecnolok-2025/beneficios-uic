@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5140'
+const GENERATION = 'BENEFICIOS_UIC_5150'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -796,7 +796,7 @@ app.post('/api/difusion/company/register/request',companyAuthLimit,requireDiffus
     if(!company)return res.status(404).json({error:'Empresa no encontrada.'})
     const allowed=authorizedCompanyEmails(company);if(!allowed.length)return res.status(409).json({code:'NO_EMAIL',error:'Esta empresa no tiene un correo habilitado para registrarse. Por favor comuníquese con Administración UIC para incorporar o corregir el correo.'})
     if(!validEmail(email)||!allowed.includes(email))return res.status(403).json({code:'EMAIL_MISMATCH',error:'El correo ingresado no coincide con el correo registrado para esta empresa. Por favor verifique el dato o comuníquese con Administración UIC.'})
-    const existing=await pool.query('SELECT id,active,verified_at FROM diffusion_company_accounts WHERE company_key=$1 AND email=$2',[companyKey,email]);if(existing.rows[0]?.active&&existing.rows[0]?.verified_at)return res.status(409).json({code:'ALREADY_REGISTERED',error:'Esta cuenta ya se encuentra registrada. Utilice Ingresar u Olvidé mi contraseña.'})
+    const existing=await pool.query('SELECT id,active,verified_at FROM diffusion_company_accounts WHERE company_key=$1 AND email=$2',[companyKey,email]);if(existing.rows[0]?.active&&existing.rows[0]?.verified_at&&!company.testMode)return res.status(409).json({code:'ALREADY_REGISTERED',error:'Esta cuenta ya se encuentra registrada. Utilice Ingresar u Olvidé mi contraseña.'})
     const code=sixDigitCode();const hash=codeHash(code,`register:${companyKey}:${email}`);const expires=new Date(Date.now()+15*60*1000)
     await pool.query(`INSERT INTO diffusion_company_accounts (company_key,company_name,email,register_code_hash,register_code_expires_at,updated_at) VALUES ($1,$2,$3,$4,$5,NOW()) ON CONFLICT (company_key,email) DO UPDATE SET company_name=EXCLUDED.company_name,register_code_hash=EXCLUDED.register_code_hash,register_code_expires_at=EXCLUDED.register_code_expires_at,updated_at=NOW()`,[companyKey,company.name,email,hash,expires])
     await sendDiffusionMail({to:email,subject:`Código de registro · Difusión de Beneficios UIC · ${company.name}`,html:`<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#17384c"><h2>Registro de empresa · Difusión de Beneficios UIC</h2><p>Se solicitó registrar el acceso de <strong>${safeText(company.name,250)}</strong>.</p><p>Su código de verificación es:</p><div style="font-size:34px;font-weight:700;letter-spacing:8px;background:#eef7fb;padding:18px;text-align:center;border-radius:10px">${code}</div><p>El código vence en 15 minutos. Si usted no inició este proceso, ignore este mensaje.</p></div>`})

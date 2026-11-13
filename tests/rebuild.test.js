@@ -81,13 +81,13 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación v5.1.4 son coherentes', async () => {
+test('10 · versión y generación v5.1.5 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const html = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.4')
-  assert.match(server, /BENEFICIOS_UIC_5140/)
-  assert.match(html, /BENEFICIOS_UIC_5140/)
+  assert.equal(pkg.version, '5.1.5')
+  assert.match(server, /BENEFICIOS_UIC_5150/)
+  assert.match(html, /BENEFICIOS_UIC_5150/)
 })
 
 
@@ -495,16 +495,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v5.1.4 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v5.1.5 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.4')
+  assert.equal(pkg.version, '5.1.5')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5140/)
-  assert.match(server, /BENEFICIOS_UIC_5140/)
+  assert.match(index, /BENEFICIOS_UIC_5150/)
+  assert.match(server, /BENEFICIOS_UIC_5150/)
 })
 
 
@@ -744,18 +744,18 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · conserva Error Boundary y generación técnica v5.1.4', async () => {
+test('74 · conserva Error Boundary y generación técnica v5.1.5', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.1.4')
+  assert.equal(pkg.version, '5.1.5')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5140/)
+  assert.match(server, /BENEFICIOS_UIC_5150/)
 })
 
 
-test('75 · v5.1.4 restablece los ocho modelos profesionales de Difusión', async () => {
+test('75 · v5.1.5 restablece los ocho modelos profesionales de Difusión', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /CONSTRUCTOR VISUAL UIC/)
   for (const id of ['institutional','gallery4','duo','imageLeft','imageRight','alternating','stacked','editorial']) assert.match(app, new RegExp(`id:'${id}'`))
@@ -815,7 +815,7 @@ test('80 · asistente de composición recomienda modelos según cantidad de imá
 })
 
 
-test('81 · v5.1.4 restaura optimización local de imágenes del constructor', async () => {
+test('81 · v5.1.5 restaura optimización local de imágenes del constructor', async () => {
   const app = await read('src/App.jsx')
   assert.match(app, /async function optimizeEmailImage/)
   assert.match(app, /canvas\.toBlob/)
@@ -1094,7 +1094,7 @@ test('109 · la validación administrativa reconoce empresas de prueba aun con p
 })
 
 
-test('110 · v5.1.4 abre .uicpub multimedia localmente sin fetch ni Neon', async () => {
+test('110 · v5.1.5 abre .uicpub multimedia localmente sin fetch ni Neon', async () => {
   const app = await read('src/App.jsx')
   const reader = app.slice(app.indexOf('async function readLocalPublicationFile'), app.indexOf('function localPublicationFilename'))
   assert.match(reader, /fileToText\(file\)/)
@@ -1193,7 +1193,7 @@ test('121 · v5.0.0 elimina campos de imagen del catálogo y conserva caché tex
   assert.match(server, /PUBLIC_CATALOG_CACHE_MS/)
 })
 
-test('122 · v5.1.4 recupera medios operativos sólo durante prueba-validación-envío', async () => {
+test('122 · v5.1.5 recupera medios operativos sólo durante prueba-validación-envío', async () => {
   const server = await read('server/index.js')
   assert.match(server, /async function campaignMedia\(campaignId/)
   assert.match(server, /FROM diffusion_campaign_files/)
@@ -1203,7 +1203,7 @@ test('122 · v5.1.4 recupera medios operativos sólo durante prueba-validación-
 })
 
 
-test('123 · v5.1.4 recrea tabla transitoria de medios y conserva limpieza segura', async () => {
+test('123 · v5.1.5 recrea tabla transitoria de medios y conserva limpieza segura', async () => {
   const server = await read('server/index.js')
   const schema = await read('server/schema.sql')
   assert.match(server, /cleanupLegacyDiffusionStorage/)
@@ -1215,7 +1215,7 @@ test('123 · v5.1.4 recrea tabla transitoria de medios y conserva limpieza segur
 })
 
 
-test('124 · v5.1.4 audita campañas y bytes transitorios para controlar Neon', async () => {
+test('124 · v5.1.5 audita campañas y bytes transitorios para controlar Neon', async () => {
   const server = await read('server/index.js')
   assert.match(server, /diffusionStorageAudit/)
   assert.match(server, /\/api\/admin\/difusion\/storage-audit/)
@@ -1325,12 +1325,12 @@ test('135 · v4.0.4 expone Monitor de envíos desde la portada pública y abre f
   assert.match(app, /No se muestran datos de otras empresas/)
 })
 
-test('136 · v5.1.4 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
+test('136 · v5.1.5 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5140/)
+  assert.match(html, /boot-recovery\.js\?v=5150/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1415,7 +1415,7 @@ test('141 · v4.0.8 incorpora 32 contactos depurados sin reemplazar correos vige
 })
 
 
-test('142 · v5.1.4 mantiene catálogo sin imágenes y restaura medios sólo para Difusión', async () => {
+test('142 · v5.1.5 mantiene catálogo sin imágenes y restaura medios sólo para Difusión', async () => {
   const [schema, server, app] = await Promise.all([
     fs.readFile(path.join(root, 'server/schema.sql'), 'utf8'),
     fs.readFile(path.join(root, 'server/index.js'), 'utf8'),
@@ -1615,7 +1615,7 @@ test('157 · v5.1.3 refuerza retorno al portal y manual público sin datos sensi
 })
 
 
-test('158 · v5.1.4 un rechazo no consume la oportunidad mensual y permite rehacer la difusión', async () => {
+test('158 · v5.1.5 un rechazo no consume la oportunidad mensual y permite rehacer la difusión', async () => {
   const server = await read('server/index.js')
   const rejectStart = server.indexOf("app.post('/api/admin/difusion/campaigns/:id/reject'")
   const approveStart = server.indexOf("app.post('/api/admin/difusion/campaigns/:id/approve'", rejectStart)
@@ -1626,4 +1626,14 @@ test('158 · v5.1.4 un rechazo no consume la oportunidad mensual y permite rehac
   assert.doesNotMatch(rejectBlock, /diffusion_benefit_schedules/)
   const approveBlock = server.slice(approveStart, server.indexOf("app.get('/api/admin/difusion/campaigns/:id/trace'", approveStart))
   assert.match(approveBlock, /authorizeBenefitSlot/)
+})
+
+
+test('159 · v5.1.5 permite reactivar el acceso piloto sin abrir esa excepción a empresas reales', async () => {
+  const server = await read('server/index.js')
+  const app = await read('src/App.jsx')
+  assert.match(server, /existing\.rows\[0\]\?\.active&&existing\.rows\[0\]\?\.verified_at&&!company\.testMode/)
+  assert.match(server, /if\(!validEmail\(email\)\|\|!allowed\.includes\(email\)\)return res\.status\(403\)/)
+  assert.match(app, /podés usar Registrarme nuevamente/)
+  assert.match(app, /código al correo autorizado/)
 })
