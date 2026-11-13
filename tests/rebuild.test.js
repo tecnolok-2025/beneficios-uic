@@ -86,9 +86,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.1.2')
-  assert.match(server, /BENEFICIOS_UIC_5120/)
-  assert.match(html, /BENEFICIOS_UIC_5120/)
+  assert.equal(pkg.version, '5.1.3')
+  assert.match(server, /BENEFICIOS_UIC_5130/)
+  assert.match(html, /BENEFICIOS_UIC_5130/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -500,11 +500,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.2')
+  assert.equal(pkg.version, '5.1.3')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5120/)
-  assert.match(server, /BENEFICIOS_UIC_5120/)
+  assert.match(index, /BENEFICIOS_UIC_5130/)
+  assert.match(server, /BENEFICIOS_UIC_5130/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -747,10 +747,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.1.2')
+  assert.equal(pkg.version, '5.1.3')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5120/)
+  assert.match(server, /BENEFICIOS_UIC_5130/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1208,12 +1208,12 @@ test('124 · v5.0.0 conserva auditoría de campañas sin consultar bytes binario
 })
 
 
-test('125 · v4.0.4 incorpora manual PDF descargable desde portada', async () => {
+test('125 · v5.1.3 incorpora manual PDF actualizado descargable desde portada', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
-  const manual = await fs.readFile(path.join(root, 'public/Beneficios UIC v4.0.4.pdf'))
+  const manual = await fs.readFile(path.join(root, 'public/Manual Beneficios UIC v5.1.3.pdf'))
   assert.ok(manual.length > 100000)
-  assert.match(app, /Descargar manual v4\.0\.4/)
-  assert.match(app, /Beneficios%20UIC%20v4\.0\.4\.pdf/)
+  assert.match(app, /Descargar manual v5\.1\.3/)
+  assert.match(app, /Manual%20Beneficios%20UIC%20v5\.1\.3\.pdf/)
 })
 
 
@@ -1313,7 +1313,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5120/)
+  assert.match(html, /boot-recovery\.js\?v=5130/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1428,7 +1428,7 @@ test('144 · v5.1.0 conserva accesos originales y suma el registro público con 
   assert.match(app, />Difusión de Beneficios</)
   assert.match(app, />Monitor de envíos</)
   assert.match(app, />Registrar usuario</)
-  assert.match(app, />Descargar manual v4\.0\.4</)
+  assert.match(app, />Descargar manual v5\.1\.3</)
   assert.doesNotMatch(app, /Descubrir beneficios de nuevos acuerdos/)
   assert.match(styles, /neo-hero-buttons-v510/)
   assert.match(styles, /grid-template-columns:repeat\(5/)
@@ -1583,4 +1583,14 @@ test('156 · v5.1.2 renombra el acceso público a Registrar usuario y conserva s
   assert.match(app, /Registro de usuario para recibir beneficios/)
   assert.match(app, /\/api\/difusion\/contact-requests/)
   assert.match(server, /engagement_stars/)
+})
+
+
+test('157 · v5.1.3 refuerza retorno al portal y manual público sin datos sensibles', async () => {
+  const app = await read('src/App.jsx')
+  const manual = await fs.readFile(path.join(root, 'public/Manual Beneficios UIC v5.1.3.pdf'))
+  assert.ok(manual.length > 200000)
+  assert.match(app, /neo-page-return/)
+  assert.match(app, /Volver al Portal de Beneficios/)
+  assert.match(app, /Descargar manual v5\.1\.3/)
 })
