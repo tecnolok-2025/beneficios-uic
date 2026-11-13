@@ -217,9 +217,20 @@ ALTER TABLE diffusion_campaign_queue_recipients ADD COLUMN IF NOT EXISTS unsubsc
 CREATE INDEX IF NOT EXISTS diffusion_queue_recipient_open_idx ON diffusion_campaign_queue_recipients(campaign_id, first_opened_at);
 
 
--- v5.0.0 · política de almacenamiento sólo texto.
--- DROP libera las relaciones BYTEA históricas y evita que sigan consumiendo almacenamiento en Neon.
-DROP TABLE IF EXISTS diffusion_campaign_files;
+-- v5.1.4 · beneficios publicados sólo texto + medios transitorios exclusivos de Difusión.
+-- El archivo de trabajo permanente de cada empresa continúa siendo .uicpub local.
+CREATE TABLE IF NOT EXISTS diffusion_campaign_files (
+  id BIGSERIAL PRIMARY KEY,
+  campaign_id BIGINT NOT NULL REFERENCES diffusion_campaigns(id) ON DELETE CASCADE,
+  filename TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL DEFAULT 0,
+  file_data BYTEA NOT NULL,
+  placement TEXT NOT NULL DEFAULT 'attachment',
+  position INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS diffusion_campaign_files_campaign_idx ON diffusion_campaign_files(campaign_id,placement,position);
 DROP TABLE IF EXISTS flyers;
 ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_url;
 ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_alt;
