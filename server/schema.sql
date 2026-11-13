@@ -223,3 +223,29 @@ DROP TABLE IF EXISTS diffusion_campaign_files;
 DROP TABLE IF EXISTS flyers;
 ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_url;
 ALTER TABLE benefits DROP COLUMN IF EXISTS external_image_alt;
+
+-- v5.1.0 · autoregistro público de destinatarios con validación administrativa previa.
+CREATE TABLE IF NOT EXISTS diffusion_contact_requests (
+  id BIGSERIAL PRIMARY KEY,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  company_name TEXT NOT NULL,
+  cuit TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL DEFAULT '',
+  is_uic_member BOOLEAN NOT NULL,
+  activity_type TEXT NOT NULL CHECK (activity_type IN ('fabricacion','logistica','servicios','ninguna')),
+  consent BOOLEAN NOT NULL DEFAULT TRUE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  existing_recipient_id BIGINT REFERENCES diffusion_recipients(id) ON DELETE SET NULL,
+  review_note TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  reviewed_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS diffusion_contact_requests_status_idx ON diffusion_contact_requests(status, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS diffusion_contact_requests_pending_email_idx
+  ON diffusion_contact_requests ((LOWER(TRIM(email)))) WHERE status='pending';
+
+-- v5.1.0 · clasificación productiva del padrón para segmentación futura.
+ALTER TABLE diffusion_recipients ADD COLUMN IF NOT EXISTS activity_type TEXT NOT NULL DEFAULT '';

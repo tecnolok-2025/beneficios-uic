@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5060'
+const GENERATION = 'BENEFICIOS_UIC_5100'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -757,6 +757,7 @@ function isTestCompanyKey(companyKey){ const key=String(companyKey||'').trim(); 
 
 
 const companyAuthLimit=rateLimit({windowMs:15*60*1000,limit:20,standardHeaders:true,legacyHeaders:false})
+const publicContactRequestLimit=rateLimit({windowMs:15*60*1000,limit:8,standardHeaders:true,legacyHeaders:false})
 app.get('/api/difusion/companies', async (_req,res,next)=>{
   try{const companies=await buildDiffusionCompanies();res.json(companies.map(c=>({key:c.key,name:c.name,benefitCount:c.benefits.length,benefits:c.benefits,hasRegisteredEmail:c.hasRegisteredEmail,testMode:Boolean(c.testMode)})))}catch(error){next(error)}
 })
@@ -916,6 +917,72 @@ app.put('/api/admin/difusion/recipients/:id', requireAdmin, requireDiffusionData
 
 app.post('/api/admin/difusion/recipients/:id/reactivate', requireAdmin, requireDiffusionDatabase, async(req,res,next)=>{
   try{const id=safeId(req.params.id);if(!id)return res.status(400).json({error:'Destinatario inválido'});const result=await pool.query(`UPDATE diffusion_recipients SET opted_out_at=NULL,opted_out_reason='',enabled=email_valid,updated_at=NOW() WHERE id=$1 RETURNING *`,[id]);if(!result.rows[0])return res.status(404).json({error:'Destinatario no encontrado'});res.json(result.rows[0])}catch(error){next(error)}
+})
+
+
+app.post('/api/difusion/contact-requests', publicContactRequestLimit, requireDiffusionDatabase, async(req,res,next)=>{
+  try{
+    if(safeText(req.body.website,200)) return res.json({submitted:true})
+    const firstName=safeText(req.body.firstName,100); const lastName=safeText(req.body.lastName,100); const companyName=safeText(req.body.companyName,250)
+    const cuit=safeText(req.body.cuit,20); const email=normalizeEmail(req.body.email); const confirmEmail=normalizeEmail(req.body.confirmEmail); const phone=safeText(req.body.phone,100)
+    const memberRaw=String(req.body.isUicMember||'').trim().toLowerCase(); const activityType=safeText(req.body.activityType,30); const consent=req.body.consent===true
+    const humanConfirmed=req.body.humanConfirmed===true; const confirmationWord=safeText(req.body.confirmationWord,30).trim().toUpperCase()
+    if(firstName.length<2) return res.status(400).json({error:'Ingresá tu nombre.'})
+    if(lastName.length<2) return res.status(400).json({error:'Ingresá tu apellido.'})
+    if(companyName.length<2) return res.status(400).json({error:'Ingresá el nombre de la empresa o institución.'})
+    if(!validEmail(email)) return res.status(400).json({error:'Ingresá un correo electrónico válido.'})
+    if(email!==confirmEmail) return res.status(400).json({error:'Los dos correos electrónicos deben coincidir.'})
+    if(!['si','no'].includes(memberRaw)) return res.status(400).json({error:'Indicá si la empresa es socia de la UIC.'})
+    if(!['fabricacion','logistica','servicios','ninguna'].includes(activityType)) return res.status(400).json({error:'Elegí la actividad principal o “Ninguna / no aplica”.'})
+    if(!consent) return res.status(400).json({error:'Para registrarte tenés que aceptar la recepción de comunicaciones de beneficios.'})
+    if(!humanConfirmed) return res.status(400).json({error:'Confirmá que revisaste los datos y que querés enviar la solicitud.'})
+    if(confirmationWord!=='REGISTRARME') return res.status(400).json({error:'Escribí la palabra REGISTRARME para confirmar el envío.'})
+    const existing=(await pool.query(`SELECT id FROM diffusion_recipients WHERE LOWER(TRIM(email))=LOWER(TRIM($1)) AND COALESCE(TRIM(email),'')<>'' ORDER BY id LIMIT 1`,[email])).rows[0]||null
+    const params=[firstName,lastName,companyName,cuit,email,phone,memberRaw==='si',activityType,existing?.id||null]
+    await pool.query(`INSERT INTO diffusion_contact_requests (first_name,last_name,company_name,cuit,email,phone,is_uic_member,activity_type,consent,existing_recipient_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,TRUE,$9)
+      ON CONFLICT ((LOWER(TRIM(email)))) WHERE status='pending'
+      DO UPDATE SET first_name=EXCLUDED.first_name,last_name=EXCLUDED.last_name,company_name=EXCLUDED.company_name,cuit=EXCLUDED.cuit,phone=EXCLUDED.phone,is_uic_member=EXCLUDED.is_uic_member,activity_type=EXCLUDED.activity_type,consent=TRUE,existing_recipient_id=EXCLUDED.existing_recipient_id,updated_at=NOW()`,params)
+    res.status(201).json({submitted:true})
+  }catch(error){next(error)}
+})
+
+app.get('/api/admin/difusion/contact-requests', requireAdmin, requireDiffusionDatabase, async(req,res,next)=>{
+  try{
+    const status=safeText(req.query.status,20)||'pending'; if(!['pending','approved','rejected','all'].includes(status)) return res.status(400).json({error:'Estado inválido'})
+    const result=await pool.query(`SELECT r.*,d.company_name AS existing_company_name,d.contact_name AS existing_contact_name,d.enabled AS existing_enabled,d.opted_out_at AS existing_opted_out_at FROM diffusion_contact_requests r LEFT JOIN diffusion_recipients d ON d.id=r.existing_recipient_id ${status==='all'?'':'WHERE r.status=$1'} ORDER BY r.created_at DESC LIMIT 500`,status==='all'?[]:[status])
+    res.json(result.rows)
+  }catch(error){next(error)}
+})
+
+app.post('/api/admin/difusion/contact-requests/approve', requireAdmin, requireDiffusionDatabase, async(req,res,next)=>{
+  const ids=Array.isArray(req.body.ids)?[...new Set(req.body.ids.map(safeId).filter(Boolean))].slice(0,500):[]; if(!ids.length)return res.status(400).json({error:'Seleccioná al menos un contacto.'})
+  const client=await pool.connect(); let approved=0,created=0,enriched=0
+  try{
+    await client.query('BEGIN')
+    const requests=(await client.query(`SELECT * FROM diffusion_contact_requests WHERE id=ANY($1::bigint[]) AND status='pending' ORDER BY id FOR UPDATE`,[ids])).rows
+    for(const row of requests){
+      const email=normalizeEmail(row.email); const contactName=`${safeText(row.first_name,100)} ${safeText(row.last_name,100)}`.trim(); const activityLabel=row.activity_type==='fabricacion'?'Fabricación':row.activity_type==='logistica'?'Logística':row.activity_type==='servicios'?'Servicios':'Ninguna / no aplica'
+      const note=`Autoregistro Portal de Beneficios · Actividad: ${activityLabel} · Declaración socio UIC: ${row.is_uic_member?'Sí':'No'}`
+      const existing=(await client.query(`SELECT * FROM diffusion_recipients WHERE LOWER(TRIM(email))=LOWER(TRIM($1)) AND COALESCE(TRIM(email),'')<>'' ORDER BY id LIMIT 1 FOR UPDATE`,[email])).rows[0]
+      let recipientId
+      if(existing){
+        const mergedNotes=existing.notes?.includes('Autoregistro Portal de Beneficios')?existing.notes:[existing.notes,note].filter(Boolean).join(' · ')
+        const updated=(await client.query(`UPDATE diffusion_recipients SET company_name=CASE WHEN COALESCE(TRIM(company_name),'')='' THEN $1 ELSE company_name END,contact_name=CASE WHEN COALESCE(TRIM(contact_name),'')='' THEN $2 ELSE contact_name END,cuit=CASE WHEN COALESCE(TRIM(cuit),'')='' THEN $3 ELSE cuit END,phone=CASE WHEN COALESCE(TRIM(phone),'')='' THEN $4 ELSE phone END,activity_type=CASE WHEN COALESCE(TRIM(activity_type),'')='' THEN $5 ELSE activity_type END,notes=$6,updated_at=NOW() WHERE id=$7 RETURNING id`,[row.company_name,contactName,row.cuit,row.phone,row.activity_type,mergedNotes,existing.id])).rows[0]
+        recipientId=updated.id; enriched++
+      }else{
+        const sourceType=row.is_uic_member?'socio':'manual'; const sourceKey=`${sourceType}:self:${crypto.randomUUID()}`
+        const inserted=(await client.query(`INSERT INTO diffusion_recipients (source_key,source_type,company_name,contact_name,cuit,email,phone,activity_type,enabled,email_valid,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,TRUE,TRUE,$9) RETURNING id`,[sourceKey,sourceType,row.company_name,contactName,row.cuit,email,row.phone,row.activity_type,note])).rows[0]
+        recipientId=inserted.id; created++
+      }
+      await client.query(`UPDATE diffusion_contact_requests SET status='approved',existing_recipient_id=$1,reviewed_at=NOW(),updated_at=NOW() WHERE id=$2`,[recipientId,row.id]); approved++
+    }
+    await client.query('COMMIT'); res.json({approved,created,enriched})
+  }catch(error){await client.query('ROLLBACK');next(error)}finally{client.release()}
+})
+
+app.post('/api/admin/difusion/contact-requests/delete', requireAdmin, requireDiffusionDatabase, async(req,res,next)=>{
+  try{const ids=Array.isArray(req.body.ids)?[...new Set(req.body.ids.map(safeId).filter(Boolean))].slice(0,500):[];if(!ids.length)return res.status(400).json({error:'Seleccioná al menos un contacto.'});const result=await pool.query(`DELETE FROM diffusion_contact_requests WHERE id=ANY($1::bigint[]) AND status='pending' RETURNING id`,[ids]);res.json({deleted:result.rowCount})}catch(error){next(error)}
 })
 
 const campaignUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:8}})

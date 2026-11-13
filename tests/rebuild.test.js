@@ -86,9 +86,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.0.6')
-  assert.match(server, /BENEFICIOS_UIC_5060/)
-  assert.match(html, /BENEFICIOS_UIC_5060/)
+  assert.equal(pkg.version, '5.1.0')
+  assert.match(server, /BENEFICIOS_UIC_5100/)
+  assert.match(html, /BENEFICIOS_UIC_5100/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -500,11 +500,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.0.6')
+  assert.equal(pkg.version, '5.1.0')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5060/)
-  assert.match(server, /BENEFICIOS_UIC_5060/)
+  assert.match(index, /BENEFICIOS_UIC_5100/)
+  assert.match(server, /BENEFICIOS_UIC_5100/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -747,10 +747,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.0.6')
+  assert.equal(pkg.version, '5.1.0')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5060/)
+  assert.match(server, /BENEFICIOS_UIC_5100/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1313,7 +1313,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5060/)
+  assert.match(html, /boot-recovery\.js\?v=5100/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1421,17 +1421,18 @@ test('143 · v5.0.0 agrega aviso de no responder y Hacete socio al correo', asyn
 })
 
 
-test('144 · v5.0.1 deja cuatro accesos pictóricos con nombres originales', async () => {
+test('144 · v5.1.0 conserva accesos originales y suma Recibir beneficios con mayor legibilidad', async () => {
   const app = await read('src/App.jsx')
   const styles = await read('src/styles.css')
   assert.match(app, />Descubrir beneficios</)
   assert.match(app, />Difusión de Beneficios</)
   assert.match(app, />Monitor de envíos</)
+  assert.match(app, />Recibir beneficios</)
   assert.match(app, />Descargar manual v4\.0\.4</)
   assert.doesNotMatch(app, /Descubrir beneficios de nuevos acuerdos/)
-  assert.match(styles, /neo-hero-buttons-v501/)
-  assert.match(styles, /clip-path:polygon/)
-  assert.match(styles, /grid-template-columns:repeat\(4/)
+  assert.match(styles, /neo-hero-buttons-v510/)
+  assert.match(styles, /grid-template-columns:repeat\(5/)
+  assert.match(styles, /min-height:72px/)
 })
 
 
@@ -1485,4 +1486,67 @@ test('148 · v5.0.6 elimina accesos rápidos promocionales del buscador', async 
   assert.doesNotMatch(app, /\['DNV','CEOP','TIBEST','Praxis'\]/)
   assert.match(app, /placeholder="Buscá por empresa, servicio o palabra clave…"/)
   assert.match(app, /Búsqueda flexible:/)
+})
+
+
+test('149 · v5.1.0 agrega autoregistro público con validaciones obligatorias', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /function ReceiveBenefitsRegistration/)
+  assert.match(app, /Nombre \*/)
+  assert.match(app, /Apellido \*/)
+  assert.match(app, /Empresa \/ institución \*/)
+  assert.match(app, /Repetir correo electrónico \*/)
+  assert.match(app, /¿Es socio de la UIC\? \*/)
+  assert.match(app, /Fabricación/)
+  assert.match(app, /Logística/)
+  assert.match(app, /Servicios/)
+  assert.match(app, /Ninguna \/ no aplica/)
+  assert.match(server, /app\.post\('\/api\/difusion\/contact-requests'/)
+  assert.match(server, /Los dos correos electrónicos deben coincidir/)
+  assert.match(server, /publicContactRequestLimit/)
+})
+
+test('150 · v5.1.0 incorpora cola administrativa Nuevos contactos sin alta automática', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  const schema = await read('server/schema.sql')
+  assert.match(app, /Nuevos contactos/)
+  assert.match(app, /Aprobar todos/)
+  assert.match(app, /Rechazar todos/)
+  assert.match(app, /Guardar decisiones/)
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS diffusion_contact_requests/)
+  assert.match(schema, /status TEXT NOT NULL DEFAULT 'pending'/)
+  assert.match(schema, /ALTER TABLE diffusion_recipients ADD COLUMN IF NOT EXISTS activity_type/)
+  assert.match(server, /\/api\/admin\/difusion\/contact-requests\/approve/)
+  assert.match(server, /\/api\/admin\/difusion\/contact-requests\/delete/)
+  assert.match(server, /DELETE FROM diffusion_contact_requests/)
+})
+
+test('151 · v5.1.0 deduplica por email y sólo enriquece campos vacíos al aprobar', async () => {
+  const server = await read('server/index.js')
+  assert.match(server, /LOWER\(TRIM\(email\)\)=LOWER\(TRIM\(\$1\)\)/)
+  assert.match(server, /COALESCE\(TRIM\(company_name\),''\)=''/)
+  assert.match(server, /THEN \$1 ELSE company_name END/)
+  assert.match(server, /sourceType=row\.is_uic_member\?'socio':'manual'/)
+  assert.doesNotMatch(server, /UPDATE diffusion_recipients SET enabled=TRUE.*contact-requests/s)
+})
+
+
+test('152 · v5.1.0 final exige doble confirmación humana antes del autoregistro', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /Estoy seguro/)
+  assert.match(app, /REGISTRARME/)
+  assert.match(server, /humanConfirmed/)
+  assert.match(server, /confirmationWord!=='REGISTRARME'/)
+})
+
+test('153 · v5.1.0 final rechaza eliminando la solicitud pendiente y confirma en interfaz', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(app, /se eliminarán completamente de la cola de nuevos contactos/)
+  assert.match(app, /Guardar decisiones/)
+  assert.match(server, /contact-requests\/delete/)
+  assert.match(server, /DELETE FROM diffusion_contact_requests WHERE id=ANY/)
 })
