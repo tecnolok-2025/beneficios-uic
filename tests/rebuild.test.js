@@ -81,13 +81,13 @@ test('09 · el catálogo local continúa como respaldo sin borrar Neon', async (
   assert.match(server, /return \[\]/)
 })
 
-test('10 · versión y generación v5.1.6 son coherentes', async () => {
+test('10 · versión y generación v5.1.7 son coherentes', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const html = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.6')
-  assert.match(server, /BENEFICIOS_UIC_5160/)
-  assert.match(html, /BENEFICIOS_UIC_5160/)
+  assert.equal(pkg.version, '5.1.7')
+  assert.match(server, /BENEFICIOS_UIC_5170/)
+  assert.match(html, /BENEFICIOS_UIC_5170/)
 })
 
 
@@ -495,16 +495,16 @@ test('48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres de
   assert.match(server, /isAllowedTestRecipient/)
 })
 
-test('49 · v5.1.6 identifica versión, generación y dependencia SMTP', async () => {
+test('49 · v5.1.7 identifica versión, generación y dependencia SMTP', async () => {
   const pkg = JSON.parse(await read('package.json'))
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.6')
+  assert.equal(pkg.version, '5.1.7')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5160/)
-  assert.match(server, /BENEFICIOS_UIC_5160/)
+  assert.match(index, /BENEFICIOS_UIC_5170/)
+  assert.match(server, /BENEFICIOS_UIC_5170/)
 })
 
 
@@ -744,14 +744,14 @@ test('73 · v3.9.6 protege restauraciones BFCache', async () => {
   assert.match(app, /addEventListener\('pageshow', restore\)/)
 })
 
-test('74 · conserva Error Boundary y generación técnica v5.1.6', async () => {
+test('74 · conserva Error Boundary y generación técnica v5.1.7', async () => {
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.1.6')
+  assert.equal(pkg.version, '5.1.7')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5160/)
+  assert.match(server, /BENEFICIOS_UIC_5170/)
 })
 
 
@@ -1325,12 +1325,12 @@ test('135 · v4.0.4 expone Monitor de envíos desde la portada pública y abre f
   assert.match(app, /No se muestran datos de otras empresas/)
 })
 
-test('136 · v5.1.6 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
+test('136 · v5.1.7 fuerza actualización visual y expone Monitor también en menú móvil', async () => {
   const app = await fs.readFile(path.join(root, 'src/App.jsx'), 'utf8')
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5160/)
+  assert.match(html, /boot-recovery\.js\?v=5170/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1654,4 +1654,12 @@ test('160 · v5.1.6 audita cupos: TLK ilimitada, prueba/control no consume y só
   assert.match(server, /DELETE FROM diffusion_benefit_schedules WHERE company_key=\$1 RETURNING last_campaign_id/)
   assert.match(schema, /distribution_mode TEXT NOT NULL DEFAULT ''/)
   assert.match(schema, /quota_consumed_at TIMESTAMPTZ/)
+})
+
+test('El editor importa el ícono que utiliza el control de logo de la firma', async () => {
+  const app = await read('src/App.jsx')
+  const icons = app.match(/import\s*\{([^{}]*)\}\s*from 'lucide-react'/)
+  assert.ok(icons)
+  assert.ok(icons[1].split(',').map(name => name.trim()).includes('ImagePlus'))
+  assert.match(app, /<ImagePlus\s*\/>/)
 })
