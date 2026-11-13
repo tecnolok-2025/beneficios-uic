@@ -1,0 +1,920 @@
+
+> beneficios-uic@5.1.0 test
+> node --test
+
+TAP version 13
+# Subtest: 01 · conserva la base v3.7.1 y llega a 51 fichas sin duplicar Praxis
+ok 1 - 01 · conserva la base v3.7.1 y llega a 51 fichas sin duplicar Praxis
+  ---
+  duration_ms: 14.501225
+  type: 'test'
+  ...
+# Subtest: 02 · mantiene los rubros existentes y suma Certificación y calidad
+ok 2 - 02 · mantiene los rubros existentes y suma Certificación y calidad
+  ---
+  duration_ms: 2.097068
+  type: 'test'
+  ...
+# Subtest: 03 · estados y slugs quedan coherentes con la revisión 3.8.0
+ok 3 - 03 · estados y slugs quedan coherentes con la revisión 3.8.0
+  ---
+  duration_ms: 1.607919
+  type: 'test'
+  ...
+# Subtest: 04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro
+ok 4 - 04 · Escuela Técnica Roberto Rocca se conserva sin cambios de rubro
+  ---
+  duration_ms: 1.163287
+  type: 'test'
+  ...
+# Subtest: 05 · v5.0.1 elimina el acceso de nuevos acuerdos y conserva el catálogo sin ese filtro
+ok 5 - 05 · v5.0.1 elimina el acceso de nuevos acuerdos y conserva el catálogo sin ese filtro
+  ---
+  duration_ms: 1.499325
+  type: 'test'
+  ...
+# Subtest: 06 · Actualizar versión sigue trabajando dentro del portal
+ok 6 - 06 · Actualizar versión sigue trabajando dentro del portal
+  ---
+  duration_ms: 1.298302
+  type: 'test'
+  ...
+# Subtest: 07 · la vista móvil conserva una sola columna de tarjetas
+ok 7 - 07 · la vista móvil conserva una sola columna de tarjetas
+  ---
+  duration_ms: 5.197472
+  type: 'test'
+  ...
+# Subtest: 08 · Neon preserva CRUD y suma contactos y múltiples convenios editables
+ok 8 - 08 · Neon preserva CRUD y suma contactos y múltiples convenios editables
+  ---
+  duration_ms: 3.826541
+  type: 'test'
+  ...
+# Subtest: 09 · el catálogo local continúa como respaldo sin borrar Neon
+ok 9 - 09 · el catálogo local continúa como respaldo sin borrar Neon
+  ---
+  duration_ms: 1.307074
+  type: 'test'
+  ...
+# Subtest: 10 · versión y generación 5.0.0 son coherentes
+ok 10 - 10 · versión y generación 5.0.0 son coherentes
+  ---
+  duration_ms: 1.848122
+  type: 'test'
+  ...
+# Subtest: 11 · control anticaché y neutralización de service workers siguen activos
+ok 11 - 11 · control anticaché y neutralización de service workers siguen activos
+  ---
+  duration_ms: 1.19817
+  type: 'test'
+  ...
+# Subtest: 12 · detalle duplica textos pequeños y agrega directorio de contactos
+ok 12 - 12 · detalle duplica textos pequeños y agrega directorio de contactos
+  ---
+  duration_ms: 1.566797
+  type: 'test'
+  ...
+# Subtest: 13 · Praxis está en Dto. Finanzas Corporativas y Render conserva el servicio actual
+ok 13 - 13 · Praxis está en Dto. Finanzas Corporativas y Render conserva el servicio actual
+  ---
+  duration_ms: 1.45018
+  type: 'test'
+  ...
+# Subtest: 14 · administración incorpora buscador flexible por beneficio, empresa y palabras clave
+ok 14 - 14 · administración incorpora buscador flexible por beneficio, empresa y palabras clave
+  ---
+  duration_ms: 1.904397
+  type: 'test'
+  ...
+# Subtest: 15 · cabecera usa el logo UIC oficial incluido en la entrega
+ok 15 - 15 · cabecera usa el logo UIC oficial incluido en la entrega
+  ---
+  duration_ms: 4.009066
+  type: 'test'
+  ...
+# Subtest: 16 · empresa o prestador recibe mayor jerarquía visual
+ok 16 - 16 · empresa o prestador recibe mayor jerarquía visual
+  ---
+  duration_ms: 3.268127
+  type: 'test'
+  ...
+# Subtest: 17 · auditoría mantiene Neon con migración aditiva y refuerza casos límite
+ok 17 - 17 · auditoría mantiene Neon con migración aditiva y refuerza casos límite
+  ---
+  duration_ms: 1.349238
+  type: 'test'
+  ...
+# Subtest: 18 · asociación queda unificada como Hacete socio
+ok 18 - 18 · asociación queda unificada como Hacete socio
+  ---
+  duration_ms: 0.806909
+  type: 'test'
+  ...
+# Subtest: 19 · los 51 beneficios quedan completos con contacto y convenio, sin campos visuales
+ok 19 - 19 · los 51 beneficios quedan completos con contacto y convenio, sin campos visuales
+  ---
+  duration_ms: 1.391532
+  type: 'test'
+  ...
+# Subtest: 20 · Paseo Gavazzi corrige SYGSA y muestra juntos los dos convenios
+ok 20 - 20 · Paseo Gavazzi corrige SYGSA y muestra juntos los dos convenios
+  ---
+  duration_ms: 1.017106
+  type: 'test'
+  ...
+# Subtest: Villa Dálmine queda como beneficio 26 con contactos y sin imagen
+ok 21 - Villa Dálmine queda como beneficio 26 con contactos y sin imagen
+  ---
+  duration_ms: 1.070467
+  type: 'test'
+  ...
+# Subtest: 21 · v3.8.0 conserva búsqueda pública e identidad industrial premium
+ok 22 - 21 · v3.8.0 conserva búsqueda pública e identidad industrial premium
+  ---
+  duration_ms: 1.416059
+  type: 'test'
+  ...
+# Subtest: 22 · motor de búsqueda encuentra Dálmine por tilde, fragmento y pequeño error
+ok 23 - 22 · motor de búsqueda encuentra Dálmine por tilde, fragmento y pequeño error
+  ---
+  duration_ms: 76.308751
+  type: 'test'
+  ...
+# Subtest: 23 · motor de búsqueda indexa rubros, contactos y palabras del contenido
+ok 24 - 23 · motor de búsqueda indexa rubros, contactos y palabras del contenido
+  ---
+  duration_ms: 60.760685
+  type: 'test'
+  ...
+# Subtest: 24 · nuevas categorías y seis incorporaciones quedan presentes
+ok 25 - 24 · nuevas categorías y seis incorporaciones quedan presentes
+  ---
+  duration_ms: 1.854871
+  type: 'test'
+  ...
+# Subtest: 25 · Affinity conserva contacto y enlace suministrados
+ok 26 - 25 · Affinity conserva contacto y enlace suministrados
+  ---
+  duration_ms: 1.385684
+  type: 'test'
+  ...
+# Subtest: 26 · las seis nuevas fichas quedan exclusivamente textuales
+ok 27 - 26 · las seis nuevas fichas quedan exclusivamente textuales
+  ---
+  duration_ms: 1.013011
+  type: 'test'
+  ...
+# Subtest: 27 · buscador encuentra las nuevas categorías y nombres
+ok 28 - 27 · buscador encuentra las nuevas categorías y nombres
+  ---
+  duration_ms: 66.93398
+  type: 'test'
+  ...
+# Subtest: 28 · v3.8.0 conserva la migración no destructiva de Affinity en Neon
+ok 29 - 28 · v3.8.0 conserva la migración no destructiva de Affinity en Neon
+  ---
+  duration_ms: 4.187426
+  type: 'test'
+  ...
+# Subtest: 29 · categoría UIPBA contiene 13 beneficios con cinco activos y ocho a validar
+ok 30 - 29 · categoría UIPBA contiene 13 beneficios con cinco activos y ocho a validar
+  ---
+  duration_ms: 1.866069
+  type: 'test'
+  ...
+# Subtest: 30 · Open English usa la pieza adjunta y condiciones comunicadas
+ok 31 - 30 · Open English usa la pieza adjunta y condiciones comunicadas
+  ---
+  duration_ms: 1.440066
+  type: 'test'
+  ...
+# Subtest: 31 · portal muestra botón UIPBA y aviso A CHEQUEAR VALIDACIÓN
+ok 32 - 31 · portal muestra botón UIPBA y aviso A CHEQUEAR VALIDACIÓN
+  ---
+  duration_ms: 1.392614
+  type: 'test'
+  ...
+# Subtest: 32 · incorpora RED SUMMA como acuerdo institucional con contacto externo y pieza adjunta
+ok 33 - 32 · incorpora RED SUMMA como acuerdo institucional con contacto externo y pieza adjunta
+  ---
+  duration_ms: 5.745679
+  type: 'test'
+  ...
+# Subtest: 33 · incorpora CADEMA BUREAU como beneficio inmobiliario empresarial
+ok 34 - 33 · incorpora CADEMA BUREAU como beneficio inmobiliario empresarial
+  ---
+  duration_ms: 1.642251
+  type: 'test'
+  ...
+# Subtest: 34 · incorpora GlobalPorts en Eventos y exposiciones con vencimiento 2026
+ok 35 - 34 · incorpora GlobalPorts en Eventos y exposiciones con vencimiento 2026
+  ---
+  duration_ms: 1.028113
+  type: 'test'
+  ...
+# Subtest: 35 · estado FINALIZADO se activa automáticamente al superar endDate
+ok 36 - 35 · estado FINALIZADO se activa automáticamente al superar endDate
+  ---
+  duration_ms: 3.36295
+  type: 'test'
+  ...
+# Subtest: 36 · v3.8.0 incorpora CEOP, TIBEST y DNV y actualiza Praxis sin duplicarlo
+ok 37 - 36 · v3.8.0 incorpora CEOP, TIBEST y DNV y actualiza Praxis sin duplicarlo
+  ---
+  duration_ms: 1.639988
+  type: 'test'
+  ...
+# Subtest: 36b · nuevos convenios quedan sin referencias visuales
+ok 38 - 36b · nuevos convenios quedan sin referencias visuales
+  ---
+  duration_ms: 1.399905
+  type: 'test'
+  ...
+# Subtest: 36c · DNV y TIBEST conservan los beneficios económicos principales del convenio
+ok 39 - 36c · DNV y TIBEST conservan los beneficios económicos principales del convenio
+  ---
+  duration_ms: 1.055835
+  type: 'test'
+  ...
+# Subtest: 36d · migración de Neon refresca sólo la ficha Praxis ya existente
+ok 40 - 36d · migración de Neon refresca sólo la ficha Praxis ya existente
+  ---
+  duration_ms: 1.788802
+  type: 'test'
+  ...
+# Subtest: 37 · v3.8.0 conserva migración robusta y fallback ante desconexión temporal de Neon
+ok 41 - 37 · v3.8.0 conserva migración robusta y fallback ante desconexión temporal de Neon
+  ---
+  duration_ms: 1.285141
+  type: 'test'
+  ...
+# Subtest: 42 · v3.9.4 ofrece acceso separado administrador / beneficiario y conserva registro por correo propio
+ok 42 - 42 · v3.9.4 ofrece acceso separado administrador / beneficiario y conserva registro por correo propio
+  ---
+  duration_ms: 2.938699
+  type: 'test'
+  ...
+# Subtest: 43 · el directorio permite buscar empresas y el administrador puede ver la experiencia de cada empresa
+ok 43 - 43 · el directorio permite buscar empresas y el administrador puede ver la experiencia de cada empresa
+  ---
+  duration_ms: 1.982234
+  type: 'test'
+  ...
+# Subtest: 44 · Difusión conserva retorno explícito al Portal de Beneficios
+ok 44 - 44 · Difusión conserva retorno explícito al Portal de Beneficios
+  ---
+  duration_ms: 1.340074
+  type: 'test'
+  ...
+# Subtest: 45 · herramientas sensibles siguen exclusivas del administrador aunque exista acceso de empresas
+ok 45 - 45 · herramientas sensibles siguen exclusivas del administrador aunque exista acceso de empresas
+  ---
+  duration_ms: 1.76071
+  type: 'test'
+  ...
+# Subtest: 46 · v3.9.1 carga padrón de socios y convenios no socios con habilitación por empresa
+ok 46 - 46 · v3.9.1 carga padrón de socios y convenios no socios con habilitación por empresa
+  ---
+  duration_ms: 2.837316
+  type: 'test'
+  ...
+# Subtest: 47 · v3.9.1 aplica correcciones UIC del padrón del 24-10-2026
+ok 47 - 47 · v3.9.1 aplica correcciones UIC del padrón del 24-10-2026
+  ---
+  duration_ms: 2.312344
+  type: 'test'
+  ...
+# Subtest: 48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres destinatarios
+ok 48 - 48 · v3.9.8.3 conserva TLK y amplía el control a lista blanca de tres destinatarios
+  ---
+  duration_ms: 2.357982
+  type: 'test'
+  ...
+# Subtest: 49 · v5.0.1 identifica versión, generación y dependencia SMTP
+ok 49 - 49 · v5.0.1 identifica versión, generación y dependencia SMTP
+  ---
+  duration_ms: 5.098553
+  type: 'test'
+  ...
+# Subtest: 50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla
+ok 50 - 50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla
+  ---
+  duration_ms: 1.793559
+  type: 'test'
+  ...
+# Subtest: 51 · pestañas administrativas permanecen montadas para navegación inmediata
+ok 51 - 51 · pestañas administrativas permanecen montadas para navegación inmediata
+  ---
+  duration_ms: 1.296218
+  type: 'test'
+  ...
+# Subtest: 52 · correo emisor usa Tesorería para envío y validación provisional
+ok 52 - 52 · correo emisor usa Tesorería para envío y validación provisional
+  ---
+  duration_ms: 1.818607
+  type: 'test'
+  ...
+# Subtest: 53 · asunto es institucional, automático y no editable
+ok 53 - 53 · asunto es institucional, automático y no editable
+  ---
+  duration_ms: 1.533036
+  type: 'test'
+  ...
+# Subtest: 54 · prueba genera código aleatorio de seis dígitos y exige verificación
+ok 54 - 54 · prueba genera código aleatorio de seis dígitos y exige verificación
+  ---
+  duration_ms: 7.774895
+  type: 'test'
+  ...
+# Subtest: 55 · masivos se controlan desde Validaciones y Modo PRUEBA bloquea el padrón
+ok 55 - 55 · masivos se controlan desde Validaciones y Modo PRUEBA bloquea el padrón
+  ---
+  duration_ms: 1.756554
+  type: 'test'
+  ...
+# Subtest: 56 · pantalla inicial explica registro, recuperación, prueba, código y validación
+ok 56 - 56 · pantalla inicial explica registro, recuperación, prueba, código y validación
+  ---
+  duration_ms: 2.27727
+  type: 'test'
+  ...
+# Subtest: 57 · mantenimiento institucional no expone infraestructura técnica
+ok 57 - 57 · mantenimiento institucional no expone infraestructura técnica
+  ---
+  duration_ms: 14.313031
+  type: 'test'
+  ...
+# Subtest: 58 · herramientas sensibles quedan exclusivas del administrador
+ok 58 - 58 · herramientas sensibles quedan exclusivas del administrador
+  ---
+  duration_ms: 1.918398
+  type: 'test'
+  ...
+# Subtest: 59 · registro de empresa valida correo existente y excluye el correo general UIC
+ok 59 - 59 · registro de empresa valida correo existente y excluye el correo general UIC
+  ---
+  duration_ms: 1.137168
+  type: 'test'
+  ...
+# Subtest: 60 · recuperación de contraseña usa código temporal y hash scrypt
+ok 60 - 60 · recuperación de contraseña usa código temporal y hash scrypt
+  ---
+  duration_ms: 1.036936
+  type: 'test'
+  ...
+# Subtest: 61 · administrador puede ver la experiencia de cualquier empresa
+ok 61 - 61 · administrador puede ver la experiencia de cualquier empresa
+  ---
+  duration_ms: 1.222757
+  type: 'test'
+  ...
+# Subtest: 62 · cuerpo del mail queda sólo texto y elimina medios binarios
+ok 62 - 62 · cuerpo del mail queda sólo texto y elimina medios binarios
+  ---
+  duration_ms: 1.765497
+  type: 'test'
+  ...
+# Subtest: 63 · envío final deduplica correos y permite baja por destinatario
+ok 63 - 63 · envío final deduplica correos y permite baja por destinatario
+  ---
+  duration_ms: 1.765588
+  type: 'test'
+  ...
+# Subtest: 64 · navegación actual no depende de eventos SPA manuales
+ok 64 - 64 · navegación actual no depende de eventos SPA manuales
+  ---
+  duration_ms: 1.084739
+  type: 'test'
+  ...
+# Subtest: 65 · al elegir beneficiario se abandona la sesión administrativa para probar permisos reales de empresa
+ok 65 - 65 · al elegir beneficiario se abandona la sesión administrativa para probar permisos reales de empresa
+  ---
+  duration_ms: 1.671404
+  type: 'test'
+  ...
+# Subtest: 66 · pantalla beneficiario explica minuciosamente registro, recuperación y falta de correo
+ok 66 - 66 · pantalla beneficiario explica minuciosamente registro, recuperación y falta de correo
+  ---
+  duration_ms: 1.197479
+  type: 'test'
+  ...
+# Subtest: 67 · v3.9.5 incorpora cola durable y monitor de envíos por empresa
+ok 67 - 67 · v3.9.5 incorpora cola durable y monitor de envíos por empresa
+  ---
+  duration_ms: 1.578284
+  type: 'test'
+  ...
+# Subtest: 68 · cancelación detiene pendientes y conserva enviados
+ok 68 - 68 · cancelación detiene pendientes y conserva enviados
+  ---
+  duration_ms: 2.807882
+  type: 'test'
+  ...
+# Subtest: 69 · ciclo mensual queda anclado a la autorización y no acumula meses
+ok 69 - 69 · ciclo mensual queda anclado a la autorización y no acumula meses
+  ---
+  duration_ms: 1.649792
+  type: 'test'
+  ...
+# Subtest: 70 · cola calcula estimaciones y reanuda tras reinicio
+ok 70 - 70 · cola calcula estimaciones y reanuda tras reinicio
+  ---
+  duration_ms: 0.93332
+  type: 'test'
+  ...
+# Subtest: 71 · v3.9.6 incorpora watchdog previo a React contra pantalla blanca
+ok 71 - 71 · v3.9.6 incorpora watchdog previo a React contra pantalla blanca
+  ---
+  duration_ms: 13.079307
+  type: 'test'
+  ...
+# Subtest: 72 · v3.9.6 evita bucles de recuperación y ofrece salida institucional
+ok 72 - 72 · v3.9.6 evita bucles de recuperación y ofrece salida institucional
+  ---
+  duration_ms: 0.667869
+  type: 'test'
+  ...
+# Subtest: 73 · v3.9.6 protege restauraciones BFCache
+ok 73 - 73 · v3.9.6 protege restauraciones BFCache
+  ---
+  duration_ms: 1.56869
+  type: 'test'
+  ...
+# Subtest: 74 · v4.0.1 conserva Error Boundary y generación técnica
+ok 74 - 74 · v4.0.1 conserva Error Boundary y generación técnica
+  ---
+  duration_ms: 1.062926
+  type: 'test'
+  ...
+# Subtest: 75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto
+ok 75 - 75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto
+  ---
+  duration_ms: 1.322177
+  type: 'test'
+  ...
+# Subtest: 76 · editor visual permite escribir con formato visible y pega texto sin estilos ajenos
+ok 76 - 76 · editor visual permite escribir con formato visible y pega texto sin estilos ajenos
+  ---
+  duration_ms: 0.772587
+  type: 'test'
+  ...
+# Subtest: 77 · constructor elimina imágenes y conserva vista previa escritorio-celular
+ok 77 - 77 · constructor elimina imágenes y conserva vista previa escritorio-celular
+  ---
+  duration_ms: 1.312643
+  type: 'test'
+  ...
+# Subtest: 78 · servidor persiste plantilla y layout estructurado y sanea el HTML enriquecido
+ok 78 - 78 · servidor persiste plantilla y layout estructurado y sanea el HTML enriquecido
+  ---
+  duration_ms: 0.960702
+  type: 'test'
+  ...
+# Subtest: 79 · correo final usa tablas compatibles con email y evita CSS grid en el render servidor
+ok 79 - 79 · correo final usa tablas compatibles con email y evita CSS grid en el render servidor
+  ---
+  duration_ms: 0.821911
+  type: 'test'
+  ...
+# Subtest: 80 · asistente de composición informa modo exclusivamente textual
+ok 80 - 80 · asistente de composición informa modo exclusivamente textual
+  ---
+  duration_ms: 0.765326
+  type: 'test'
+  ...
+# Subtest: 81 · v5.0.0 elimina optimización y carga de imágenes del constructor
+ok 81 - 81 · v5.0.0 elimina optimización y carga de imágenes del constructor
+  ---
+  duration_ms: 0.970867
+  type: 'test'
+  ...
+# Subtest: 82 · v3.9.8.1 agrega trazabilidad de aperturas por destinatario sin llamarla lectura garantizada
+ok 82 - 82 · v3.9.8.1 agrega trazabilidad de aperturas por destinatario sin llamarla lectura garantizada
+  ---
+  duration_ms: 2.814842
+  type: 'test'
+  ...
+# Subtest: 83 · administrador puede auditar empresa, correo, apertura y baja de cada campaña
+ok 83 - 83 · administrador puede auditar empresa, correo, apertura y baja de cada campaña
+  ---
+  duration_ms: 1.355497
+  type: 'test'
+  ...
+# Subtest: 84 · baja queda visible en prueba y activa en el envío real con atribución de campaña
+ok 84 - 84 · baja queda visible en prueba y activa en el envío real con atribución de campaña
+  ---
+  duration_ms: 1.247725
+  type: 'test'
+  ...
+# Subtest: 85 · franja y nombre visible se autocompletan pero pueden editarse
+ok 85 - 85 · franja y nombre visible se autocompletan pero pueden editarse
+  ---
+  duration_ms: 1.197629
+  type: 'test'
+  ...
+# Subtest: 86 · logo de Beneficios UIC se integra a la franja del correo y la vista previa
+ok 86 - 86 · logo de Beneficios UIC se integra a la franja del correo y la vista previa
+  ---
+  duration_ms: 1.629382
+  type: 'test'
+  ...
+# Subtest: 87 · cola impone como mínimo 45 segundos entre destinatarios
+ok 87 - 87 · cola impone como mínimo 45 segundos entre destinatarios
+  ---
+  duration_ms: 1.263949
+  type: 'test'
+  ...
+# Subtest: 88 · Modo PRUEBA es fail-closed y nace activado por defecto
+ok 88 - 88 · Modo PRUEBA es fail-closed y nace activado por defecto
+  ---
+  duration_ms: 0.964326
+  type: 'test'
+  ...
+# Subtest: 89 · lista blanca de prueba contiene exactamente UIC, INDUSVAR y TLK
+ok 89 - 89 · lista blanca de prueba contiene exactamente UIC, INDUSVAR y TLK
+  ---
+  duration_ms: 1.74766
+  type: 'test'
+  ...
+# Subtest: 90 · envío general exige salir de prueba y mantiene doble llave administrativa
+ok 90 - 90 · envío general exige salir de prueba y mantiene doble llave administrativa
+  ---
+  duration_ms: 1.183919
+  type: 'test'
+  ...
+# Subtest: 91 · worker vuelve a validar la lista blanca inmediatamente antes del SMTP
+ok 91 - 91 · worker vuelve a validar la lista blanca inmediatamente antes del SMTP
+  ---
+  duration_ms: 1.574048
+  type: 'test'
+  ...
+# Subtest: 92 · todos los campos de contraseña visibles usan control de ojo
+ok 92 - 92 · todos los campos de contraseña visibles usan control de ojo
+  ---
+  duration_ms: 1.094723
+  type: 'test'
+  ...
+# Subtest: 93 · botón Difusión de Beneficios queda jerarquizado en la portada
+ok 93 - 93 · botón Difusión de Beneficios queda jerarquizado en la portada
+  ---
+  duration_ms: 1.276508
+  type: 'test'
+  ...
+# Subtest: 94 · los borradores se guardan como archivo local .uicpub y no como archivo Neon
+ok 94 - 94 · los borradores se guardan como archivo local .uicpub y no como archivo Neon
+  ---
+  duration_ms: 0.937056
+  type: 'test'
+  ...
+# Subtest: 95 · abrir un archivo local recupera layout y firma sin consultar Neon
+ok 95 - 95 · abrir un archivo local recupera layout y firma sin consultar Neon
+  ---
+  duration_ms: 4.289089
+  type: 'test'
+  ...
+# Subtest: 96 · panel administrador muestra aviso rojo permanente de modo prueba
+ok 96 - 96 · panel administrador muestra aviso rojo permanente de modo prueba
+  ---
+  duration_ms: 1.332813
+  type: 'test'
+  ...
+# Subtest: 97 · envíos administrativos críticos requieren confirmación doble
+ok 97 - 97 · envíos administrativos críticos requieren confirmación doble
+  ---
+  duration_ms: 1.295007
+  type: 'test'
+  ...
+# Subtest: 98 · la portada pública no usa una empresa privada como ejemplo y el selector distingue empresas de prueba
+ok 98 - 98 · la portada pública no usa una empresa privada como ejemplo y el selector distingue empresas de prueba
+  ---
+  duration_ms: 1.391613
+  type: 'test'
+  ...
+# Subtest: 99 · v3.9.8.5 comunica acceso por convenio y aviso destacado
+ok 99 - 99 · v3.9.8.5 comunica acceso por convenio y aviso destacado
+  ---
+  duration_ms: 1.164699
+  type: 'test'
+  ...
+# Subtest: 100 · Neon sólo recibe la publicación cuando comienza la prueba operativa
+ok 100 - 100 · Neon sólo recibe la publicación cuando comienza la prueba operativa
+  ---
+  duration_ms: 1.368197
+  type: 'test'
+  ...
+# Subtest: 101 · firma visible es editable y viaja dentro del layout sin alterar el correo registrado
+ok 101 - 101 · firma visible es editable y viaja dentro del layout sin alterar el correo registrado
+  ---
+  duration_ms: 3.538866
+  type: 'test'
+  ...
+# Subtest: 102 · la versión limpia borradores remotos heredados y evita acumulación por beneficio
+ok 102 - 102 · la versión limpia borradores remotos heredados y evita acumulación por beneficio
+  ---
+  duration_ms: 0.817034
+  type: 'test'
+  ...
+# Subtest: 103 · monitor acompaña el ciclo completo desde prueba hasta distribución
+ok 103 - 103 · monitor acompaña el ciclo completo desde prueba hasta distribución
+  ---
+  duration_ms: 1.259784
+  type: 'test'
+  ...
+# Subtest: 104 · monitor reduce consultas Neon cuando no hay actividad
+ok 104 - 104 · monitor reduce consultas Neon cuando no hay actividad
+  ---
+  duration_ms: 0.995604
+  type: 'test'
+  ...
+# Subtest: 105 · reinicio conserva instancias operativas con prueba ya enviada
+ok 105 - 105 · reinicio conserva instancias operativas con prueba ya enviada
+  ---
+  duration_ms: 0.690283
+  type: 'test'
+  ...
+# Subtest: 106 · monitor informa aperturas agregadas sin exponer detalle de destinatarios a beneficiarios
+ok 106 - 106 · monitor informa aperturas agregadas sin exponer detalle de destinatarios a beneficiarios
+  ---
+  duration_ms: 0.878406
+  type: 'test'
+  ...
+# Subtest: 107 · las tres empresas de prueba conviven con las empresas reales y son visibles en el selector
+ok 107 - 107 · las tres empresas de prueba conviven con las empresas reales y son visibles en el selector
+  ---
+  duration_ms: 1.419364
+  type: 'test'
+  ...
+# Subtest: 108 · una empresa de prueba queda forzada a la lista blanca aunque el padrón general esté habilitado
+ok 108 - 108 · una empresa de prueba queda forzada a la lista blanca aunque el padrón general esté habilitado
+  ---
+  duration_ms: 0.778356
+  type: 'test'
+  ...
+# Subtest: 109 · la validación administrativa reconoce empresas de prueba aun con padrón general habilitado
+ok 109 - 109 · la validación administrativa reconoce empresas de prueba aun con padrón general habilitado
+  ---
+  duration_ms: 0.807079
+  type: 'test'
+  ...
+# Subtest: 110 · v5.0.0 abre .uicpub sólo texto localmente sin fetch ni Neon
+ok 110 - 110 · v5.0.0 abre .uicpub sólo texto localmente sin fetch ni Neon
+  ---
+  duration_ms: 0.739867
+  type: 'test'
+  ...
+# Subtest: 111 · v3.9.8.8 usa selector nativo de apertura cuando está disponible y mantiene fallback
+ok 111 - 111 · v3.9.8.8 usa selector nativo de apertura cuando está disponible y mantiene fallback
+  ---
+  duration_ms: 0.687628
+  type: 'test'
+  ...
+# Subtest: 112 · v3.9.9.1 incorpora 202 contactos Mailchimp como Socio a confirmar sin pisar existentes
+ok 112 - 112 · v3.9.9.1 incorpora 202 contactos Mailchimp como Socio a confirmar sin pisar existentes
+  ---
+  duration_ms: 3.962786
+  type: 'test'
+  ...
+# Subtest: 113 · v3.9.9.1 evita duplicados de altas nuevas por correo y preserva el registro previo
+ok 113 - 113 · v3.9.9.1 evita duplicados de altas nuevas por correo y preserva el registro previo
+  ---
+  duration_ms: 0.773007
+  type: 'test'
+  ...
+# Subtest: 114 · v3.9.9.1 muestra Socios a confirmar sólo como clasificación administrativa
+ok 114 - 114 · v3.9.9.1 muestra Socios a confirmar sólo como clasificación administrativa
+  ---
+  duration_ms: 5.501251
+  type: 'test'
+  ...
+# Subtest: 115 · v3.9.9.1 mantiene deduplicación final de envío por e-mail normalizado
+ok 115 - 115 · v3.9.9.1 mantiene deduplicación final de envío por e-mail normalizado
+  ---
+  duration_ms: 0.960251
+  type: 'test'
+  ...
+# Subtest: v3.9.9.1 migra el CHECK de source_type para socio_confirmar
+ok 116 - v3.9.9.1 migra el CHECK de source_type para socio_confirmar
+  ---
+  duration_ms: 0.43029
+  type: 'test'
+  ...
+# Subtest: 117 · v3.9.9.2 renueva la sesión administrativa en cada operación autorizada
+ok 117 - 117 · v3.9.9.2 renueva la sesión administrativa en cada operación autorizada
+  ---
+  duration_ms: 2.022946
+  type: 'test'
+  ...
+# Subtest: 118 · v3.9.9.2 devuelve código explícito cuando vence la sesión administrativa
+ok 118 - 118 · v3.9.9.2 devuelve código explícito cuando vence la sesión administrativa
+  ---
+  duration_ms: 0.967532
+  type: 'test'
+  ...
+# Subtest: 119 · v3.9.9.2 captura 401 administrativo y vuelve al login sin romper React
+ok 119 - 119 · v3.9.9.2 captura 401 administrativo y vuelve al login sin romper React
+  ---
+  duration_ms: 0.996345
+  type: 'test'
+  ...
+# Subtest: 120 · v3.9.9.2 permite reiniciar el acceso administrador desde la pantalla de recuperación
+ok 120 - 120 · v3.9.9.2 permite reiniciar el acceso administrador desde la pantalla de recuperación
+  ---
+  duration_ms: 0.664403
+  type: 'test'
+  ...
+# Subtest: 121 · v5.0.0 elimina campos de imagen del catálogo y conserva caché textual
+ok 121 - 121 · v5.0.0 elimina campos de imagen del catálogo y conserva caché textual
+  ---
+  duration_ms: 1.012259
+  type: 'test'
+  ...
+# Subtest: 122 · v5.0.0 deja campaignMedia vacío y sin lecturas binarias
+ok 122 - 122 · v5.0.0 deja campaignMedia vacío y sin lecturas binarias
+  ---
+  duration_ms: 0.947431
+  type: 'test'
+  ...
+# Subtest: 123 · v5.0.0 elimina tablas binarias y conserva limpieza segura de campañas abandonadas
+ok 123 - 123 · v5.0.0 elimina tablas binarias y conserva limpieza segura de campañas abandonadas
+  ---
+  duration_ms: 2.651415
+  type: 'test'
+  ...
+# Subtest: 124 · v5.0.0 conserva auditoría de campañas sin consultar bytes binarios
+ok 124 - 124 · v5.0.0 conserva auditoría de campañas sin consultar bytes binarios
+  ---
+  duration_ms: 1.075164
+  type: 'test'
+  ...
+# Subtest: 125 · v4.0.4 incorpora manual PDF descargable desde portada
+ok 125 - 125 · v4.0.4 incorpora manual PDF descargable desde portada
+  ---
+  duration_ms: 2.783264
+  type: 'test'
+  ...
+# Subtest: 126 · v4.0.1 agrega Monitor general como pestaña administrativa permanente
+ok 126 - 126 · v4.0.1 agrega Monitor general como pestaña administrativa permanente
+  ---
+  duration_ms: 1.923085
+  type: 'test'
+  ...
+# Subtest: 127 · v4.0.1 muestra botón Monitor de envíos al beneficiario y separa edición
+ok 127 - 127 · v4.0.1 muestra botón Monitor de envíos al beneficiario y separa edición
+  ---
+  duration_ms: 3.404553
+  type: 'test'
+  ...
+# Subtest: 128 · v4.0.1 reserva cancelación y trazabilidad individual al administrador
+ok 128 - 128 · v4.0.1 reserva cancelación y trazabilidad individual al administrador
+  ---
+  duration_ms: 0.946099
+  type: 'test'
+  ...
+# Subtest: 129 · v4.0.1 usa la nomenclatura acordada para estados del monitor
+ok 129 - 129 · v4.0.1 usa la nomenclatura acordada para estados del monitor
+  ---
+  duration_ms: 19.255848
+  type: 'test'
+  ...
+# Subtest: v4.0.1 agrega accesos directos de validación para Tesorería y administrador
+ok 130 - v4.0.1 agrega accesos directos de validación para Tesorería y administrador
+  ---
+  duration_ms: 1.62209
+  type: 'test'
+  ...
+# Subtest: 131 · panel de empresa expone acceso principal al Monitor y métricas propias
+ok 131 - 131 · panel de empresa expone acceso principal al Monitor y métricas propias
+  ---
+  duration_ms: 1.44969
+  type: 'test'
+  ...
+# Subtest: 132 · v4.0.4 hace visible el Monitor antes y después de autenticar empresa
+ok 132 - 132 · v4.0.4 hace visible el Monitor antes y después de autenticar empresa
+  ---
+  duration_ms: 1.285001
+  type: 'test'
+  ...
+# Subtest: 133 · monitor de empresa permanece aislado por sesión y no acepta companyKey externo
+ok 133 - 133 · monitor de empresa permanece aislado por sesión y no acepta companyKey externo
+  ---
+  duration_ms: 0.911397
+  type: 'test'
+  ...
+# Subtest: 134 · línea de tiempo del monitor contempla las seis etapas visibles
+ok 134 - 134 · línea de tiempo del monitor contempla las seis etapas visibles
+  ---
+  duration_ms: 1.186492
+  type: 'test'
+  ...
+# Subtest: 135 · v4.0.4 expone Monitor de envíos desde la portada pública y abre flujo beneficiario
+ok 135 - 135 · v4.0.4 expone Monitor de envíos desde la portada pública y abre flujo beneficiario
+  ---
+  duration_ms: 0.977026
+  type: 'test'
+  ...
+# Subtest: 136 · v4.0.4 fuerza actualización visual y expone Monitor también en menú móvil
+ok 136 - 136 · v4.0.4 fuerza actualización visual y expone Monitor también en menú móvil
+  ---
+  duration_ms: 1.048985
+  type: 'test'
+  ...
+# Subtest: 137 · v4.0.4 prioriza listado de empresas y relega instrucciones a ayuda desplegable
+ok 137 - 137 · v4.0.4 prioriza listado de empresas y relega instrucciones a ayuda desplegable
+  ---
+  duration_ms: 1.248957
+  type: 'test'
+  ...
+# Subtest: 138 · v4.0.5 actualiza padrón corporativo sin duplicar empresas confirmadas
+ok 138 - 138 · v4.0.5 actualiza padrón corporativo sin duplicar empresas confirmadas
+  ---
+  duration_ms: 2.165581
+  type: 'test'
+  ...
+# Subtest: 139 · v4.0.8 incorpora sólo los 50 contactos corporativos validados y sin duplicados
+ok 139 - 139 · v4.0.8 incorpora sólo los 50 contactos corporativos validados y sin duplicados
+  ---
+  duration_ms: 1.570623
+  type: 'test'
+  ...
+# Subtest: 140 · v4.0.8 calcula aperturas totales sólo bajo actualización manual y elimina polling del Monitor
+ok 140 - 140 · v4.0.8 calcula aperturas totales sólo bajo actualización manual y elimina polling del Monitor
+  ---
+  duration_ms: 1.820731
+  type: 'test'
+  ...
+# Subtest: 141 · v4.0.8 incorpora 32 contactos depurados sin reemplazar correos vigentes
+ok 141 - 141 · v4.0.8 incorpora 32 contactos depurados sin reemplazar correos vigentes
+  ---
+  duration_ms: 2.586968
+  type: 'test'
+  ...
+# Subtest: 142 · v5.0.0 elimina almacenamiento binario y carga visual en Neon
+ok 142 - 142 · v5.0.0 elimina almacenamiento binario y carga visual en Neon
+  ---
+  duration_ms: 1.245171
+  type: 'test'
+  ...
+# Subtest: 143 · v5.0.0 agrega aviso de no responder y Hacete socio al correo
+ok 143 - 143 · v5.0.0 agrega aviso de no responder y Hacete socio al correo
+  ---
+  duration_ms: 3.148506
+  type: 'test'
+  ...
+# Subtest: 144 · v5.1.0 conserva accesos originales y suma Recibir beneficios con mayor legibilidad
+ok 144 - 144 · v5.1.0 conserva accesos originales y suma Recibir beneficios con mayor legibilidad
+  ---
+  duration_ms: 4.01853
+  type: 'test'
+  ...
+# Subtest: 145 · v5.0.2 agrega filtros de últimos beneficios y últimas empresas difundidas
+ok 145 - 145 · v5.0.2 agrega filtros de últimos beneficios y últimas empresas difundidas
+  ---
+  duration_ms: 1.580237
+  type: 'test'
+  ...
+# Subtest: 146 · v5.0.4 separa Praxis de Gestión empresarial sin mover C-Forma ni Inventiva
+ok 146 - 146 · v5.0.4 separa Praxis de Gestión empresarial sin mover C-Forma ni Inventiva
+  ---
+  duration_ms: 2.629582
+  type: 'test'
+  ...
+# Subtest: 147 · v5.0.5 desacopla búsqueda y filtros y evita falsos positivos amplios
+ok 147 - 147 · v5.0.5 desacopla búsqueda y filtros y evita falsos positivos amplios
+  ---
+  duration_ms: 22.606158
+  type: 'test'
+  ...
+# Subtest: 148 · v5.0.6 elimina accesos rápidos promocionales del buscador
+ok 148 - 148 · v5.0.6 elimina accesos rápidos promocionales del buscador
+  ---
+  duration_ms: 1.612446
+  type: 'test'
+  ...
+# Subtest: 149 · v5.1.0 agrega autoregistro público con validaciones obligatorias
+ok 149 - 149 · v5.1.0 agrega autoregistro público con validaciones obligatorias
+  ---
+  duration_ms: 1.552776
+  type: 'test'
+  ...
+# Subtest: 150 · v5.1.0 incorpora cola administrativa Nuevos contactos sin alta automática
+ok 150 - 150 · v5.1.0 incorpora cola administrativa Nuevos contactos sin alta automática
+  ---
+  duration_ms: 1.987312
+  type: 'test'
+  ...
+# Subtest: 151 · v5.1.0 deduplica por email y sólo enriquece campos vacíos al aprobar
+ok 151 - 151 · v5.1.0 deduplica por email y sólo enriquece campos vacíos al aprobar
+  ---
+  duration_ms: 1.052019
+  type: 'test'
+  ...
+1..151
+# tests 151
+# suites 0
+# pass 151
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 642.517441

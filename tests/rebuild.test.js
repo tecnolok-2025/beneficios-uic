@@ -86,9 +86,9 @@ test('10 · versión y generación 5.0.0 son coherentes', async () => {
   const server = await read('server/index.js')
   const html = await read('index.html')
   assert.equal(pkg.name, 'beneficios-uic')
-  assert.equal(pkg.version, '5.1.0')
-  assert.match(server, /BENEFICIOS_UIC_5100/)
-  assert.match(html, /BENEFICIOS_UIC_5100/)
+  assert.equal(pkg.version, '5.1.1')
+  assert.match(server, /BENEFICIOS_UIC_5110/)
+  assert.match(html, /BENEFICIOS_UIC_5110/)
 })
 
 test('11 · control anticaché y neutralización de service workers siguen activos', async () => {
@@ -500,11 +500,11 @@ test('49 · v5.0.1 identifica versión, generación y dependencia SMTP', async (
   const lock = JSON.parse(await read('package-lock.json'))
   const index = await read('index.html')
   const server = await read('server/index.js')
-  assert.equal(pkg.version, '5.1.0')
+  assert.equal(pkg.version, '5.1.1')
   assert.equal(pkg.dependencies.nodemailer, '^10.2.1')
   assert.equal(lock.packages['node_modules/nodemailer'].version, '10.2.1')
-  assert.match(index, /BENEFICIOS_UIC_5100/)
-  assert.match(server, /BENEFICIOS_UIC_5100/)
+  assert.match(index, /BENEFICIOS_UIC_5110/)
+  assert.match(server, /BENEFICIOS_UIC_5110/)
 })
 
 test('50 · administrador puede agregar socios o convenios y cada empresa conserva su casilla', async () => {
@@ -747,10 +747,10 @@ test('74 · v4.0.1 conserva Error Boundary y generación técnica', async () => 
   const main = await read('src/main.jsx')
   const server = await read('server/index.js')
   const pkg = JSON.parse(await read('package.json'))
-  assert.equal(pkg.version, '5.1.0')
+  assert.equal(pkg.version, '5.1.1')
   assert.match(main, /class PortalErrorBoundary/)
   assert.match(main, /uic:portal-ready/)
-  assert.match(server, /BENEFICIOS_UIC_5100/)
+  assert.match(server, /BENEFICIOS_UIC_5110/)
 })
 
 test('75 · v5.0.0 simplifica el constructor a comunicación institucional sólo texto', async () => {
@@ -1313,7 +1313,7 @@ test('136 · v4.0.4 fuerza actualización visual y expone Monitor también en me
   const boot = await fs.readFile(path.join(root, 'public/boot-recovery.js'), 'utf8')
   const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
   assert.match(boot, /VERSION = '404'/)
-  assert.match(html, /boot-recovery\.js\?v=5100/)
+  assert.match(html, /boot-recovery\.js\?v=5110/)
   assert.match(app, />Monitor de envíos<\/button>/)
 })
 
@@ -1549,4 +1549,26 @@ test('153 · v5.1.0 final rechaza eliminando la solicitud pendiente y confirma e
   assert.match(app, /Guardar decisiones/)
   assert.match(server, /contact-requests\/delete/)
   assert.match(server, /DELETE FROM diffusion_contact_requests WHERE id=ANY/)
+})
+
+test('154 · v5.1.1 mantiene la trazabilidad individual exclusiva de Administración UIC', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(server, /app\.get\('\/api\/admin\/difusion\/campaigns\/:id\/trace',requireAdmin/)
+  assert.match(server, /app\.get\('\/api\/difusion\/company\/monitor',requireCompany/)
+  assert.match(server, /monitorPayload\(req\.companySession\.companyKey/)
+  assert.match(app, /El detalle por destinatario y correo queda reservado a Administración UIC/)
+  assert.match(app, /La trazabilidad de otros socios nunca se expone/)
+})
+
+test('155 · v5.1.1 agrega calificación administrativa de 0 a 5 estrellas por aperturas', async () => {
+  const app = await read('src/App.jsx')
+  const server = await read('server/index.js')
+  assert.match(server, /engagement_total_opens/)
+  assert.match(server, /engagement_stars/)
+  assert.match(server, /Math\.ceil\(\(total\/maxOpens\)\*5\)/)
+  assert.match(app, /Interés por aperturas/)
+  assert.match(app, /0 estrellas/)
+  assert.match(app, /SIN ENVÍOS/)
+  assert.match(app, /Nunca se muestra al beneficiario/)
 })

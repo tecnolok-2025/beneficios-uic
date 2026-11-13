@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
 const VERSION = metadata.version
-const GENERATION = 'BENEFICIOS_UIC_5100'
+const GENERATION = 'BENEFICIOS_UIC_5110'
 const BUILD_COMMIT = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || null
 const PORT = Number(process.env.PORT || 10000)
 const dist = path.join(root, 'dist')
@@ -869,7 +869,33 @@ app.post('/api/admin/difusion/mail-settings/test', requireAdmin, requireDiffusio
 app.get('/api/admin/difusion/companies', requireAdmin, async (_req, res, next) => { try { res.json(await buildDiffusionCompanies()) } catch (error) { next(error) } })
 
 app.get('/api/admin/difusion/recipients', requireAdmin, requireDiffusionDatabase, async (_req, res, next) => {
-  try { const result = await pool.query(`SELECT * FROM diffusion_recipients ORDER BY CASE source_type WHEN 'socio' THEN 0 WHEN 'socio_confirmar' THEN 1 WHEN 'convenio' THEN 2 ELSE 3 END, company_name, contact_name`); res.json(result.rows) } catch (error) { next(error) }
+  try {
+    const result = await pool.query(`SELECT r.*,
+      COALESCE(e.sent_deliveries,0)::int AS engagement_sent,
+      COALESCE(e.opened_deliveries,0)::int AS engagement_opened,
+      COALESCE(e.total_opens,0)::int AS engagement_total_opens,
+      e.last_opened_at AS engagement_last_opened_at
+      FROM diffusion_recipients r
+      LEFT JOIN (
+        SELECT recipient_id,
+          COUNT(*) FILTER (WHERE status='sent') AS sent_deliveries,
+          COUNT(*) FILTER (WHERE status='sent' AND first_opened_at IS NOT NULL) AS opened_deliveries,
+          COALESCE(SUM(open_count) FILTER (WHERE status='sent'),0) AS total_opens,
+          MAX(last_opened_at) FILTER (WHERE status='sent') AS last_opened_at
+        FROM diffusion_campaign_queue_recipients
+        WHERE recipient_id IS NOT NULL
+        GROUP BY recipient_id
+      ) e ON e.recipient_id=r.id
+      ORDER BY CASE r.source_type WHEN 'socio' THEN 0 WHEN 'socio_confirmar' THEN 1 WHEN 'convenio' THEN 2 ELSE 3 END, r.company_name, r.contact_name`)
+    const rows=result.rows; const maxOpens=Math.max(0,...rows.map(row=>Number(row.engagement_total_opens||0)))
+    const enriched=rows.map(row=>{
+      const sent=Number(row.engagement_sent||0), opened=Number(row.engagement_opened||0), total=Number(row.engagement_total_opens||0)
+      const stars=sent===0?null:total===0?0:maxOpens<=0?0:Math.max(1,Math.min(5,Math.ceil((total/maxOpens)*5)))
+      const openRate=sent?Math.round(opened*10000/sent)/100:null
+      return {...row,engagement_stars:stars,engagement_open_rate:openRate}
+    })
+    res.json(enriched)
+  } catch (error) { next(error) }
 })
 app.put('/api/admin/difusion/recipient-companies/toggle', requireAdmin, requireDiffusionDatabase, async (req, res, next) => {
   try {
